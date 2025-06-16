@@ -80,12 +80,12 @@ A API estará disponível em: [http://localhost:3001](http://localhost:3001)
 
 ## 🔐 Endpoints de Autenticação (`/auth`)
 
-> Todas as rotas relacionadas ao login e cadastro de usuários.
+> Todas as rotas relacionadas ao login e cadastro de usuários. Para criar usuarios é necessario o Token de um ADM_Festa logado
 
 | Método | Rota                           | Descrição                                                       |
 |--------|-------------------------------|-----------------------------------------------------------------------|
-| POST   | `/auth/register/admFesta`     | Registra um novo administrador de festa. (Proteger em Produção)       |
-| POST   | `/auth/register/admEspaco`     | Registra um novo administrador do espaço. (Proteger em Produção)     |
+| POST   | `/auth/register/admFesta`     | Somente um usuarios admEspaco ja cadastrado pode criar um usuario novo, usando seu Token      |
+| POST   | `/auth/register/admEspaco`     |  Somente um usuarios admEspaco ja cadastrado pode criar um usuario novo, usando seu Token     |
 | POST   | `/auth/login`                  | Realiza login e retorna token JWT.                                    |
 | POST   | `/auth/definir-senha`         | Permite definir senha via token de primeiro acesso.                  |
 

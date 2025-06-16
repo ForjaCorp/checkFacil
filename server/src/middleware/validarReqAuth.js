@@ -85,3 +85,22 @@ export function verificarTokenJWT(req, res, next) {
     return res.status(500).json({ error: 'Falha na autenticação do token.' });
   }
 }
+
+export function permitirApenas(...tiposPermitidos) {
+  return (req, res, next) => {
+  
+    const { usuarioTipo } = req;
+
+    if (!usuarioTipo) {
+      
+      return res.status(401).json({ error: "Informações de usuário não encontradas. Falha na autenticação." });
+    }
+
+    if (tiposPermitidos.includes(usuarioTipo)) {
+            return next();
+    } else {
+      
+      return res.status(403).json({ error: "Acesso negado. Você não tem permissão para realizar esta ação." });
+    }
+  };
+}
