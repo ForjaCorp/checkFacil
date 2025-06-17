@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: checkfacil-api
+    restart: always
+    expose:
+      - "3001"
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.checkfacil.rule=Host(`api.checkfacil.com.br`)"
+      - "traefik.http.routers.checkfacil.entrypoints=websecure"
+      - "traefik.http.routers.checkfacil.tls.certresolver=letsencrypt"
+    networks:
+      - traefik_net
+
+networks:
+  traefik_net:
+    external: true
+    name: 4GTNET

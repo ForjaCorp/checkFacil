@@ -13,6 +13,7 @@ import StaffDashboardPage from '@/pages/StaffDashboardPage'
 import { ProtectedRoute } from '@/router/ProtectedRoute'
 
 import CompleteEventDetailsPage from './pages/events/CompleteEventDetailsPage'
+import GuestManagementPage from './pages/guests/GuestManagementPage'
 
 function UnauthorizedPage() {
   return (
@@ -137,6 +138,15 @@ function App() {
             element={
               <ProtectedRoute
                 element={<CompleteEventDetailsPage />}
+                allowedRoles={['Adm_festa', 'Adm_espaco']}
+              />
+            }
+          />
+          <Route
+            path="/event/:eventId/guests"
+            element={
+              <ProtectedRoute
+                element={<GuestManagementPage />}
                 allowedRoles={['Adm_festa', 'Adm_espaco']}
               />
             }
