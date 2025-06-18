@@ -4,16 +4,16 @@ import SplashScreen from '@/components/SplashScreen'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
 import { useAuth } from '@/contexts/authContextCore'
+import CompleteEventDetailsPage from '@/pages/events/CompleteEventDetailsPage'
 import CreateDraftEventPage from '@/pages/events/CreateDraftEventPage'
+import GuestManagementPage from '@/pages/guests/GuestManagementPage'
 import LandingPage from '@/pages/LandingPage'
 import LoginPage from '@/pages/LoginPage'
+import CheckinPage from '@/pages/operations/CheckinPage'
 import OrganizerDashboardPage from '@/pages/OrganizerDashboardPage'
 import { SetPasswordPage } from '@/pages/SetPasswordPage'
 import StaffDashboardPage from '@/pages/StaffDashboardPage'
 import { ProtectedRoute } from '@/router/ProtectedRoute'
-
-import CompleteEventDetailsPage from './pages/events/CompleteEventDetailsPage'
-import GuestManagementPage from './pages/guests/GuestManagementPage'
 
 function UnauthorizedPage() {
   return (
@@ -114,7 +114,6 @@ function App() {
               <ProtectedRoute element={<CreateDraftEventPage />} allowedRoles={['Adm_espaco']} />
             }
           />
-          {/* 2. ADICIONE A ROTA DE DETALHES PARA O STAFF */}
           <Route
             path="/staff/event/:eventId/details"
             element={
@@ -124,6 +123,10 @@ function App() {
               />
             }
           />
+          <Route
+            path="staff/event/:eventId/checkin"
+            element={<ProtectedRoute element={<CheckinPage />} allowedRoles={['Adm_espaco']} />}
+          />
 
           {/* Rotas Protegidas do Contratante */}
           <Route
@@ -132,7 +135,6 @@ function App() {
               <ProtectedRoute element={<OrganizerDashboardPage />} allowedRoles={['Adm_festa']} />
             }
           />
-          {/* 3. ADICIONE A ROTA DE DETALHES PARA O CONTRATANTE */}
           <Route
             path="/organizer/event/:eventId/details"
             element={
