@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { Loader2, Search, UserCheck, UserX } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -33,6 +34,7 @@ const CheckinPage = () => {
   const { eventId } = useParams<{ eventId: string }>()
   const [guests, setGuests] = useState<CheckinGuest[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isActionLoading, setIsActionLoading] = useState<number | null>(null)
 
   const [searchTerm, setSearchTerm] = useState('')
   const debouncedSearchTerm = useDebounce(searchTerm, 300) // 300ms de delay
@@ -79,12 +81,49 @@ const CheckinPage = () => {
     fetchGuests()
   }, [fetchGuests])
 
-  const handleCheckin = (guestId: number) => {
-    toast.info(`Check-in para o convidado ${guestId} (a implementar)...`)
+  const handleCheckin = async (guestId: number) => {
+    if (!eventId) return
+    setIsActionLoading(guestId)
+    try {
+      await api.patch(`/festa/${eventId}/convidados/${guestId}/checkin`)
+      toast.success('Check-in realizado com sucesso!')
+      await fetchGuests()
+    } catch (error: unknown) {
+      let errorMessage = 'Ocorreu um erro inesperado.'
+      if (axios.isAxiosError(error) && error.response) {
+        errorMessage = error.response.data.error || error.response.data.message || errorMessage
+      } else if (error instanceof Error) {
+        errorMessage = error.message
+      }
+      toast.error('Falha no Check-in', {
+        description: errorMessage,
+      })
+    } finally {
+      setIsActionLoading(null)
+    }
   }
 
-  const handleCheckout = (guestId: number) => {
-    toast.info(`Check-out para o convidado ${guestId} (a implementar)...`)
+  const handleCheckout = async (guestId: number) => {
+    if (!eventId) return
+    setIsActionLoading(guestId)
+    try {
+      await api.patch(`/festa/${eventId}/convidados/${guestId}/checkout`)
+      toast.success('Check-out realizado com sucesso!')
+      await fetchGuests()
+    } catch (error: unknown) {
+      let errorMessage = 'Ocorreu um erro inesperado.'
+      if (axios.isAxiosError(error) && error.response) {
+        errorMessage = error.response.data.error || error.response.data.message || errorMessage
+      } else if (error instanceof Error) {
+        errorMessage = error.message
+      }
+      toast.error('Falha no Check-out', {
+        description: errorMessage,
+      })
+      console.error('Erro ao realizar check-out:', error)
+    } finally {
+      setIsActionLoading(null)
+    }
   }
 
   return (
@@ -130,17 +169,27 @@ const CheckinPage = () => {
                           size="sm"
                           variant="outline"
                           onClick={() => handleCheckin(guest.id)}
-                          disabled={guest.status !== 'Aguardando'}
+                          disabled={guest.status !== 'Aguardando' || isActionLoading === guest.id}
                         >
-                          <UserCheck className="mr-2 h-4 w-4" /> Check-in
+                          {isActionLoading === guest.id ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <UserCheck className="mr-2 h-4 w-4" />
+                          )}
+                          Check-in
                         </Button>
                         <Button
                           size="sm"
                           variant="destructive"
                           onClick={() => handleCheckout(guest.id)}
-                          disabled={guest.status !== 'Presente'}
+                          disabled={guest.status !== 'Presente' || isActionLoading === guest.id}
                         >
-                          <UserX className="mr-2 h-4 w-4" /> Check-out
+                          {isActionLoading === guest.id ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <UserX className="mr-2 h-4 w-4" />
+                          )}
+                          Check-out
                         </Button>
                       </div>
                     </TableCell>
