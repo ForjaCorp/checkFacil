@@ -1,4 +1,3 @@
-import axios from 'axios'
 import { Loader2, Pencil, PlusCircle, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -33,6 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useApiMutation } from '@/hooks/useApiMutation'
 import api from '@/services/api'
 
 import type { AddGuestFormValues } from '@/schemas/guestSchemas'
@@ -42,9 +42,10 @@ function GuestManagementPage() {
   const { eventId } = useParams<{ eventId: string }>()
   const [guests, setGuests] = useState<AppGuest[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [partyName, setPartyName] = useState('')
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  // Estados para controlar os modais
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingGuest, setEditingGuest] = useState<AppGuest | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [guestToDelete, setGuestToDelete] = useState<AppGuest | null>(null)
@@ -75,7 +76,7 @@ function GuestManagementPage() {
       console.error('Erro ao buscar convidados:', error)
       toast.error('Não foi possível carregar a lista de convidados.')
     }
-  }, [eventId]) // Dependência do useCallback
+  }, [eventId])
 
   // Busca os dados iniciais
   useEffect(() => {
@@ -92,34 +93,66 @@ function GuestManagementPage() {
       setIsLoading(false)
     }
     fetchInitialData()
-  }, [eventId, fetchGuests]) // Adicionado fetchGuests como dependência
+  }, [eventId, fetchGuests])
 
-  // Função para lidar com a submissão do formulário
+  const { mutate: addGuest, isLoading: isAdding } = useApiMutation(
+    (data: AddGuestFormValues) => api.post(`/festa/${eventId}/convidados`, data),
+    'Convidado adicionado com sucesso!',
+    {
+      onSuccess: () => {
+        fetchGuests()
+        setIsAddDialogOpen(false)
+      },
+    },
+  )
+
+  const { mutate: editGuest, isLoading: isEditing } = useApiMutation(
+    (data: AddGuestFormValues) =>
+      api.patch(`/festa/${eventId}/convidados/${editingGuest?.id}`, data),
+    'Convidado atualizado com sucesso!',
+    {
+      onSuccess: () => {
+        fetchGuests()
+        setIsEditDialogOpen(false)
+        setEditingGuest(null)
+      },
+    },
+  )
+
+  const { mutate: deleteGuest, isLoading: isDeleting } = useApiMutation(
+    () => api.delete(`/festa/${eventId}/convidados/${guestToDelete?.id}`),
+    `Convidado removido com sucesso!`,
+    {
+      onSuccess: () => {
+        fetchGuests()
+        setGuestToDelete(null)
+      },
+    },
+  )
+
   const handleAddGuestSubmit = async (data: AddGuestFormValues) => {
-    // TIPO CORRIGIDO AQUI
-    if (!eventId) return
-    setIsSubmitting(true)
     try {
-      await api.post(`/festa/${eventId}/convidados`, data)
-      toast.success('Convidado adicionado com sucesso!')
-      setIsDialogOpen(false)
-      await fetchGuests() // Atualiza a lista
-    } catch (error: unknown) {
-      let errorMessage = 'Ocorreu um erro inesperado.'
-      if (axios.isAxiosError(error) && error.response) {
-        errorMessage =
-          error.response.data.error ||
-          error.response.data.message ||
-          'Erro ao processar a solicitação.'
-      } else if (error instanceof Error) {
-        // Se for um erro genérico do JavaScript, pegamos a mensagem
-        errorMessage = error.message
-      }
-      toast.error('Falha ao adicionar convidado.', {
-        description: errorMessage,
-      })
-    } finally {
-      setIsSubmitting(false)
+      await addGuest(data)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const handleEditGuestSubmit = async (data: AddGuestFormValues) => {
+    if (!editingGuest) return
+    try {
+      await editGuest(data)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const confirmDeleteGuest = async () => {
+    if (!guestToDelete) return
+    try {
+      await deleteGuest(undefined)
+    } catch (error) {
+      console.error(error)
     }
   }
 
@@ -128,68 +161,8 @@ function GuestManagementPage() {
     setIsEditDialogOpen(true)
   }
 
-  const handleEditGuestSubmit = async (data: AddGuestFormValues) => {
-    if (!editingGuest || !eventId) return
-
-    setIsSubmitting(true)
-    try {
-      // Chama o endpoint PATCH para atualizar o convidado
-      await api.patch(
-        `/festa/<span class="math-inline">\{eventId\}/convidados/</span>{editingGuest.id}`,
-        data,
-      )
-      toast.success('Convidado atualizado com sucesso!')
-      setIsEditDialogOpen(false) // Fecha o modal
-      setEditingGuest(null) // Limpa o estado de edição
-      await fetchGuests() // Atualiza a lista
-    } catch (error: unknown) {
-      // Use 'unknown' em vez de 'any'
-      let errorMessage = 'Ocorreu um erro inesperado.'
-
-      if (axios.isAxiosError(error) && error.response) {
-        errorMessage =
-          error.response.data.error ||
-          error.response.data.message ||
-          'Erro ao processar a solicitação.'
-      } else if (error instanceof Error) {
-        errorMessage = error.message
-      }
-
-      toast.error('Falha ao atualizar convidado.', {
-        description: errorMessage,
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   const handleDeleteClick = (guest: AppGuest) => {
-    setGuestToDelete(guest) // Guarda o convidado que queremos deletar
-  }
-
-  const confirmDeleteGuest = async () => {
-    if (!guestToDelete || !eventId) return
-
-    // Podemos reusar o estado 'isSubmitting' para o loading do botão de deletar
-    setIsSubmitting(true)
-    try {
-      // Chama o endpoint DELETE
-      await api.delete(`/festa/${eventId}/convidados/${guestToDelete.id}`)
-      toast.success(`Convidado "${guestToDelete.nome_convidado}" removido com sucesso!`)
-
-      await fetchGuests() // Atualiza a lista na tela
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        toast.error(error.response.data.error || 'Por favor, tente novamente.')
-      } else if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error('Ocorreu um erro inesperado.')
-      }
-    } finally {
-      setIsSubmitting(false)
-      setGuestToDelete(null) // Fecha o diálogo limpando o estado
-    }
+    setGuestToDelete(guest)
   }
 
   return (
@@ -199,7 +172,7 @@ function GuestManagementPage() {
           <h1 className="text-3xl font-bold text-foreground">Gerenciar Convidados</h1>
           {partyName && <p className="text-lg text-muted-foreground">{partyName}</p>}
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="w-full mt-4 sm:w-auto sm:mt-0">
               <PlusCircle className="mr-2 h-4 w-4" />
@@ -213,7 +186,7 @@ function GuestManagementPage() {
                 Preencha os dados abaixo para adicionar um novo convidado à lista.
               </DialogDescription>
             </DialogHeader>
-            <AddGuestForm onSubmit={handleAddGuestSubmit} isLoading={isSubmitting} mode="add" />
+            <AddGuestForm onSubmit={handleAddGuestSubmit} isLoading={isAdding} mode="add" />{' '}
           </DialogContent>
         </Dialog>
       </header>
@@ -229,7 +202,7 @@ function GuestManagementPage() {
           {editingGuest && (
             <AddGuestForm
               onSubmit={handleEditGuestSubmit}
-              isLoading={isSubmitting}
+              isLoading={isEditing}
               initialValues={{
                 nome_convidado: editingGuest.nome_convidado,
                 tipo_convidado: editingGuest.tipo_convidado,
@@ -323,10 +296,10 @@ function GuestManagementPage() {
             <AlertDialogCancel onClick={() => setGuestToDelete(null)}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteGuest}
-              disabled={isSubmitting}
+              disabled={isDeleting}
               className="bg-destructive"
             >
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sim, deletar convidado
             </AlertDialogAction>
           </AlertDialogFooter>

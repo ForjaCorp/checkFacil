@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/contexts/authContextCore'
+import { useApiMutation } from '@/hooks/useApiMutation'
 import api from '@/services/api'
 
 const setPasswordSchema = z
@@ -34,7 +35,6 @@ const setPasswordSchema = z
 type SetPasswordFormValues = z.infer<typeof setPasswordSchema>
 
 export function SetPasswordPage() {
-  const [isLoading, setIsLoading] = useState(false)
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
   const auth = useAuth()
@@ -44,12 +44,20 @@ export function SetPasswordPage() {
     defaultValues: { password: '', confirmPassword: '' },
   })
 
-  async function onSubmit(values: SetPasswordFormValues) {
-    setIsLoading(true)
+  const { mutate: setPassword, isLoading } = useApiMutation(
+    (payload) => api.post('/auth/definir-senha', payload),
+    'Senha definida com sucesso!',
+    {
+      onSuccess: () => {
+        toast.info('Agora você já pode fazer o login com sua nova senha.')
+        navigate('/login')
+      },
+    },
+  )
 
+  async function onSubmit(values: SetPasswordFormValues) {
     if (!token) {
       toast.error('Token de redefinição inválido ou não encontrado.')
-      setIsLoading(false)
       return
     }
 
@@ -59,25 +67,9 @@ export function SetPasswordPage() {
     }
 
     try {
-      const response = await api.post('/auth/definir-senha', payload)
-
-      toast.success('Senha definida com sucesso!', {
-        description: response.data.mensagem || 'Agora você já pode fazer o login.',
-      })
-
-      navigate('/login')
-    } catch (error: unknown) {
-      let errorMessage = 'Ocorreu um erro inesperado.'
-      if (axios.isAxiosError(error) && error.response) {
-        errorMessage = error.response.data.error || error.response.data.message || errorMessage
-      } else if (error instanceof Error) {
-        errorMessage = error.message
-      }
-      toast.error('Falha ao definir a senha', {
-        description: errorMessage,
-      })
-    } finally {
-      setIsLoading(false)
+      await setPassword(payload)
+    } catch (error) {
+      console.error('Falha ao definir a senha:', error)
     }
   }
 

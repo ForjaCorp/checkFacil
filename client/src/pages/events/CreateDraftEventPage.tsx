@@ -1,9 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import axios from 'axios'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CalendarIcon, Loader2 } from 'lucide-react'
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -29,14 +27,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useAuth } from '@/contexts/authContextCore'
+import { useApiMutation } from '@/hooks/useApiMutation'
 import { cn } from '@/lib/utils'
 import { createDraftFormSchema, type CreateDraftFormValues } from '@/schemas/eventSchemas'
 import api from '@/services/api'
 
 function CreateDraftEventPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  useAuth()
   const navigate = useNavigate()
 
   const form = useForm<CreateDraftFormValues>({
@@ -53,9 +49,17 @@ function CreateDraftEventPage() {
     },
   })
 
-  async function onSubmit(values: CreateDraftFormValues) {
-    setIsLoading(true)
+  const { mutate: createEvent, isLoading } = useApiMutation(
+    (payload) => api.post('/festa/criar', payload),
+    '',
+    {
+      onSuccess: () => {
+        navigate('/staff/dashboard')
+      },
+    },
+  )
 
+  async function onSubmit(values: CreateDraftFormValues) {
     const payload = {
       dadosFesta: {
         nome_festa: values.partyName,
@@ -72,27 +76,12 @@ function CreateDraftEventPage() {
     }
 
     try {
-      // eslint-disable-next-line no-console
-      console.info('Enviando dados para /festa/criar:', payload)
-
-      await api.post('/festa/criar', payload)
-
-      toast.success('Agendamento iniciado com sucesso!', {
+      await createEvent(payload)
+      toast.success('Agendamento iniciado!', {
         description: `Um link de acesso será enviado para o WhatsApp de ${values.organizerName}.`,
       })
-      navigate('/staff/dashboard')
-    } catch (error: unknown) {
-      let errorMessage = 'Ocorreu um erro inesperado. Tente novamente.'
-      if (axios.isAxiosError(error) && error.response) {
-        errorMessage = error.response.data.error || error.response.data.message || errorMessage
-      } else if (error instanceof Error) {
-        errorMessage = error.message
-      }
-      toast.error('Falha ao criar agendamento', {
-        description: errorMessage,
-      })
-    } finally {
-      setIsLoading(false)
+    } catch (error) {
+      console.error('Falha ao criar agendamento:', error)
     }
   }
 
@@ -207,7 +196,6 @@ function CreateDraftEventPage() {
                               disabled={(date) =>
                                 date < new Date(new Date().setDate(new Date().getDate() - 1))
                               }
-                              initialFocus
                             />
                           </PopoverContent>
                         </Popover>

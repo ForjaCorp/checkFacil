@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import axios from 'axios'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CalendarIcon, Loader2 } from 'lucide-react'
@@ -31,12 +30,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useApiMutation } from '@/hooks/useApiMutation'
 import { cn } from '@/lib/utils'
 import { completeDetailsSchema, type CompleteDetailsFormValues } from '@/schemas/eventSchemas'
 import api from '@/services/api'
 
 function CompleteEventDetailsPage() {
-  const [isLoading, setIsLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(true)
   const [pageError, setPageError] = useState<string | null>(null)
   const [eventStatus, setEventStatus] = useState<string | null>(null)
@@ -69,6 +68,16 @@ function CompleteEventDetailsPage() {
       organizerPhone: '',
     },
   })
+
+  const { mutate: updateEvent, isLoading } = useApiMutation(
+    (payload) => api.patch(`/festa/${eventId}`, payload),
+    'Detalhes da festa salvos com sucesso!',
+    {
+      onSuccess: () => {
+        navigate(-1)
+      },
+    },
+  )
 
   useEffect(() => {
     if (!eventId) return
@@ -126,7 +135,6 @@ function CompleteEventDetailsPage() {
       toast.error('Erro: ID do evento não encontrado.')
       return
     }
-    setIsLoading(true)
 
     const updatePayload = {
       horario_inicio: values.startTime || null,
@@ -145,21 +153,9 @@ function CompleteEventDetailsPage() {
     }
 
     try {
-      await api.patch(`/festa/${eventId}`, updatePayload)
-      toast.success('Detalhes da festa salvos com sucesso!')
-      navigate(-1)
-    } catch (error: unknown) {
-      let errorMessage = 'Ocorreu um erro inesperado.'
-      if (axios.isAxiosError(error) && error.response) {
-        errorMessage = error.response.data.error || error.response.data.message || errorMessage
-      } else if (error instanceof Error) {
-        errorMessage = error.message
-      }
-      toast.error('Falha ao salvar os detalhes da festa', {
-        description: errorMessage,
-      })
-    } finally {
-      setIsLoading(false)
+      await updateEvent(updatePayload)
+    } catch (error) {
+      console.error('Falha ao salvar detalhes da festa:', error)
     }
   }
 
@@ -249,7 +245,6 @@ function CompleteEventDetailsPage() {
                                 (date: Date) =>
                                   date < new Date(new Date().setDate(new Date().getDate() - 1)) // Desabilita datas passadas
                               }
-                              initialFocus
                             />
                           </PopoverContent>
                         </Popover>
