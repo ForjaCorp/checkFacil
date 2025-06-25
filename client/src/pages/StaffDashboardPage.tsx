@@ -6,21 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/authContextCore'
 import api from '@/services/api'
 
-interface AppEvent {
-  id: number
-  name: string
-  date: string
-  organizerName?: string
-}
-
-interface ApiEventResponse {
-  id: number
-  nome_festa: string
-  data_festa: string
-  organizador: {
-    nome: string
-  }
-}
+import type { AppEvent, ApiEventResponse } from '@/types'
 
 const StaffDashboardPage = () => {
   const { user } = useAuth()

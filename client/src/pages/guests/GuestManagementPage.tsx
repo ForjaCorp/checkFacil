@@ -35,43 +35,7 @@ import {
 } from '@/components/ui/table'
 import api from '@/services/api'
 
-interface ApiGuestResponse {
-  id: number
-  nome_convidado: string
-  tipo_convidado:
-    | 'ADULTO_PAGANTE'
-    | 'CRIANCA_PAGANTE'
-    | 'CRIANCA_ATE_1_ANO'
-    | 'BABA'
-    | 'ANFITRIAO_FAMILIA_DIRETA'
-    | 'ACOMPANHANTE_ATIPICO'
-  data_nascimento?: string | null
-  e_crianca_atipica?: boolean
-  telefone_convidado?: string | null
-  nome_responsavel?: string | null
-  telefone_responsavel?: string | null
-  nome_acompanhante?: string | null
-  telefone_acompanhante?: string | null
-  observacao_convidado?: string | null
-  confirmou_presenca: 'PENDENTE' | 'SIM' | 'NAO'
-  checkin_at?: string | null
-}
-
-interface AppGuest {
-  id: number
-  nome_convidado: string
-  tipo_convidado: ApiGuestResponse['tipo_convidado']
-  data_nascimento?: Date | null
-  e_crianca_atipica?: boolean
-  telefone_convidado?: string | null
-  nome_responsavel?: string | null
-  telefone_responsavel?: string | null
-  nome_acompanhante?: string | null
-  telefone_acompanhante?: string | null
-  observacao_convidado?: string | null
-  status: 'PENDENTE' | 'SIM' | 'NAO'
-  isCheckedIn: boolean
-}
+import type { ApiGuestResponse, AppGuest } from '@/types'
 
 function GuestManagementPage() {
   const { eventId } = useParams<{ eventId: string }>()

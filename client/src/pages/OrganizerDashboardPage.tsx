@@ -7,21 +7,7 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/authContextCore'
 import api from '@/services/api'
 
-import type { title } from 'process'
-
-interface AppEvent {
-  id: string
-  name: string
-  date: string
-  status: string
-}
-
-interface ApiEventResponse {
-  id: number
-  nome_festa: string
-  data_festa: string
-  status: string
-}
+import type { AppEvent, ApiEventResponse } from '@/types'
 
 export default function OrganizerDashboardPage() {
   const { user } = useAuth()
