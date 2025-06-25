@@ -1,4 +1,4 @@
-import { FilePenLine, Loader2, PlusCircle, Users } from 'lucide-react'
+import { FilePenLine, Loader2, PlayCircle, PlusCircle, Users } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -115,7 +115,7 @@ const StaffDashboardPage = () => {
                         to={`/staff/event/${event.id}/details`}
                         className="text-primary hover:opacity-80"
                       >
-                        <FilePenLine className="h-5 w-5 sm:mr-2" />
+                        <FilePenLine className="h-5 w-5" />
                         <span className="hidden sm:inline">Detalhes</span>{' '}
                       </Link>
                     </Button>
@@ -125,8 +125,21 @@ const StaffDashboardPage = () => {
                         title="Gerenciar Convidados"
                         className="flex justify-center items-center"
                       >
-                        <Users className="h-5 w-5 sm:mr-2" />
+                        <Users className="h-5 w-5" />
                         <span className="hidden sm:inline">Convidados</span>
+                      </Link>
+                    </Button>
+                    <Button
+                      asChild
+                      size="default"
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                    >
+                      <Link
+                        to={`/staff/event/${event.id}/checkin`}
+                        title="Operar Check-in do Evento"
+                      >
+                        <PlayCircle className="h-5 w-5" />
+                        <span className="hidden sm:inline">Check-in</span>
                       </Link>
                     </Button>
                   </div>
