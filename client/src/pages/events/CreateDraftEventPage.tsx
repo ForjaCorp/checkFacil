@@ -7,7 +7,6 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import * as z from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -32,27 +31,8 @@ import {
 } from '@/components/ui/select'
 import { useAuth } from '@/contexts/authContextCore'
 import { cn } from '@/lib/utils'
+import { createDraftFormSchema, type CreateDraftFormValues } from '@/schemas/eventSchemas'
 import api from '@/services/api'
-
-const createDraftFormSchema = z.object({
-  organizerName: z.string().min(1, 'Nome do contratante é obrigatório.'),
-  organizerEmail: z
-    .string()
-    .min(1, 'Email do contratante é obrigatório.')
-    .email('Formato de email inválido.'),
-  organizerPhone: z.string().min(10, 'Telefone do contratante é obrigatório (com DDD).'),
-
-  partyName: z.string().min(1, 'Um nome para a festa é obrigatório.'),
-  partyDate: z.date({ required_error: 'Data da festa é obrigatória.' }),
-  packageType: z.enum(
-    ['KIDS', 'KIDS_MAIS_PARK', 'PLAY', 'PLAY_MAIS_PARK', 'SUPER_FESTA_COMPLETA'],
-    { required_error: 'Você precisa selecionar um tipo de pacote.' },
-  ),
-  contractedChildren: z.coerce.number().int().positive({ message: 'Deve ser um número positivo.' }),
-  contractedAdults: z.coerce.number().int().positive({ message: 'Deve ser um número positivo.' }),
-})
-
-type CreateDraftFormValues = z.infer<typeof createDraftFormSchema>
 
 function CreateDraftEventPage() {
   const [isLoading, setIsLoading] = useState(false)

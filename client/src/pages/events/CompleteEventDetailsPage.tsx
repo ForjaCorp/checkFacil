@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
-import * as z from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -33,51 +32,8 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+import { completeDetailsSchema, type CompleteDetailsFormValues } from '@/schemas/eventSchemas'
 import api from '@/services/api'
-
-const completeDetailsSchema = z.object({
-  // Campos que o Contratante/Staff podem alterar
-  startTime: z
-    .string()
-    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Formato de hora inválido (HH:MM).')
-    .optional()
-    .or(z.literal('')),
-  endTime: z
-    .string()
-    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Formato de hora inválido (HH:MM).')
-    .optional()
-    .or(z.literal('')),
-  description: z.string().optional().or(z.literal('')),
-  birthdayPersonName: z.string().min(1, 'Nome do aniversariante é obrigatório.'),
-  birthdayPersonAge: z.coerce.number().int().positive('Idade inválida.').optional().nullable(),
-  partyTheme: z.string().optional().or(z.literal('')),
-  isDropOffParty: z.boolean().default(false),
-  allowsImageUse: z.boolean().default(false),
-  clientInstagram: z.string().optional().or(z.literal('')),
-  guestNotInListPolicy: z
-    .enum(['PERMITIR_ANOTAR', 'CHAMAR_ANFITRIAO'], { message: 'Procedimento inválido.' })
-    .optional()
-    .or(z.literal('')),
-  spotifyPlaylistLink: z
-    .string()
-    .url({ message: 'Por favor, insira uma URL válida.' })
-    .optional()
-    .or(z.literal('')),
-  partyObservations: z.string().optional().or(z.literal('')),
-
-  // Campos desabilitados que precisam estar no schema para o form.reset() funcionar
-  partyName: z.string(),
-  partyDate: z.date(),
-  packageType: z
-    .enum(['KIDS', 'KIDS_MAIS_PARK', 'PLAY', 'PLAY_MAIS_PARK', 'SUPER_FESTA_COMPLETA'])
-    .optional()
-    .or(z.literal('')),
-  contractedAdults: z.number().nullable(),
-  contractedChildren: z.number().nullable(),
-})
-
-// 2. ATUALIZE o nome do tipo
-type CompleteDetailsFormValues = z.infer<typeof completeDetailsSchema>
 
 function CompleteEventDetailsPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -96,14 +52,11 @@ function CompleteEventDetailsPage() {
       startTime: '',
       endTime: '',
       description: '',
-
       packageType: undefined,
-      contractedAdults: null,
-      contractedChildren: null,
-
+      contractedAdults: 0,
+      contractedChildren: 0,
       birthdayPersonName: '',
-      birthdayPersonAge: null,
-
+      birthdayPersonAge: undefined,
       partyTheme: '',
       isDropOffParty: false,
       allowsImageUse: false,
@@ -111,6 +64,9 @@ function CompleteEventDetailsPage() {
       guestNotInListPolicy: undefined,
       spotifyPlaylistLink: '',
       partyObservations: '',
+      organizerName: '',
+      organizerEmail: '',
+      organizerPhone: '',
     },
   })
 
@@ -126,18 +82,25 @@ function CompleteEventDetailsPage() {
         setEventStatus(eventDataFromApi.status)
 
         const formValuesToSet = {
+          // Campos do rascunho
+          organizerName: eventDataFromApi.organizador?.nome || '',
+          organizerEmail: eventDataFromApi.organizador?.email || '',
+          organizerPhone: eventDataFromApi.organizador?.telefone || '',
           partyName: eventDataFromApi.nome_festa,
           partyDate: eventDataFromApi.data_festa
             ? new Date(eventDataFromApi.data_festa.replace(/-/g, '/'))
             : new Date(),
           packageType: eventDataFromApi.pacote_escolhido,
-          contractedAdults: eventDataFromApi.numero_adultos_contratado,
-          contractedChildren: eventDataFromApi.numero_criancas_contratado,
+          contractedAdults: eventDataFromApi.numero_adultos_contratado || 0,
+          contractedChildren: eventDataFromApi.numero_criancas_contratado || 0,
+
           // Campos que o contratante edita
-          startTime: eventDataFromApi.horario_inicio || '',
-          endTime: eventDataFromApi.horario_fim || '',
+          startTime: eventDataFromApi.horario_inicio
+            ? eventDataFromApi.horario_inicio.substring(0, 5)
+            : '',
+          endTime: eventDataFromApi.horario_fim ? eventDataFromApi.horario_fim.substring(0, 5) : '',
           birthdayPersonName: eventDataFromApi.nome_aniversariante || '',
-          birthdayPersonAge: eventDataFromApi.idade_aniversariante,
+          birthdayPersonAge: eventDataFromApi.idade_aniversariante || undefined,
           partyTheme: eventDataFromApi.tema_festa || '',
           description: eventDataFromApi.descricao || '',
           isDropOffParty: eventDataFromApi.festa_deixa_e_pegue || false,
@@ -166,7 +129,6 @@ function CompleteEventDetailsPage() {
     setIsLoading(true)
 
     const updatePayload = {
-      // Apenas os campos que o Contratante realmente pode mudar
       horario_inicio: values.startTime || null,
       horario_fim: values.endTime || null,
       descricao: values.description,
@@ -179,7 +141,7 @@ function CompleteEventDetailsPage() {
       procedimento_convidado_fora_lista: values.guestNotInListPolicy || null,
       link_playlist_spotify: values.spotifyPlaylistLink || null,
       observacoes_festa: values.partyObservations,
-      status: 'PRONTA', // Muda o status para indicar que foi completado
+      status: 'PRONTA',
     }
 
     try {

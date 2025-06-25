@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
-import { AddGuestForm, type AddGuestFormValues } from '@/components/guests/AddGuestForm'
+import { AddGuestForm } from '@/components/guests/AddGuestForm'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/table'
 import api from '@/services/api'
 
+import type { AddGuestFormValues } from '@/schemas/guestSchemas'
 import type { ApiGuestResponse, AppGuest } from '@/types'
 
 function GuestManagementPage() {
