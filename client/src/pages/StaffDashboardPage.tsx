@@ -1,20 +1,21 @@
-import { FilePenLine, Loader2, PlayCircle, PlusCircle, Users } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+// client/src/pages/StaffDashboardPage.tsx
 
-import { EventListItem } from '@/components/events/EventListItem'
+import { Loader2, PlusCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
+
+import { EventCard } from '@/components/events/EventCard'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/authContextCore'
 import api from '@/services/api'
 
-import type { AppEvent, ApiEventResponse } from '@/types'
+import type { ApiEventResponse, AppEvent } from '@/types'
 
 const StaffDashboardPage = () => {
   const { user } = useAuth()
-
   const [events, setEvents] = useState<AppEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -25,14 +26,14 @@ const StaffDashboardPage = () => {
             id: eventFromApi.id,
             name: eventFromApi.nome_festa,
             date: eventFromApi.data_festa,
+            status: eventFromApi.status,
             organizerName: eventFromApi.organizador?.nome,
           }),
         )
         setEvents(mappedEvents)
       } catch (error) {
         console.error('Erro ao buscar eventos:', error)
-        setError('Erro ao buscar eventos')
-        setIsLoading(false)
+        toast.error('Não foi possível carregar os eventos.')
       } finally {
         setIsLoading(false)
       }
@@ -40,87 +41,45 @@ const StaffDashboardPage = () => {
     fetchEvents()
   }, [])
 
-  const navigate = useNavigate()
-
-  const handleCreateNewEvent = () => {
-    navigate('/staff/events/createEventDraft')
-  }
-
   return (
-    <div className="container mx-auto p-4 md:p-6">
-      <header className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center">
+    <div className="flex flex-col gap-6 h-full py-6">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Painel do Staff</h1>
-          {user && (
-            <p className="text-lg text-muted-foreground">
-              Bem-vindo(a), {user.name || user.email}!
-            </p>
-          )}
+          {user && <p className="text-lg text-muted-foreground">Bem-vindo(a), {user.name}!</p>}
         </div>
+        <Button asChild className="w-full md:w-auto">
+          <Link to="/staff/events/createEventDraft">
+            <PlusCircle className="mr-2 h-5 w-5" />
+            <span>Criar Nova Festa</span>
+          </Link>
+        </Button>
       </header>
 
-      <section className="mb-8">
-        <div className="flex flex-col items-start gap-3 mb-4 md:justify-between md:items-center">
-          <h2 className="text-2xl font-semibold text-foreground">Festas Agendadas</h2>
-          <Button onClick={handleCreateNewEvent} className="w-full">
-            <Link
-              to="/staff/events/createEventDraft"
-              className="flex justify-between items-center gap-2"
-            >
-              <PlusCircle className="h-5 w-5" />
-              <span>Criar Nova Festa</span>
-            </Link>
-          </Button>
-        </div>
+      <section className="flex flex-col gap-4 flex-grow">
+        <h2 className="text-2xl font-semibold text-foreground">Festas Agendadas</h2>
 
-        <div className="p-6 bg-card border rounded-lg">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-24">
-              <Loader2 className="animate-spin h-8 w-8 text-primary" />
+        {isLoading ? (
+          <div className="flex flex-1 items-center justify-center">
+            <Loader2 className="animate-spin h-8 w-8 text-primary" />
+          </div>
+        ) : events.length > 0 ? (
+          // AQUI ESTÁ A CORREÇÃO: adicionamos 'items-start'
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            {events.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-1 items-center justify-center text-center p-6 border-2 border-dashed rounded-lg">
+            <div>
+              <h3 className="text-xl font-semibold text-foreground">Nenhuma festa encontrada</h3>
+              <p className="text-muted-foreground mt-2 max-w-sm">
+                Parece que ainda não há eventos agendados. Que tal criar o primeiro?
+              </p>
             </div>
-          ) : error ? (
-            <p className="text-destructive text-center">{error}</p>
-          ) : events.length > 0 ? (
-            <ul className="space-y-4">
-              {events.map((event) => (
-                <EventListItem
-                  key={event.id}
-                  event={event}
-                  actions={
-                    <>
-                      <Button asChild className="flex-1" variant={'outline'}>
-                        <Link to={`/staff/event/${event.id}/details`}>
-                          <FilePenLine className="h-5 w-5" />
-                          <span className="hidden sm:inline">Detalhes</span>
-                        </Link>
-                      </Button>
-                      <Button asChild className="flex-1">
-                        <Link to={`/event/${event.id}/guests`}>
-                          <Users className="h-5 w-5" />
-                          <span className="hidden sm:inline">Convidados</span>
-                        </Link>
-                      </Button>
-                      <Button
-                        asChild
-                        size="default"
-                        className="flex-1 bg-green-600 hover:bg-green-700"
-                      >
-                        <Link to={`/staff/event/${event.id}/checkin`}>
-                          <PlayCircle className="h-5 w-5" />
-                          <span className="hidden sm:inline">Check-in</span>
-                        </Link>
-                      </Button>
-                    </>
-                  }
-                />
-              ))}
-            </ul>
-          ) : (
-            <p className="text-muted-foreground break-words text-pretty">
-              Nenhuma festa agendada no momento. Use o botão acima para criar uma nova festa.
-            </p>
-          )}
-        </div>
+          </div>
+        )}
       </section>
     </div>
   )
