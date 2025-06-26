@@ -82,6 +82,10 @@ ConvidadoFesta.init(
       type: DataTypes.STRING(25),
       allowNull: true
     },
+    nome_acompanhante: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     telefone_acompanhante: {
       type: DataTypes.STRING(25),
       allowNull: true

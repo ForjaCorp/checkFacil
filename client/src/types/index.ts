@@ -61,7 +61,7 @@ export interface ApiGuestResponse {
   id: number
   nome_convidado: string
   tipo_convidado: GuestType
-  data_nascimento?: string | null
+  nascimento_convidado?: string | null
   e_crianca_atipica?: boolean
   telefone_convidado?: string | null
   nome_responsavel?: string | null
@@ -82,7 +82,7 @@ export interface AppGuest {
   id: number
   nome_convidado: string
   tipo_convidado: GuestType
-  data_nascimento?: Date | null
+  nascimento_convidado?: Date | null
   e_crianca_atipica?: boolean
   telefone_convidado?: string | null
   nome_responsavel?: string | null

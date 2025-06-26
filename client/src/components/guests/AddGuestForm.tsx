@@ -45,15 +45,10 @@ export function AddGuestForm({
     },
   })
 
-  const handleFormSubmit = (data: AddGuestFormValues) => {
-    onSubmit(data)
-    form.reset()
-  }
-
   const watchedGuestType = form.watch('tipo_convidado')
   const isChild = watchedGuestType?.includes('CRIANCA') ?? false
   const showGuestPhone = watchedGuestType === 'ADULTO_PAGANTE' || watchedGuestType === 'BABA'
-  const watchedDob = form.watch('data_nascimento')
+  const watchedDob = form.watch('nascimento_convidado')
   const watchedIsAtypical = form.watch('e_crianca_atipica')
 
   let age = null
@@ -70,7 +65,7 @@ export function AddGuestForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="tipo_convidado"
@@ -144,7 +139,7 @@ export function AddGuestForm({
           <>
             <FormField
               control={form.control}
-              name="data_nascimento"
+              name="nascimento_convidado"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Data de Nascimento da Criança</FormLabel>

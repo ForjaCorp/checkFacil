@@ -58,8 +58,8 @@ function GuestManagementPage() {
         id: guestFromApi.id,
         nome_convidado: guestFromApi.nome_convidado,
         tipo_convidado: guestFromApi.tipo_convidado,
-        data_nascimento: guestFromApi.data_nascimento
-          ? new Date(guestFromApi.data_nascimento.replace(/-/g, '/'))
+        nascimento_convidado: guestFromApi.nascimento_convidado
+          ? new Date(guestFromApi.nascimento_convidado.replace(/-/g, '/'))
           : null,
         e_crianca_atipica: guestFromApi.e_crianca_atipica,
         telefone_convidado: guestFromApi.telefone_convidado,
@@ -206,7 +206,7 @@ function GuestManagementPage() {
               initialValues={{
                 nome_convidado: editingGuest.nome_convidado,
                 tipo_convidado: editingGuest.tipo_convidado,
-                data_nascimento: editingGuest.data_nascimento,
+                nascimento_convidado: editingGuest.nascimento_convidado,
                 e_crianca_atipica: editingGuest.e_crianca_atipica ?? false,
                 telefone_convidado: editingGuest.telefone_convidado ?? '',
                 nome_responsavel: editingGuest.nome_responsavel ?? '',

@@ -18,7 +18,7 @@ export const addGuestSchema = z
     nome_convidado: z.string().min(3, { message: 'Nome do convidado é obrigatório.' }),
     tipo_convidado: guestTypeEnum,
     idade_convidado: z.coerce.number().optional().nullable(),
-    data_nascimento: z.date().optional().nullable(),
+    nascimento_convidado: z.date().optional().nullable(),
     e_crianca_atipica: z.boolean().default(false),
     telefone_convidado: z.string().optional().or(z.literal('')),
     nome_responsavel: z.string().optional().or(z.literal('')),
@@ -30,11 +30,11 @@ export const addGuestSchema = z
   .superRefine((data, ctx) => {
     const isChild = data.tipo_convidado.includes('CRIANCA')
 
-    if (isChild && !data.data_nascimento) {
+    if (isChild && !data.nascimento_convidado) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Data de nascimento é obrigatória para crianças.',
-        path: ['data_nascimento'],
+        path: ['nascimento_convidado'],
       })
     }
 
@@ -59,6 +59,34 @@ export const addGuestSchema = z
         message: 'Telefone é obrigatório para adultos e babás.',
         path: ['telefone_convidado'],
       })
+    }
+    if (isChild && data.nascimento_convidado) {
+      const today = new Date()
+      let age = today.getFullYear() - data.nascimento_convidado.getFullYear()
+      const m = today.getMonth() - data.nascimento_convidado.getMonth()
+      if (m < 0 || (m === 0 && today.getDate() < data.nascimento_convidado.getDate())) {
+        age--
+      }
+
+      const needsCompanion = age < 6 || data.e_crianca_atipica
+
+      if (needsCompanion) {
+        if (!data.nome_acompanhante || data.nome_acompanhante.length < 2) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              'Nome do acompanhante é obrigatório para crianças menores de 6 anos ou atípicas.',
+            path: ['nome_acompanhante'],
+          })
+        }
+        if (!data.telefone_acompanhante || data.telefone_acompanhante.length < 10) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Telefone do acompanhante é obrigatório.',
+            path: ['telefone_acompanhante'],
+          })
+        }
+      }
     }
   })
 
