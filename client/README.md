@@ -1,54 +1,60 @@
-# React + TypeScript + Vite
+# CheckFacil - Aplicação Cliente (Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Bem-vindo ao workspace do cliente do CheckFacil. Esta é uma Aplicação Web Progressiva (PWA) construída com Vite, React e TypeScript, responsável por toda a interface de usuário do sistema.
 
-Currently, two official plugins are available:
+## ✨ Tecnologias Utilizadas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+* **Framework & Build:** [Vite](https://vitejs.dev/) + [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+* **Estilização:** [Tailwind CSS](https://tailwindcss.com/)
+* **Componentes de UI:** [shadcn/ui](https://ui.shadcn.com/)
+* **Gerenciamento de Formulários:** [React Hook Form](https://react-hook-form.com/)
+* **Validação de Dados:** [Zod](https://zod.dev/)
+* **Comunicação com API:** [Axios](https://axios-http.com/)
+* **Roteamento:** [React Router DOM](https://reactrouter.com/)
 
-## Expanding the ESLint configuration
+## ⚙️ Configuração
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Pré-requisitos
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+* Todas as dependências da raiz do monorepo devem ser instaladas primeiro (`yarn install` na raiz).
+
+### Variáveis de Ambiente
+
+Para que o cliente possa se comunicar com a API do backend, crie um arquivo `.env` na pasta `/client` com o seguinte conteúdo:
+
+```env
+# URL base da API do backend
+VITE_API_BASE_URL=http://localhost:3001
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🚀 Scripts Disponíveis
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Os scripts devem ser executados a partir da **raiz do monorepo**.
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+* **Para rodar o cliente em modo de desenvolvimento:**
+
+    ```bash
+    # Inicia o servidor de desenvolvimento do Vite com Hot Reload
+    yarn dev:client
+    ```
+
+* **Para build de produção:**
+
+    ```bash
+    # Gera os arquivos otimizados para produção na pasta /client/dist
+    yarn workspace @checkfacil/client build
+    ```
+
+## 🎨 Estrutura de Pastas
+
+A estrutura de pastas do cliente segue padrões bem definidos para escalabilidade:
+
+* **/src/components:** Componentes de UI reutilizáveis.
+  * **/ui:** Componentes base gerados pelo `shadcn/ui`.
+  * **/events, /guests:** Componentes específicos de cada feature.
+* **/src/pages:** Componentes que representam as páginas da aplicação.
+* **/src/hooks:** Hooks customizados para reutilização de lógica (ex: `useApiMutation`).
+* **/src/contexts:** Contextos React para gerenciamento de estado global (ex: `AuthContext`).
+* **/src/schemas:** Schemas de validação do Zod para os formulários.
+* **/src/services:** Configuração e comunicação com a API (ex: instância do Axios).
+* **/src/types:** Definições de tipos e interfaces globais da aplicação.
