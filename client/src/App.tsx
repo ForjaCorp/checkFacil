@@ -8,11 +8,11 @@ import CreateDraftEventPage from '@/pages/events/CreateDraftEventPage'
 import GuestManagementPage from '@/pages/guests/GuestManagementPage'
 import LoginPage from '@/pages/LoginPage'
 import CheckinPage from '@/pages/operations/CheckinPage'
-import OrganizerDashboardPage from '@/pages/OrganizerDashboardPage'
 import { SetPasswordPage } from '@/pages/SetPasswordPage'
-import StaffDashboardPage from '@/pages/StaffDashboardPage'
 import { ProtectedRoute } from '@/router/ProtectedRoute'
 import { StandardLayout } from '@/router/StandartLayout'
+
+import DashboardPage from './pages/DashboardPage'
 
 function App() {
   const auth = useAuth()
@@ -24,11 +24,9 @@ function App() {
   return (
     <>
       <Routes>
-        {/* Rotas Imersivas (sem layout) */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/organizer/choosePassword/:token" element={<SetPasswordPage />} />
 
-        {/* Rotas Padrão (com layout) */}
         <Route
           element={
             <ProtectedRoute
@@ -38,10 +36,10 @@ function App() {
           }
         >
           <Route path="/" element={<Navigate to="/staff/dashboard" replace />} />
-          <Route path="/staff/dashboard" element={<StaffDashboardPage />} />
+          <Route path="/staff/dashboard" element={<DashboardPage />} />
           <Route path="/staff/events/createEventDraft" element={<CreateDraftEventPage />} />
           <Route path="/staff/event/:eventId/checkin" element={<CheckinPage />} />
-          <Route path="/organizer/dashboard" element={<OrganizerDashboardPage />} />
+          <Route path="/organizer/dashboard" element={<DashboardPage />} />
           <Route path="/organizer/event/:eventId/details" element={<CompleteEventDetailsPage />} />
           <Route path="/event/:eventId/guests" element={<GuestManagementPage />} />
         </Route>
