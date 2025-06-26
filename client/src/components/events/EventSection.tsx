@@ -1,4 +1,5 @@
 import { Loader2 } from 'lucide-react'
+import { type ReactNode } from 'react'
 
 import { EmptyStateCard } from '@/components/events/EmptyStateCard'
 import { EventCard } from '@/components/events/EventCard'
@@ -12,6 +13,7 @@ interface EventSectionProps {
   emptyStateTitle: string
   emptyStateDescription: string
   cardVariant: 'staff' | 'organizer'
+  footer?: ReactNode
 }
 
 export function EventSection({
@@ -21,6 +23,7 @@ export function EventSection({
   emptyStateTitle,
   emptyStateDescription,
   cardVariant,
+  footer,
 }: EventSectionProps) {
   return (
     <section className="flex flex-col gap-4 flex-grow">
@@ -31,11 +34,14 @@ export function EventSection({
           <Loader2 className="animate-spin h-8 w-8 text-primary" />
         </div>
       ) : events.length > 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          {events.map((event) => (
-            <EventCard key={event.id} event={event} variant={cardVariant} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            {events.map((event) => (
+              <EventCard key={event.id} event={event} variant={cardVariant} />
+            ))}
+          </div>
+          {footer && <div className="mt-4">{footer}</div>}
+        </>
       ) : (
         <EmptyStateCard title={emptyStateTitle} description={emptyStateDescription} />
       )}
