@@ -111,6 +111,11 @@
 }
 
 @layer base {
+  html,
+  body,
+  #root {
+    @apply h-full; /* Garante que a raiz do app ocupe 100% da altura */
+  }
   * {
     @apply border-border outline-ring/50;
   }
