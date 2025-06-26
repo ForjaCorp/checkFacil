@@ -67,7 +67,7 @@ const StaffDashboardPage = () => {
           // AQUI ESTÁ A CORREÇÃO: adicionamos 'items-start'
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
             {events.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard key={event.id} event={event} variant="staff" />
             ))}
           </div>
         ) : (

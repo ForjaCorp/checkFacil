@@ -16,9 +16,10 @@ import type { AppEvent } from '@/types'
 
 interface EventCardProps {
   event: AppEvent
+  variant: 'staff' | 'organizer'
 }
 
-export function EventCard({ event }: EventCardProps) {
+export function EventCard({ event, variant }: EventCardProps) {
   // NOVO e final sistema de nomes e cores para as badges
   const getStatusInfo = (
     status: string,
@@ -47,6 +48,8 @@ export function EventCard({ event }: EventCardProps) {
 
   const statusInfo = getStatusInfo(event.status)
 
+  const isStaff = variant === 'staff'
+
   return (
     <Card className="flex flex-col transition-shadow duration-300 hover:shadow-lg">
       <CardHeader>
@@ -56,7 +59,10 @@ export function EventCard({ event }: EventCardProps) {
             {statusInfo.text}
           </Badge>
         </div>
-        <CardDescription>Organizador: {event.organizerName || 'Não definido'}</CardDescription>
+        {/* Mostra o organizador apenas para o staff, para não ser redundante para o próprio organizador */}
+        {isStaff && (
+          <CardDescription>Organizador: {event.organizerName || 'Não definido'}</CardDescription>
+        )}
       </CardHeader>
 
       <CardContent>
@@ -68,46 +74,77 @@ export function EventCard({ event }: EventCardProps) {
 
       <div className="flex-grow" />
 
-      <CardFooter className="grid grid-cols-3 gap-2 pt-4 mt-auto">
-        <Button
-          asChild
-          variant="outline"
-          size="sm"
-          className="text-primary border-primary hover:bg-primary/5 hover:text-primary"
-        >
-          <Link
-            to={`/staff/event/${event.id}/details`}
-            className="flex items-center justify-center whitespace-nowrap"
-          >
-            <FilePenLine className="h-4 w-4" />
-            <span className="sr-only sm:not-sr-only sm:ml-2">Detalhes</span>
-          </Link>
-        </Button>
-        <Button
-          asChild
-          variant="outline"
-          size="sm"
-          className="text-primary border-primary hover:bg-primary/5 hover:text-primary"
-        >
-          <Link
-            to={`/event/${event.id}/guests`}
-            className="flex items-center justify-center whitespace-nowrap"
-          >
-            <Users className="h-4 w-4" />
-            <span className="sr-only sm:not-sr-only sm:ml-2">Convidados</span>
-          </Link>
-        </Button>
-
-        {/* Botão de Ação (Sólido Roxo) */}
-        <Button asChild size="sm" className="bg-green-600 hover:bg-green-700">
-          <Link
-            to={`/staff/event/${event.id}/checkin`}
-            className="flex items-center justify-center whitespace-nowrap"
-          >
-            <PlayCircle className="h-4 w-4" />
-            <span className="sr-only sm:not-sr-only sm:ml-2">Check-in</span>
-          </Link>
-        </Button>
+      {/* A lógica dos botões agora está AQUI DENTRO */}
+      <CardFooter className={`grid gap-2 pt-4 mt-auto ${isStaff ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        {isStaff ? (
+          <>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="text-primary border-primary hover:bg-primary/5 hover:text-primary"
+            >
+              <Link
+                to={`/staff/event/${event.id}/details`}
+                className="flex items-center justify-center whitespace-nowrap"
+              >
+                <FilePenLine className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:ml-2">Detalhes</span>
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="text-primary border-primary hover:bg-primary/5 hover:text-primary"
+            >
+              <Link
+                to={`/event/${event.id}/guests`}
+                className="flex items-center justify-center whitespace-nowrap"
+              >
+                <Users className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:ml-2">Convidados</span>
+              </Link>
+            </Button>
+            <Button asChild size="sm" className="bg-green-600 text-white hover:bg-green-700">
+              <Link
+                to={`/staff/event/${event.id}/checkin`}
+                className="flex items-center justify-center whitespace-nowrap"
+              >
+                <PlayCircle className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:ml-2">Check-in</span>
+              </Link>
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="text-primary border-primary hover:bg-primary/5 hover:text-primary"
+            >
+              <Link
+                to={`/organizer/event/${event.id}/details`}
+                className="flex items-center justify-center whitespace-nowrap"
+              >
+                <FilePenLine className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:ml-2">
+                  {event.status === 'RASCUNHO' ? 'Completar' : 'Detalhes'}
+                </span>
+              </Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link
+                to={`/event/${event.id}/guests`}
+                className="flex items-center justify-center whitespace-nowrap"
+              >
+                <Users className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:ml-2">Convidados</span>
+              </Link>
+            </Button>
+          </>
+        )}
       </CardFooter>
     </Card>
   )

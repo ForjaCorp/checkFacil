@@ -1,10 +1,8 @@
-import { FilePenLine, Loader2, Users } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
-import { EventListItem } from '@/components/events/EventListItem'
-import { Button } from '@/components/ui/button'
+import { EventCard } from '@/components/events/EventCard'
 import { useAuth } from '@/contexts/authContextCore'
 import api from '@/services/api'
 
@@ -41,54 +39,36 @@ export default function OrganizerDashboardPage() {
   }, [])
 
   return (
-    <div className="container mx-auto p-4 md:p-6">
-      <header className="mb-6">
+    <div className="flex flex-col gap-6 h-full py-6">
+      <header>
         <h1 className="text-3xl font-bold text-foreground">Meu Painel</h1>
         {user && <p className="text-lg text-muted-foreground">Bem-vindo(a), {user.name}!</p>}
       </header>
 
-      <section>
-        <h2 className="text-2xl font-semibold text-foreground mb-4">Meus Eventos Agendados</h2>
-        <div className="p-6 bg-card border rounded-lg">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-24">
-              <Loader2 className="animate-spin h-8 w-8 text-primary" />
+      <section className="flex flex-col gap-4 flex-grow">
+        <h2 className="text-2xl font-semibold text-foreground">Meus Eventos Agendados</h2>
+
+        {isLoading ? (
+          <div className="flex flex-1 items-center justify-center">
+            <Loader2 className="animate-spin h-8 w-8 text-primary" />
+          </div>
+        ) : events.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            {events.map((event) => (
+              <EventCard key={event.id} event={event} variant="organizer" />
+            ))}
+          </div>
+        ) : (
+          // Usando o mesmo estilo de "estado vazio"
+          <div className="flex flex-1 items-center justify-center text-center p-6 border-2 border-dashed rounded-lg">
+            <div>
+              <h3 className="text-xl font-semibold text-foreground">Nenhum evento agendado</h3>
+              <p className="text-muted-foreground mt-2 max-w-sm">
+                Assim que a nossa equipe criar o seu evento, ele aparecerá aqui para você gerenciar.
+              </p>
             </div>
-          ) : events.length > 0 ? (
-            <ul className="space-y-4">
-              {events.map((event) => (
-                <EventListItem
-                  key={event.id}
-                  event={event}
-                  actions={
-                    <>
-                      <Button asChild variant={'outline'} size={'default'} className="flex-1">
-                        <Link to={`/organizer/event/${event.id}/details`}>
-                          <FilePenLine className="h-5 w-5 sm:mr-2" />
-                          <span className="hidden sm:inline">
-                            {event.status === 'RASCUNHO'
-                              ? 'Completar Detalhes'
-                              : 'Ver/Editar Detalhes'}
-                          </span>
-                        </Link>
-                      </Button>
-                      <Button asChild size={'default'} className="flex-1">
-                        <Link to={`/event/${event.id}/guests`}>
-                          <Users className="h-5 w-5 sm:mr-2" />
-                          <span className="hidden sm:inline">Gerenciar Convidados</span>
-                        </Link>
-                      </Button>
-                    </>
-                  }
-                />
-              ))}
-            </ul>
-          ) : (
-            <p className="text-muted-foreground text-center">
-              Você ainda não possui eventos agendados.
-            </p>
-          )}
-        </div>
+          </div>
+        )}
       </section>
     </div>
   )
