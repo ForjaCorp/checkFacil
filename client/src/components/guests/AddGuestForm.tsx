@@ -3,7 +3,6 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CalendarIcon, Loader2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import * as z from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -22,58 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
-
-// ENUM e Schema Zod (como definimos antes)
-const guestTypeEnum = z.enum([
-  'ADULTO_PAGANTE',
-  'CRIANCA_PAGANTE',
-  'CRIANCA_ATE_1_ANO',
-  'BABA',
-  'ANFITRIAO_FAMILIA_DIRETA',
-  'ACOMPANHANTE_ATIPICO',
-])
-
-const addGuestSchema = z
-  .object({
-    nome_convidado: z.string().min(3, { message: 'Nome do convidado é obrigatório.' }),
-    tipo_convidado: guestTypeEnum,
-    idade_convidado: z.coerce.number().optional().nullable(),
-    data_nascimento: z.date().optional().nullable(),
-    e_crianca_atipica: z.boolean().default(false),
-    telefone_convidado: z.string().optional().or(z.literal('')),
-    nome_responsavel: z.string().optional().or(z.literal('')),
-    telefone_responsavel: z.string().optional().or(z.literal('')),
-    nome_acompanhante: z.string().optional().or(z.literal('')),
-    telefone_acompanhante: z.string().optional().or(z.literal('')),
-    observacao_convidado: z.string().optional().or(z.literal('')),
-  })
-  .superRefine((data, ctx) => {
-    const isChild = data.tipo_convidado.includes('CRIANCA')
-    if (isChild && (!data.nome_responsavel || data.nome_responsavel.length < 2)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Nome do responsável é obrigatório para crianças.',
-        path: ['nome_responsavel'],
-      })
-    }
-    if (isChild && (!data.telefone_responsavel || data.telefone_responsavel.length < 10)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Telefone do responsável é obrigatório para crianças.',
-        path: ['telefone_responsavel'],
-      })
-    }
-    const isAdultOrBaba = data.tipo_convidado === 'ADULTO_PAGANTE' || data.tipo_convidado === 'BABA'
-    if (isAdultOrBaba && (!data.telefone_convidado || data.telefone_convidado.length < 10)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Telefone é obrigatório para adultos e babás.',
-        path: ['telefone_convidado'],
-      })
-    }
-  })
-
-export type AddGuestFormValues = z.infer<typeof addGuestSchema>
+import { addGuestSchema, type AddGuestFormValues } from '@/schemas/guestSchemas'
 
 interface AddGuestFormProps {
   onSubmit: (data: AddGuestFormValues) => void
@@ -97,15 +45,10 @@ export function AddGuestForm({
     },
   })
 
-  const handleFormSubmit = (data: AddGuestFormValues) => {
-    onSubmit(data)
-    form.reset()
-  }
-
   const watchedGuestType = form.watch('tipo_convidado')
   const isChild = watchedGuestType?.includes('CRIANCA') ?? false
   const showGuestPhone = watchedGuestType === 'ADULTO_PAGANTE' || watchedGuestType === 'BABA'
-  const watchedDob = form.watch('data_nascimento')
+  const watchedDob = form.watch('nascimento_convidado')
   const watchedIsAtypical = form.watch('e_crianca_atipica')
 
   let age = null
@@ -122,7 +65,7 @@ export function AddGuestForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="tipo_convidado"
@@ -196,7 +139,7 @@ export function AddGuestForm({
           <>
             <FormField
               control={form.control}
-              name="data_nascimento"
+              name="nascimento_convidado"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Data de Nascimento da Criança</FormLabel>

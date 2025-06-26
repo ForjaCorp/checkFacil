@@ -3,25 +3,12 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { EventListItem } from '@/components/events/EventListItem'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/authContextCore'
 import api from '@/services/api'
 
-import type { title } from 'process'
-
-interface AppEvent {
-  id: string
-  name: string
-  date: string
-  status: string
-}
-
-interface ApiEventResponse {
-  id: number
-  nome_festa: string
-  data_festa: string
-  status: string
-}
+import type { AppEvent, ApiEventResponse } from '@/types'
 
 export default function OrganizerDashboardPage() {
   const { user } = useAuth()
@@ -70,43 +57,30 @@ export default function OrganizerDashboardPage() {
           ) : events.length > 0 ? (
             <ul className="space-y-4">
               {events.map((event) => (
-                <li
+                <EventListItem
                   key={event.id}
-                  className="border-b last:border-b-0 pb-4 last:pb-0 flex flex-col sm:flex-row justify-between sm:items-center gap-4"
-                >
-                  <div className="flex-grow">
-                    <h3 className="text-lg font-semibold">{event.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Data: {new Date(event.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Status: <span className="font-medium">{event.status}</span>
-                    </p>
-                  </div>
-                  <div className="flex flex-row shrink-0 gap-2 w-full sm:w-auto">
-                    <Button asChild variant={'outline'} size={'default'} className="flex-1">
-                      <Link
-                        to={`/organizer/event/${event.id}/details`}
-                        title="Ver / Editar Detalhes"
-                      >
-                        <FilePenLine className="h-5 w-5 sm:mr-2" />
-                        <span className="hidden sm:inline">
-                          {event.status === 'RASCUNHO'
-                            ? 'Completar Detalhes'
-                            : 'Ver/Editar Detalhes'}
-                        </span>
-                      </Link>
-                    </Button>
-
-                    {/* 3. Exemplo para o futuro botão de Gerenciar Convidados */}
-                    <Button asChild size={'default'} className="flex-1">
-                      <Link to={`/event/${event.id}/guests`}>
-                        <Users className="h-5 w-5 sm:mr-2" />
-                        <span className="hidden sm:inline">Gerenciar Convidados</span>
-                      </Link>
-                    </Button>
-                  </div>
-                </li>
+                  event={event}
+                  actions={
+                    <>
+                      <Button asChild variant={'outline'} size={'default'} className="flex-1">
+                        <Link to={`/organizer/event/${event.id}/details`}>
+                          <FilePenLine className="h-5 w-5 sm:mr-2" />
+                          <span className="hidden sm:inline">
+                            {event.status === 'RASCUNHO'
+                              ? 'Completar Detalhes'
+                              : 'Ver/Editar Detalhes'}
+                          </span>
+                        </Link>
+                      </Button>
+                      <Button asChild size={'default'} className="flex-1">
+                        <Link to={`/event/${event.id}/guests`}>
+                          <Users className="h-5 w-5 sm:mr-2" />
+                          <span className="hidden sm:inline">Gerenciar Convidados</span>
+                        </Link>
+                      </Button>
+                    </>
+                  }
+                />
               ))}
             </ul>
           ) : (

@@ -2,25 +2,12 @@ import { FilePenLine, Loader2, PlayCircle, PlusCircle, Users } from 'lucide-reac
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { EventListItem } from '@/components/events/EventListItem'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/authContextCore'
 import api from '@/services/api'
 
-interface AppEvent {
-  id: number
-  name: string
-  date: string
-  organizerName?: string
-}
-
-interface ApiEventResponse {
-  id: number
-  nome_festa: string
-  data_festa: string
-  organizador: {
-    nome: string
-  }
-}
+import type { AppEvent, ApiEventResponse } from '@/types'
 
 const StaffDashboardPage = () => {
   const { user } = useAuth()
@@ -96,54 +83,36 @@ const StaffDashboardPage = () => {
           ) : events.length > 0 ? (
             <ul className="space-y-4">
               {events.map((event) => (
-                <li
+                <EventListItem
                   key={event.id}
-                  className="border-b last:border-b-0 pb-4 last:pb-0 flex flex-col sm:flex-row justify-between sm:items-center gap-4"
-                >
-                  <div className="flex-grow">
-                    <h3 className="text-lg font-semibold">{event.name}</h3>
-                    <p className="text-muted-foreground break-words text-pretty">
-                      Data: {new Date(event.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
-                    </p>
-                    <p className="text-muted-foreground break-words text-pretty">
-                      Organizador: {event.organizerName || 'Desconhecido'}
-                    </p>
-                  </div>
-                  <div className="flex flex-row shrink-0 gap-2 w-full sm:w-auto">
-                    <Button asChild className="flex-1" variant={'outline'}>
-                      <Link
-                        to={`/staff/event/${event.id}/details`}
-                        className="text-primary hover:opacity-80"
+                  event={event}
+                  actions={
+                    <>
+                      <Button asChild className="flex-1" variant={'outline'}>
+                        <Link to={`/staff/event/${event.id}/details`}>
+                          <FilePenLine className="h-5 w-5" />
+                          <span className="hidden sm:inline">Detalhes</span>
+                        </Link>
+                      </Button>
+                      <Button asChild className="flex-1">
+                        <Link to={`/event/${event.id}/guests`}>
+                          <Users className="h-5 w-5" />
+                          <span className="hidden sm:inline">Convidados</span>
+                        </Link>
+                      </Button>
+                      <Button
+                        asChild
+                        size="default"
+                        className="flex-1 bg-green-600 hover:bg-green-700"
                       >
-                        <FilePenLine className="h-5 w-5" />
-                        <span className="hidden sm:inline">Detalhes</span>{' '}
-                      </Link>
-                    </Button>
-                    <Button asChild className="flex-1">
-                      <Link
-                        to={`/event/${event.id}/guests`}
-                        title="Gerenciar Convidados"
-                        className="flex justify-center items-center"
-                      >
-                        <Users className="h-5 w-5" />
-                        <span className="hidden sm:inline">Convidados</span>
-                      </Link>
-                    </Button>
-                    <Button
-                      asChild
-                      size="default"
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                    >
-                      <Link
-                        to={`/staff/event/${event.id}/checkin`}
-                        title="Operar Check-in do Evento"
-                      >
-                        <PlayCircle className="h-5 w-5" />
-                        <span className="hidden sm:inline">Check-in</span>
-                      </Link>
-                    </Button>
-                  </div>
-                </li>
+                        <Link to={`/staff/event/${event.id}/checkin`}>
+                          <PlayCircle className="h-5 w-5" />
+                          <span className="hidden sm:inline">Check-in</span>
+                        </Link>
+                      </Button>
+                    </>
+                  }
+                />
               ))}
             </ul>
           ) : (
