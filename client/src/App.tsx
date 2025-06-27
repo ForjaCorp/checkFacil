@@ -55,6 +55,7 @@ function App() {
           <Route path="/" element={<Navigate to="/staff/dashboard" replace />} />
           <Route path="/staff/dashboard" element={<DashboardPage />} />
           <Route path="/staff/events/createEventDraft" element={<CreateDraftEventPage />} />
+          <Route path="/staff/event/:eventId/details" element={<CompleteEventDetailsPage />} />
           <Route path="/staff/event/:eventId/checkin" element={<CheckinPage />} />
           <Route path="/organizer/dashboard" element={<DashboardPage />} />
           <Route path="/organizer/event/:eventId/details" element={<CompleteEventDetailsPage />} />
