@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CalendarIcon, Loader2 } from 'lucide-react'
-import { useForm } from 'react-hook-form'
+import { useForm, type SubmitHandler } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils'
 import { addGuestSchema, type AddGuestFormValues } from '@/schemas/guestSchemas'
 
 interface AddGuestFormProps {
-  onSubmit: (data: AddGuestFormValues) => void
+  onSubmit: SubmitHandler<AddGuestFormValues>
   isLoading?: boolean
   initialValues?: Partial<AddGuestFormValues>
   mode: 'add' | 'edit'

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type SubmitHandler } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { ContractedDetailsSection } from '@/components/events/ContractedDetailsSection'
@@ -101,7 +101,7 @@ function CompleteEventDetailsPage() {
     fetchEventData()
   }, [eventId, form])
 
-  async function onSubmit(values: CompleteDetailsFormValues) {
+  const onSubmit: SubmitHandler<CompleteDetailsFormValues> = async (values) => {
     const updatePayload = {
       horario_inicio: values.startTime || null,
       horario_fim: values.endTime || null,
