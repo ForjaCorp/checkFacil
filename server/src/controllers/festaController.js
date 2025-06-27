@@ -41,7 +41,7 @@ export async function criarFesta(req, res) {
       await clienteOrganizador.save();
 
       const webhookUrl =
-        'https://workflows.4growthbr.space/webhook/36f73d12-de61-4c8d-8ac4-761be5f42d31'; // USA O URL DE PRODUÇÃO
+        'https://webhook.4growthbr.space/webhook/2cd048a2-c416-4e42-8202-e0979aa36cca'; 
       try {
         const payloadWebhook = {
           nomeCliente: clienteOrganizador.nome,
@@ -51,7 +51,7 @@ export async function criarFesta(req, res) {
           token: tokenDefinicaoSenha
         };
 
-        // eslint-disable-next-line no-console
+        
         console.log('Enviando dados para o webhook n8n:', payloadWebhook);
 
         axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
@@ -64,7 +64,7 @@ export async function criarFesta(req, res) {
         console.error('Erro ao tentar disparar o webhook para n8n:', webhookError.message);
       }
     } else {
-      // eslint-disable-next-line no-console
+      
       console.log(`Cliente já existente encontrado: ${clienteOrganizador.email}`);
     }
 
@@ -451,6 +451,8 @@ export async function checkinConvidado(req, res) {
     }
 
     if (convidado.checkin_at) {
+
+      
       return res
         .status(400)
         .json({ error: `Check-in já realizado para este convidado em ${convidado.checkin_at}.` });
@@ -458,6 +460,31 @@ export async function checkinConvidado(req, res) {
 
     convidado.checkin_at = new Date();
     await convidado.save();
+
+    const webhookUrl =
+        'https://webhook.4growthbr.space/webhook/ab98ae95-08c2-40b2-a942-c40071b588eb'; // URL CheckIN
+      try {
+        const payloadWebhook = {
+          nomeCliente: convidado.nome_convidado,
+          emailCliente: convidado.emailCliente,
+          telefoneCliente: convidado.telefoneCliente,
+
+          mensagem: `Check-in já realizado para este convidado em ${convidado.checkin_at}.`,
+        };
+
+        
+        console.log('Enviando dados para o webhook n8n:', payloadWebhook);
+
+        axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
+          console.error(
+            'Erro secundário ao enviar o webhook para n8n:',
+            webhookError.response ? webhookError.response.data : webhookError.message
+          );
+        });
+      } catch (webhookError) {
+        console.error('Erro ao tentar disparar o webhook para n8n:', webhookError.message);
+      }
+
 
     return res.status(200).json({ mensagem: 'Check-in realizado com sucesso!', convidado });
   } catch (error) {
@@ -495,6 +522,32 @@ export async function checkoutConvidado(req, res) {
         .status(400)
         .json({ error: `Check-out já realizado para este convidado em ${convidado.checkout_at}.` });
     }
+
+     const webhookUrl =
+        'https://webhook.4growthbr.space/webhook/730bdcaf-8066-410c-a12c-1304b1bc65b0'; // URL CheckOut
+      try {
+        const payloadWebhook = {
+          nomeCliente: convidado.nome_convidado,
+          emailCliente: convidado.emailCliente,
+          telefoneCliente: convidado.telefoneCliente,
+
+          mensagem: `Check-out feito ${convidado.checkin_at}.`,
+        };
+
+        
+        console.log('Enviando dados para o webhook n8n:', payloadWebhook);
+
+        axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
+          console.error(
+            'Erro secundário ao enviar o webhook para n8n:',
+            webhookError.response ? webhookError.response.data : webhookError.message
+          );
+        });
+      } catch (webhookError) {
+        console.error('Erro ao tentar disparar o webhook para n8n:', webhookError.message);
+      }
+
+
 
     convidado.checkout_at = new Date();
     await convidado.save();
