@@ -77,7 +77,7 @@ function LoginPage() {
     await login(values)
   }
 
-  if (auth.initialLoading || auth.isAuthenticated) {
+  if (auth.isAuthenticated) {
     return <div className="h-screen w-full bg-primary" />
   }
 
