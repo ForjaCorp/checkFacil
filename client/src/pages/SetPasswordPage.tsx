@@ -1,7 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import axios from 'axios'
 import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -18,7 +16,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { useAuth } from '@/contexts/authContextCore'
 import { useApiMutation } from '@/hooks/useApiMutation'
 import api from '@/services/api'
 
@@ -37,7 +34,6 @@ type SetPasswordFormValues = z.infer<typeof setPasswordSchema>
 export function SetPasswordPage() {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
-  const auth = useAuth()
 
   const form = useForm<SetPasswordFormValues>({
     resolver: zodResolver(setPasswordSchema),
