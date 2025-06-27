@@ -10,7 +10,6 @@ router.post('/register/convidado', verificarTokenJWT ,permitirApenas(models.Usua
 router.post('/register/admEspaco', verificarTokenJWT, permitirApenas(models.Usuario.TIPOS_USUARIO.ADM_ESPACO) ,validarRegistro, authController.registrarAdmEspaco);
 
 router.post('/register/admFesta', validarRegistro, authController.registrarAdmFesta);
-router.post('/register/admEspaco', validarRegistro, authController.registrarAdmEspaco);
 
 router.post('/login', validarLogin, authController.login);
 
