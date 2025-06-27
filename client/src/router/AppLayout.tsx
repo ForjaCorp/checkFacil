@@ -14,12 +14,14 @@ import { SideBar } from '@/components/layout/SideBar'
  */
 export function AppLayout() {
   return (
-    <div className="grid h-screen w-full lg:grid-cols-[280px_1fr]">
+    <div className="flex h-screen w-full">
       <SideBar />
 
-      <div className="flex flex-col relative">
-        <main className="flex-grow overflow-y-auto p-4 md:p-6 lg:p-8 pb-20 lg:pb-8">
-          <Outlet />
+      <div className="flex flex-1 flex-col">
+        <main className="flex-1 overflow-y-auto">
+          <div className="px-4 md:px-6 lg:px-8">
+            <Outlet />
+          </div>
         </main>
 
         <div className="lg:hidden">
