@@ -126,7 +126,8 @@ export async function buscarFestas(req, res) {
     if (search) {
       whereClause[Op.or] = [
         { nome_festa: { [Op.like]: `%${search}%` } },
-        { nome_aniversariante: { [Op.like]: `%${search}%` } }
+        { nome_aniversariante: { [Op.like]: `%${search}%` } },
+        { '$organizador.nome$': { [Op.like]: `%${search}%` } }
       ];
     }
 
