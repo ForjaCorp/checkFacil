@@ -19,7 +19,7 @@ export function AppLayout() {
 
       <div className="flex flex-1 flex-col">
         <main className="flex-1 overflow-y-auto">
-          <div className="px-4 md:px-6 lg:px-8">
+          <div className="px-4 pb-16 md:px-6 lg:px-8 lg:pb-6">
             <Outlet />
           </div>
         </main>

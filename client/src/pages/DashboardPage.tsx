@@ -1,7 +1,11 @@
+import { endOfMonth, format, startOfMonth, startOfToday } from 'date-fns'
+import { Search } from 'lucide-react'
 import { useState } from 'react'
 
 import { EventSection } from '@/components/events/EventSection'
+import { DashboardFilters } from '@/components/layout/DashboardFilters'
 import { DashboardHeader } from '@/components/layout/DashboardHeader'
+import { Input } from '@/components/ui/input'
 import {
   Pagination,
   PaginationContent,
@@ -12,15 +16,35 @@ import {
 } from '@/components/ui/pagination'
 import { dashboardConfig } from '@/config/dashboardConfig'
 import { useAuth } from '@/contexts/authContextCore'
+import { useDebounce } from '@/hooks/useDebounce'
 import { useFetchEvents } from '@/hooks/useFetchEvents'
+
+import type { DateRange } from 'react-day-picker'
 
 export default function DashboardPage() {
   const { user } = useAuth()
   const [currentPage, setCurrentPage] = useState(1)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('TODOS')
+  const [dateRange, setDateRange] = useState<DateRange | undefined>()
+  const [activeCategory, setActiveCategory] = useState<
+    'this_month' | 'upcoming' | 'completed' | null
+  >(null)
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
   const userRole = user?.userType
   const config = userRole ? dashboardConfig[userRole] : null
-  const fetchOptions = config ? { ...config.fetchOptions, page: currentPage, limit: 6 } : {}
+
+  const fetchOptions = {
+    ...config?.fetchOptions,
+    page: currentPage,
+    limit: 6,
+    search: debouncedSearchTerm,
+    status: statusFilter === 'TODOS' ? undefined : statusFilter,
+    startDate: dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
+    endDate: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
+  }
 
   const { events, isLoading, pagination } = useFetchEvents(fetchOptions)
 
@@ -34,20 +58,74 @@ export default function DashboardPage() {
     }
   }
 
+  const clearFilters = () => {
+    setSearchTerm('')
+    setStatusFilter('TODOS')
+    setDateRange(undefined)
+    setCurrentPage(1)
+    setActiveCategory(null)
+  }
+
+  const applyCategoryFilter = (category: 'this_month' | 'upcoming' | 'completed') => {
+    clearFilters() // Limpa outros filtros antes de aplicar o novo
+    switch (category) {
+      case 'this_month': {
+        const today = new Date()
+        setDateRange({ from: startOfMonth(today), to: endOfMonth(today) })
+        break
+      }
+      case 'upcoming': {
+        setDateRange({ from: startOfToday(), to: undefined })
+        break
+      }
+      case 'completed': {
+        setStatusFilter('CONCLUIDA')
+        break
+      }
+      default:
+        break
+    }
+    setActiveCategory(category)
+  }
+
   return (
-    <div className="flex flex-col gap-6 h-full py-6">
+    <div className="flex flex-col gap-6 py-6">
       <DashboardHeader
         title={config.header.title}
         subtitle={config.header.getSubtitle(user.name || user.email)}
         action={config.header.action}
       />
 
+      <div className="flex flex-col gap-4">
+        {/* Barra de busca agora fica aqui, sempre visível */}
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome da festa..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {/* Componente de filtros agora lida apenas com o resto */}
+        <DashboardFilters
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          dateRange={dateRange}
+          setDateRange={setDateRange}
+          applyCategoryFilter={applyCategoryFilter}
+          activeCategory={activeCategory}
+          clearFilters={clearFilters}
+        />
+      </div>
+
       <EventSection
         isLoading={isLoading}
         events={events}
-        sectionTitle={config.events.sectionTitle}
-        emptyStateTitle={config.events.emptyStateTitle}
-        emptyStateDescription={config.events.emptyStateDescription}
+        sectionTitle="Resultados"
+        emptyStateTitle="Nenhum evento encontrado"
+        emptyStateDescription="Tente ajustar os filtros ou adicione um novo evento."
         cardVariant={config.events.cardVariant}
         footer={
           pagination.totalPages > 1 && (
@@ -63,13 +141,11 @@ export default function DashboardPage() {
                     className={currentPage === 1 ? 'pointer-events-none opacity-50' : undefined}
                   />
                 </PaginationItem>
-
                 <PaginationItem>
                   <PaginationLink href="#" isActive>
                     {currentPage}
                   </PaginationLink>
                 </PaginationItem>
-
                 <PaginationItem>
                   <PaginationNext
                     href="#"
