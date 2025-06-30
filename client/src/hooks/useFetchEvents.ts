@@ -12,12 +12,20 @@ import type { ApiEventResponse, AppEvent } from '@/types'
  * @param {boolean} [options.includeOrganizerName=false] - Inclui o nome do organizador no resultado.
  * @param {number} [options.page=1] - Número da página para buscar.
  * @param {number} [options.limit=6] - Número de itens por página.
+ * @param {string} [options.status] - Filtra eventos por status.
+ * @param {string} [options.search] - Filtra eventos por termo de busca.
+ * @param {string} [options.startDate] - Filtra eventos a partir desta data (YYYY-MM-DD).
+ * @param {string} [options.endDate] - Filtra eventos até esta data (YYYY-MM-DD).
  * @returns {UseFetchEventsReturn}
  */
 interface FetchEventsOptions {
   includeOrganizerName?: boolean
   page?: number
   limit?: number
+  status?: string
+  search?: string
+  startDate?: string
+  endDate?: string
 }
 
 /**
@@ -69,18 +77,30 @@ export function useFetchEvents(options: FetchEventsOptions = {}): UseFetchEvents
     totalItems: 0,
   })
 
-  const { includeOrganizerName = false, page = 1, limit = 6 } = options
+  const {
+    includeOrganizerName = false,
+    page = 1,
+    limit = 6,
+    status,
+    search,
+    startDate,
+    endDate,
+  } = options
 
   const fetchEvents = useCallback(async () => {
     setIsLoading(true)
     setError(null)
     try {
-      const response = await api.get('/festa/listar', {
-        params: {
-          page,
-          limit,
-        },
-      })
+      const params = {
+        page,
+        limit,
+        status: status || undefined,
+        search: search || undefined,
+        data_inicio: startDate || undefined,
+        data_fim: endDate || undefined,
+      }
+
+      const response = await api.get('/festa/listar', { params })
 
       const { festas, totalPages, currentPage, totalItems } = response.data
 
@@ -102,7 +122,7 @@ export function useFetchEvents(options: FetchEventsOptions = {}): UseFetchEvents
     } finally {
       setIsLoading(false)
     }
-  }, [includeOrganizerName, page, limit])
+  }, [includeOrganizerName, page, limit, status, search, startDate, endDate])
 
   useEffect(() => {
     fetchEvents()
