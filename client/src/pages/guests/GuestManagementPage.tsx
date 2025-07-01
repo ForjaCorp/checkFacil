@@ -179,7 +179,7 @@ function GuestManagementPage() {
               Adicionar Convidados
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Adicionar Novo Convidado</DialogTitle>
               <DialogDescription>
@@ -192,7 +192,7 @@ function GuestManagementPage() {
       </header>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Convidado</DialogTitle>
             <DialogDescription>
