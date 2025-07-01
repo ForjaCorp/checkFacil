@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { PhoneInput } from '@/components/forms/PhoneInput'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -137,10 +138,11 @@ function CreateDraftEventPage() {
                       <FormItem>
                         <FormLabel>WhatsApp do Contratante</FormLabel>
                         <FormControl>
-                          <Input placeholder="(XX) XXXXX-XXXX" {...field} />
+                          {/* O uso do componente não muda */}
+                          <PhoneInput placeholder="+55 (XX) 9XXXX-XXXX" {...field} />
                         </FormControl>
                         <FormDescription className="text-left">
-                          Usado para enviar o link de acesso.
+                          O número deve incluir 55 e o DDD.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
