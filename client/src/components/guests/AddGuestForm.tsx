@@ -4,6 +4,7 @@ import { ptBR } from 'date-fns/locale'
 import { CalendarIcon, Loader2 } from 'lucide-react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 
+import { PhoneInput } from '@/components/forms/PhoneInput'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -128,7 +129,11 @@ export function AddGuestForm({
               <FormItem>
                 <FormLabel>Telefone do Convidado</FormLabel>
                 <FormControl>
-                  <Input placeholder="(XX) XXXXX-XXXX" {...field} className="bg-background" />
+                  <PhoneInput
+                    placeholder="+55 (XX) 9XXXX-XXXX"
+                    {...field}
+                    className="bg-background"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -215,7 +220,11 @@ export function AddGuestForm({
                 <FormItem>
                   <FormLabel>Telefone do Responsável</FormLabel>
                   <FormControl>
-                    <Input placeholder="(XX) XXXXX-XXXX" {...field} className="bg-background" />
+                    <PhoneInput
+                      placeholder="+55 (XX) 9XXXX-XXXX"
+                      {...field}
+                      className="bg-background"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -268,7 +277,11 @@ export function AddGuestForm({
                 <FormItem>
                   <FormLabel>Telefone do Acompanhante</FormLabel>
                   <FormControl>
-                    <Input placeholder="(XX) XXXXX-XXXX" {...field} className="bg-background" />
+                    <PhoneInput
+                      placeholder="+55 (XX) 9XXXX-XXXX"
+                      {...field}
+                      className="bg-background"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

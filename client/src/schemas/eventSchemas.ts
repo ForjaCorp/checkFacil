@@ -1,5 +1,7 @@
 import * as z from 'zod'
 
+import { brazilianPhoneSchema } from '@/lib/phoneUtils'
+
 const timeStringSchema = z
   .string()
   .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Formato de hora inválido (HH:MM).')
@@ -15,7 +17,7 @@ export const createDraftFormSchema = z.object({
     .string()
     .min(1, 'Email do contratante é obrigatório.')
     .email('Formato de email inválido.'),
-  organizerPhone: z.string().min(10, 'Telefone do contratante é obrigatório (com DDD).'),
+  organizerPhone: brazilianPhoneSchema,
   partyName: z.string().min(1, 'Um nome para a festa é obrigatório.'),
   partyDate: z.date({ required_error: 'Data da festa é obrigatória.' }),
   startTime: timeStringSchema,
