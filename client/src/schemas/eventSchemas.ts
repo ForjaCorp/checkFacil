@@ -1,5 +1,9 @@
 import * as z from 'zod'
 
+const timeStringSchema = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Formato de hora inválido (HH:MM).')
+
 /**
  * @file Contém os schemas de validação Zod para os formulários de Festa/Evento.
  */
@@ -14,6 +18,8 @@ export const createDraftFormSchema = z.object({
   organizerPhone: z.string().min(10, 'Telefone do contratante é obrigatório (com DDD).'),
   partyName: z.string().min(1, 'Um nome para a festa é obrigatório.'),
   partyDate: z.date({ required_error: 'Data da festa é obrigatória.' }),
+  startTime: timeStringSchema,
+  endTime: timeStringSchema,
   packageType: z.enum(
     ['KIDS', 'KIDS_MAIS_PARK', 'PLAY', 'PLAY_MAIS_PARK', 'SUPER_FESTA_COMPLETA'],
     { required_error: 'Você precisa selecionar um tipo de pacote.' },
@@ -24,16 +30,6 @@ export const createDraftFormSchema = z.object({
 
 // Schema para a página de detalhes completos, que estende o rascunho.
 export const completeDetailsSchema = createDraftFormSchema.extend({
-  startTime: z
-    .string()
-    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Formato de hora inválido (HH:MM).')
-    .optional()
-    .or(z.literal('')),
-  endTime: z
-    .string()
-    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Formato de hora inválido (HH:MM).')
-    .optional()
-    .or(z.literal('')),
   description: z.string().optional().or(z.literal('')),
   birthdayPersonName: z.string().min(1, 'Nome do aniversariante é obrigatório.'),
   birthdayPersonAge: z.coerce.number().int().positive('Idade inválida.').optional().nullable(),

@@ -80,6 +80,34 @@ export function ContractedDetailsSection({ form }: ContractedDetailsSectionProps
             </FormItem>
           )}
         />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          <FormField
+            control={form.control}
+            name="startTime"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Horário de Início</FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} value={field.value ?? ''} disabled />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="endTime"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Horário de Término</FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} value={field.value ?? ''} disabled />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <FormField
           control={form.control}
           name="packageType"

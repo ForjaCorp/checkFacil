@@ -29,46 +29,6 @@ export function PersonalizePartySection({ form }: PersonalizePartySectionProps) 
     <div>
       <h3 className="text-lg font-semibold mb-4 border-b pb-2">Personalize Sua Festa</h3>
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="startTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Horário de Início</FormLabel>
-                <FormControl>
-                  <Input
-                    type="time"
-                    {...field}
-                    value={field.value ?? ''}
-                    className="focus:border-primary focus:ring-2 focus:ring-primary/30"
-                  />
-                </FormControl>
-                <FormDescription className="text-left">Formato HH:MM (ex: 14:00)</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="endTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Horário de Término</FormLabel>
-                <FormControl>
-                  <Input
-                    type="time"
-                    {...field}
-                    value={field.value ?? ''}
-                    className="focus:border-primary focus:ring-2 focus:ring-primary/30"
-                  />
-                </FormControl>
-                <FormDescription className="text-left">Formato HH:MM (ex: 18:00)</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
         <FormField
           control={form.control}
           name="birthdayPersonName"

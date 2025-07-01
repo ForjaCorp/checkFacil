@@ -43,6 +43,8 @@ function CreateDraftEventPage() {
       organizerPhone: '',
       partyName: '',
       partyDate: new Date(),
+      startTime: '14:00',
+      endTime: '18:00',
       packageType: 'KIDS',
       contractedChildren: 0,
       contractedAdults: 0,
@@ -64,6 +66,8 @@ function CreateDraftEventPage() {
       dadosFesta: {
         nome_festa: values.partyName,
         data_festa: format(values.partyDate, 'yyyy-MM-dd'),
+        horario_inicio: values.startTime,
+        horario_fim: values.endTime,
         pacote_escolhido: values.packageType,
         numero_criancas_contratado: values.contractedChildren,
         numero_adultos_contratado: values.contractedAdults,
@@ -203,6 +207,34 @@ function CreateDraftEventPage() {
                       </FormItem>
                     )}
                   />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <FormField
+                      control={form.control}
+                      name="startTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Horário de Início</FormLabel>
+                          <FormControl>
+                            <Input type="time" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="endTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Horário de Término</FormLabel>
+                          <FormControl>
+                            <Input type="time" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <FormField
                     control={form.control}
                     name="packageType"
