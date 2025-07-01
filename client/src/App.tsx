@@ -35,9 +35,9 @@ import { ProtectedRoute } from '@/router/ProtectedRoute'
  * Additionally, includes a Toaster component for displaying notifications.
  */
 function App() {
-  const { user } = useAuth()
+  const { isLoading } = useAuth()
 
-  if (user === undefined) {
+  if (isLoading) {
     return <SplashScreen />
   }
 

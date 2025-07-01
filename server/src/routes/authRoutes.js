@@ -30,6 +30,8 @@ router.post('/register/admFesta', validarRegistro, authController.registrarAdmFe
 
 router.post('/login', validarLogin, authController.login);
 
+router.get('/me', verificarTokenJWT, authController.validarSessao);
+
 router.post('/definir-senha', authController.definirSenha);
 
 export default router;

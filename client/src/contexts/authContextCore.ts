@@ -15,6 +15,7 @@ export interface AuthState {
   isAuthenticated: boolean
   user: AuthenticatedUser | null | undefined
   token?: string | null
+  isLoading: boolean
 }
 
 export interface AuthContextType extends AuthState {

@@ -143,6 +143,25 @@ export async function registrarAdmFesta(req, res) {
   }
 }
 
+export async function validarSessao(req, res) {
+  try {
+    const usuario = await models.Usuario.findByPk(req.usuarioId, {
+      attributes: { exclude: ['senha', 'redefineSenhaToken', 'redefineSenhaExpiracao'] }
+    });
+
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuário do token não encontrado.' });
+    }
+
+    return res.status(200).json({ usuario });
+
+  } catch (error) {
+    console.error('Erro ao validar sessão:', error);
+    return res.status(500).json({ error: 'Erro interno ao validar sessão.' });
+  }
+}
+
+
 export async function definirSenha(req, res) {
   try {
     const { token, novaSenha } = req.body;
