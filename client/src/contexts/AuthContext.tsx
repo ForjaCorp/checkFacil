@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, type ReactNode, useCallback } from 'react'
 
 import {
   AuthContext,
@@ -6,6 +6,7 @@ import {
   type AuthState,
   type AuthContextType,
 } from '@/contexts/authContextCore'
+import api from '@/services/api';
 
 interface AuthProviderProps {
   children: ReactNode
@@ -26,32 +27,64 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAuthenticated: false,
     user: undefined,
     token: null,
+    isLoading: true,
   })
+  
+  const logout = useCallback(() => {
+    setAuthState({
+      isAuthenticated: false,
+      user: null,
+      token: null,
+      isLoading: false,
+    });
+    localStorage.removeItem('user');
+    localStorage.removeItem('userToken');
+  }, []);
+
 
   useEffect(() => {
-    try {
-      const storedToken = localStorage.getItem('userToken')
-      const storedUserJSON = localStorage.getItem('user')
+    const validateToken = async () => {
+      const storedToken = localStorage.getItem('userToken');
 
-      if (storedToken && storedUserJSON) {
-        const storedUser: AuthenticatedUser = JSON.parse(storedUserJSON)
+      if (!storedToken) {
+        setAuthState({
+            isAuthenticated: false,
+            user: null,
+            token: null,
+            isLoading: false,
+        });
+        return;
+      }
+
+      try {
+        const response = await api.get('/auth/me');
+        const { usuario } = response.data;
+
+        const authenticatedUser: AuthenticatedUser = {
+          id: usuario.id,
+          email: usuario.email,
+          name: usuario.nome,      
+          userType: usuario.tipoUsuario, 
+        };
+        
         setAuthState({
           isAuthenticated: true,
-          user: storedUser,
+          user: authenticatedUser,
           token: storedToken,
-        })
-      } else {
-        setAuthState({
-          isAuthenticated: false,
-          user: null,
-          token: null,
-        })
+          isLoading: false,
+        });
+        localStorage.setItem('user', JSON.stringify(usuario));
+
+      } catch (error) {
+        console.error('Falha na validação da sessão, deslogando:', error);
+        logout();
       }
-    } catch (error) {
-      console.error('AuthProvider: Erro ao restaurar sessão:', error)
-      setAuthState({ isAuthenticated: false, user: null, token: null })
-    }
-  }, [])
+    };
+
+    validateToken();
+  }, [logout]);
+
+
 
   /**
    * Sets the authentication state to true and stores user data and
@@ -64,31 +97,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isAuthenticated: true,
       user: userData,
       token: token || null,
-    })
-    localStorage.setItem('user', JSON.stringify(userData))
+      isLoading: false,
+    });
+    localStorage.setItem('user', JSON.stringify(userData));
     if (token) {
-      localStorage.setItem('userToken', token)
+      localStorage.setItem('userToken', token);
     }
-  }
+  };
 
-  /**
-   * Logs out the user by clearing the authentication state and removing
-   * user data and token from localStorage.
-   *
-   * This function sets the `isAuthenticated` state to false and nullifies
-   * the `user` and `token` in the authentication state, effectively logging
-   * out the current user. It also removes the stored user data and token
-   * from localStorage to ensure no session data is retained.
-   */
-  const logout = () => {
-    setAuthState({
-      isAuthenticated: false,
-      user: null,
-      token: null,
-    })
-    localStorage.removeItem('user')
-    localStorage.removeItem('userToken')
-  }
 
   const value: AuthContextType = {
     ...authState,
