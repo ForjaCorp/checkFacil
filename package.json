@@ -9,12 +9,13 @@
     "server"
   ],
   "scripts": {
-  "build": "turbo run build",
-  "dev": "turbo run dev",
-  "lint": "turbo run lint",
-  "format": "turbo run format",
-  "format:check": "turbo run format:check",
-  "lint:fix": "eslint . --fix --max-warnings 0"
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "turbo run format",
+    "format:check": "turbo run format:check",
+    "lint:fix": "turbo run lint:fix",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@eslint/json": "^0.12.0",
@@ -32,6 +33,8 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.12",
     "turbo": "^2.5.4",

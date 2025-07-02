@@ -1,28 +1,21 @@
 {
   "$schema": "https://turborepo.org/schema.json",
-  "globalEnv": [
-    "NODE_ENV"
-  ],
+  "globalEnv": ["NODE_ENV"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "build/**"],
-      "env": [
-        "VITE_API_BASE_URL"
-      ]
+      "env": ["VITE_API_BASE_URL"]
     },
     "dev": {
       "cache": false,
       "persistent": true,
-      "env": [
-        "VITE_API_BASE_URL",
-        "PORT",
-        "JWT_SECRET"
-      ]
+      "env": ["VITE_API_BASE_URL", "PORT", "JWT_SECRET"]
     },
     "lint": {
       "outputs": ["!*.json", "!*.js"]
     },
+    "lint:fix": {},
     "format": {},
     "format:check": {}
   }

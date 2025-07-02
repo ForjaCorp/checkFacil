@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --host",
     "build": "yarn tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
