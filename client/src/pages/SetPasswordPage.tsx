@@ -31,7 +31,7 @@ const setPasswordSchema = z
 
 type SetPasswordFormValues = z.infer<typeof setPasswordSchema>
 
-export function SetPasswordPage() {
+export default function SetPasswordPage() {
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
 
