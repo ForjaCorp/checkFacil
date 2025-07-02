@@ -12,8 +12,8 @@ Este projeto é um monorepo gerenciado com **Yarn Workspaces** e **Plug'n'Play (
 ## ✨ Tecnologias Principais
 
 | Área          | Tecnologia                                                                                                                                                                                                            |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Monorepo** | [Yarn 4.x](https://yarnpkg.com/) (Workspaces, PnP), [Turborepo](https://turbo.build/repo), [TypeScript](https://www.typescriptlang.org/), [ESLint](https://eslint.org/), [Prettier](https://prettier.io/), [Husky](https://typicode.github.io/husky/) |
+| :------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Monorepo** | [Yarn 4.x](https://yarnpkg.com/) (Workspaces, PnP), [TypeScript](https://www.typescriptlang.org/), [ESLint](https://eslint.org/), [Prettier](https://prettier.io/)                                                        |
 | **Frontend** | [React](https://react.dev/) (Vite), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [Zod](https://zod.dev/), [React Hook Form](https://react-hook-form.com/) |
 | **Backend** | [Node.js](https://nodejs.org/), [Express.js](https://expressjs.com/), [Sequelize](https://sequelize.org/) (ORM), [MySQL](https://www.mysql.com/), [JWT](https://jwt.io/)                                                  |
 | **DevOps** | [Docker](https://www.docker.com/), [Traefik](https://traefik.io/traefik/) (para o ambiente de produção)                                                                                                                  |
@@ -80,43 +80,46 @@ Este projeto é um monorepo gerenciado com **Yarn Workspaces** e **Plug'n'Play (
 
 ## 🚀 Execução do Projeto
 
-Todos os comandos devem ser executados a partir da **raiz do monorepo**.
-
 * **Para rodar cliente e servidor simultaneamente (recomendado):**
 
     ```bash
     yarn dev
     ```
 
-* **Para construir todos os pacotes para produção:**
+* **Para rodar apenas o cliente:**
 
     ```bash
-    yarn build
+    yarn dev:client
     ```
 
-O Turborepo gerencia a execução paralela e o cache de tarefas, tornando esses comandos extremamente eficientes.
+* **Para rodar apenas o servidor:**
+
+    ```bash
+    yarn dev:server
+    ```
 
 ## Linting e Formatação
 
-A qualidade e a formatação do código são garantidas automaticamente através de um hook de **pre-commit** gerenciado por **Husky** e **Lint-Staged**.
-
-Antes de cada `git commit`, os seguintes comandos são executados **apenas nos arquivos modificados**:
-
-* `eslint --fix`: Corrige automaticamente erros de lint.
-* `prettier --write`: Formata o código de acordo com as regras do projeto.
-
-Isso garante que todo o código enviado para o repositório já está padronizado.
-
-Para executar as verificações manualmente em todo o projeto, você pode usar:
-
-* **Verificar Linting:**
+* **Verificar Linting de todo o projeto:**
 
     ```bash
     yarn lint
     ```
 
-* **Verificar Formatação com Prettier:**
+* **Corrigir erros de Linting:**
+
+    ```bash
+    yarn lint:fix
+    ```
+
+* **Verificar formatação com Prettier:**
 
     ```bash
     yarn format:check
+    ```
+
+* **Formatar código com Prettier:**
+
+    ```bash
+    yarn format
     ```
