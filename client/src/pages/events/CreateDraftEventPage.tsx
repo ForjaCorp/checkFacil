@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CalendarIcon, Loader2 } from 'lucide-react'
@@ -28,10 +29,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useApiMutation } from '@/hooks/useApiMutation'
 import { cn } from '@/lib/utils'
 import { createDraftFormSchema, type CreateDraftFormValues } from '@/schemas/eventSchemas'
 import api from '@/services/api'
+
+interface CreateEventPayload {
+  dadosFesta: {
+    nome_festa: string
+    data_festa: string
+    horario_inicio: string
+    horario_fim: string
+    pacote_escolhido: string
+    numero_criancas_contratado: number
+    numero_adultos_contratado: number
+  }
+  dadosCliente: {
+    nome: string
+    email: string
+    telefone: string
+  }
+}
 
 function CreateDraftEventPage() {
   const navigate = useNavigate()
@@ -52,17 +69,21 @@ function CreateDraftEventPage() {
     },
   })
 
-  const { mutate: createEvent, isLoading } = useApiMutation(
-    (payload) => api.post('/festa/criar', payload),
-    '',
-    {
-      onSuccess: () => {
-        navigate('/staff/dashboard')
-      },
+  const { mutate: createEvent, isPending: isLoading } = useMutation({
+    mutationFn: (payload: CreateEventPayload) => api.post('/festa/criar', payload),
+    onSuccess: (_data, variables) => {
+      const organizerName = variables.dadosCliente.nome
+      toast.success('Agendamento iniciado!', {
+        description: `Um link de acesso será enviado para o WhatsApp de ${organizerName}.`,
+      })
+      navigate('/staff/dashboard')
     },
-  )
+    onError: (error) => {
+      console.error('Falha ao criar agendamento:', error)
+    },
+  })
 
-  async function onSubmit(values: CreateDraftFormValues) {
+  function onSubmit(values: CreateDraftFormValues) {
     const payload = {
       dadosFesta: {
         nome_festa: values.partyName,
@@ -79,15 +100,7 @@ function CreateDraftEventPage() {
         telefone: values.organizerPhone,
       },
     }
-
-    try {
-      await createEvent(payload)
-      toast.success('Agendamento iniciado!', {
-        description: `Um link de acesso será enviado para o WhatsApp de ${values.organizerName}.`,
-      })
-    } catch (error) {
-      console.error('Falha ao criar agendamento:', error)
-    }
+    createEvent(payload)
   }
 
   return (

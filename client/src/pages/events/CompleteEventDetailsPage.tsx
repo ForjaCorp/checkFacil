@@ -1,17 +1,34 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { ContractedDetailsSection } from '@/components/events/ContractedDetailsSection'
 import { PersonalizePartySection } from '@/components/events/PersonalizePartySection'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form } from '@/components/ui/form'
-import { useApiMutation } from '@/hooks/useApiMutation'
 import { completeDetailsSchema, type CompleteDetailsFormValues } from '@/schemas/eventSchemas'
 import api from '@/services/api'
+
+type UpdateEventPayload = {
+  horario_inicio: string | null
+  horario_fim: string | null
+  descricao?: string
+  nome_aniversariante?: string
+  idade_aniversariante?: number | null
+  tema_festa?: string
+  festa_deixa_e_pegue?: boolean
+  autoriza_uso_imagem?: boolean
+  instagram_cliente?: string
+  procedimento_convidado_fora_lista?: string | null
+  link_playlist_spotify?: string | null
+  observacoes_festa?: string
+  status: string
+}
 
 function CompleteEventDetailsPage() {
   const [isFetching, setIsFetching] = useState(true)
@@ -46,15 +63,16 @@ function CompleteEventDetailsPage() {
     },
   })
 
-  const { mutate: updateEvent, isLoading } = useApiMutation(
-    (payload) => api.patch(`/festa/${eventId}`, payload),
-    'Detalhes da festa salvos com sucesso!',
-    {
-      onSuccess: () => {
-        navigate(-1)
-      },
+  const { mutate: updateEvent, isPending } = useMutation({
+    mutationFn: (payload: UpdateEventPayload) => api.patch(`/festa/${eventId}`, payload),
+    onSuccess: () => {
+      toast.success('Detalhes da festa salvos com sucesso!')
+      navigate(-1)
     },
-  )
+    onError: (error) => {
+      console.error('Falha ao salvar detalhes da festa:', error)
+    },
+  })
 
   useEffect(() => {
     if (!eventId) return
@@ -101,8 +119,8 @@ function CompleteEventDetailsPage() {
     fetchEventData()
   }, [eventId, form])
 
-  const onSubmit: SubmitHandler<CompleteDetailsFormValues> = async (values) => {
-    const updatePayload = {
+  const onSubmit: SubmitHandler<CompleteDetailsFormValues> = (values) => {
+    const updatePayload: UpdateEventPayload = {
       horario_inicio: values.startTime || null,
       horario_fim: values.endTime || null,
       descricao: values.description,
@@ -117,11 +135,7 @@ function CompleteEventDetailsPage() {
       observacoes_festa: values.partyObservations,
       status: 'PRONTA',
     }
-    try {
-      await updateEvent(updatePayload)
-    } catch (error) {
-      console.error('Falha ao salvar detalhes da festa:', error)
-    }
+    updateEvent(updatePayload)
   }
 
   if (isFetching) {
@@ -157,9 +171,9 @@ function CompleteEventDetailsPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <ContractedDetailsSection form={form} />
               <PersonalizePartySection form={form} />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {isLoading
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isPending
                   ? 'Salvando...'
                   : eventStatus === 'RASCUNHO'
                     ? 'Finalizar Agendamento e Salvar'

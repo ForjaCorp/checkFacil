@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -16,7 +17,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { useApiMutation } from '@/hooks/useApiMutation'
 import api from '@/services/api'
 
 const setPasswordSchema = z
@@ -40,33 +40,29 @@ export default function SetPasswordPage() {
     defaultValues: { password: '', confirmPassword: '' },
   })
 
-  const { mutate: setPassword, isLoading } = useApiMutation(
-    (payload) => api.post('/auth/definir-senha', payload),
-    'Senha definida com sucesso!',
-    {
-      onSuccess: () => {
-        toast.info('Agora você já pode fazer o login com sua nova senha.')
-        navigate('/login')
-      },
+  const { mutate: setPassword, isPending } = useMutation({
+    mutationFn: (payload: { token: string; novaSenha: string }) =>
+      api.post('/auth/definir-senha', payload),
+    onSuccess: () => {
+      toast.success('Senha definida com sucesso!')
+      toast.info('Agora você já pode fazer o login com sua nova senha.')
+      navigate('/login')
     },
-  )
+    onError: (error) => {
+      console.error('Falha ao definir a senha:', error)
+    },
+  })
 
-  async function onSubmit(values: SetPasswordFormValues) {
+  function onSubmit(values: SetPasswordFormValues) {
     if (!token) {
       toast.error('Token de redefinição inválido ou não encontrado.')
       return
     }
-
     const payload = {
       token: token,
       novaSenha: values.password,
     }
-
-    try {
-      await setPassword(payload)
-    } catch (error) {
-      console.error('Falha ao definir a senha:', error)
-    }
+    setPassword(payload)
   }
 
   return (
@@ -105,9 +101,9 @@ export default function SetPasswordPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {isLoading ? 'Salvando...' : 'Definir Senha e Acessar'}
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isPending ? 'Salvando...' : 'Definir Senha e Acessar'}
               </Button>
             </form>
           </Form>
