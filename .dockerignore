@@ -12,7 +12,7 @@ node_modules
 !/.yarn/sdks
 !/.yarn/versions
 
-# Ignora arquivos de log e de ambiente que não devem ir para a imagem
+# Ignora arquivos de log e de ambiente que não devem ir para a imagem   
 *.log
 .env
 .env.*
