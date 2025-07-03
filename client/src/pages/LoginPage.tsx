@@ -1,8 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import * as z from 'zod'
 
 import { Button } from '@/components/ui/button'
@@ -17,7 +19,6 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useAuth, type AuthenticatedUser } from '@/contexts/authContextCore'
-import { useApiMutation } from '@/hooks/useApiMutation'
 import api from '@/services/api'
 
 const loginFormSchema = z.object({
@@ -36,6 +37,28 @@ function LoginPage() {
   const auth = useAuth()
   const navigate = useNavigate()
 
+  const { mutate: login, isPending } = useMutation({
+    mutationFn: (credentials: LoginFormValues) =>
+      api.post('/auth/login', {
+        email: credentials.email,
+        senha: credentials.password,
+      }),
+    onSuccess: (data) => {
+      const { usuario, token } = data.data
+      const authenticatedUserData: AuthenticatedUser = {
+        id: usuario.id.toString(),
+        email: usuario.email,
+        name: usuario.nome,
+        userType: usuario.tipoUsuario,
+      }
+      auth.login(authenticatedUserData, token)
+    },
+    onError: (error) => {
+      console.error('Falha no login:', error)
+      toast.error('Falha no login', { description: 'Email ou senha inválidos.' })
+    },
+  })
+
   useEffect(() => {
     if (auth.isAuthenticated && auth.user) {
       const dashboardPath =
@@ -43,27 +66,6 @@ function LoginPage() {
       navigate(dashboardPath, { replace: true })
     }
   }, [auth.isAuthenticated, auth.user, navigate])
-
-  const { mutate: login, isLoading } = useApiMutation(
-    (credentials: LoginFormValues) =>
-      api.post('/auth/login', {
-        email: credentials.email,
-        senha: credentials.password,
-      }),
-    '',
-    {
-      onSuccess: (data) => {
-        const { usuario, token } = data.data
-        const authenticatedUserData: AuthenticatedUser = {
-          id: usuario.id.toString(),
-          email: usuario.email,
-          name: usuario.nome,
-          userType: usuario.tipoUsuario,
-        }
-        auth.login(authenticatedUserData, token)
-      },
-    },
-  )
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -73,8 +75,8 @@ function LoginPage() {
     },
   })
 
-  async function onSubmit(values: LoginFormValues) {
-    await login(values)
+  function onSubmit(values: LoginFormValues) {
+    login(values)
   }
 
   if (auth.isAuthenticated) {
@@ -82,7 +84,6 @@ function LoginPage() {
   }
 
   return (
-    // Layout principal com fundo roxo e centralizado
     <div className="w-full h-full flex flex-col items-center justify-center bg-primary p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
@@ -102,7 +103,6 @@ function LoginPage() {
               />
             </svg>
           </div>
-          {/* Título e descrição genéricos e acolhedores */}
           <CardTitle className="text-2xl">Acesse sua Conta</CardTitle>
           <CardDescription>Use seu email e senha para entrar no painel.</CardDescription>
         </CardHeader>
@@ -116,7 +116,7 @@ function LoginPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="seu@email.com" {...field} disabled={isLoading} />
+                      <Input placeholder="seu@email.com" {...field} disabled={isPending} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -133,16 +133,16 @@ function LoginPage() {
                         type="password"
                         placeholder="••••••••"
                         {...field}
-                        disabled={isLoading}
+                        disabled={isPending}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full !mt-6" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isLoading ? 'Entrando...' : 'Entrar'}
+              <Button type="submit" className="w-full !mt-6" disabled={isPending}>
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isPending ? 'Entrando...' : 'Entrar'}
               </Button>
             </form>
           </Form>

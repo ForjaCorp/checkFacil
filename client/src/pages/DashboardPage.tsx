@@ -1,3 +1,4 @@
+import { useQuery, type QueryFunctionContext } from '@tanstack/react-query'
 import { endOfMonth, format, startOfMonth, startOfToday } from 'date-fns'
 import { Search } from 'lucide-react'
 import { useState } from 'react'
@@ -17,8 +18,9 @@ import {
 import { dashboardConfig } from '@/config/dashboardConfig'
 import { useAuth } from '@/contexts/authContextCore'
 import { useDebounce } from '@/hooks/useDebounce'
-import { useFetchEvents } from '@/hooks/useFetchEvents'
+import api from '@/services/api'
 
+import type { ApiEventResponse, EventsQueryOptions } from '@/types'
 import type { DateRange } from 'react-day-picker'
 
 export default function DashboardPage() {
@@ -36,17 +38,57 @@ export default function DashboardPage() {
   const userRole = user?.userType
   const config = userRole ? dashboardConfig[userRole] : null
 
-  const fetchOptions = {
-    ...config?.fetchOptions,
+  const fetchEvents = async ({ queryKey }: QueryFunctionContext<[string, EventsQueryOptions]>) => {
+    const [_key, options] = queryKey
+    const params = {
+      page: options.page,
+      limit: 6,
+      search: options.search,
+      status: options.status,
+      data_inicio: options.startDate,
+      data_fim: options.endDate,
+    }
+    const { data } = await api.get('/festa/listar', { params })
+    const mappedEvents = data.festas.map((eventFromApi: ApiEventResponse) => ({
+      id: eventFromApi.id,
+      name: eventFromApi.nome_festa,
+      date: eventFromApi.data_festa,
+      status: eventFromApi.status,
+      organizerName: eventFromApi.organizador?.nome,
+    }))
+
+    return {
+      festas: mappedEvents,
+      currentPage: data.currentPage,
+      totalPages: data.totalPages,
+      totalItems: data.totalItems,
+    }
+  }
+
+  const queryOptions = {
     page: currentPage,
-    limit: 6,
     search: debouncedSearchTerm,
     status: statusFilter === 'TODOS' ? undefined : statusFilter,
     startDate: dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
     endDate: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
   }
 
-  const { events, isLoading, pagination } = useFetchEvents(fetchOptions)
+  const {
+    data: queryData,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['events', queryOptions],
+    queryFn: fetchEvents,
+    placeholderData: (previousData) => previousData,
+  })
+
+  const events = queryData?.festas || []
+  const pagination = {
+    currentPage: queryData?.currentPage || 1,
+    totalPages: queryData?.totalPages || 1,
+    totalItems: queryData?.totalItems || 0,
+  }
 
   if (!user || !config) {
     return null
@@ -96,8 +138,13 @@ export default function DashboardPage() {
         action={config.header.action}
       />
 
+      {isError && (
+        <div className="rounded-md border border-destructive bg-destructive/10 p-4 text-center text-sm text-destructive">
+          Ocorreu um erro ao carregar os eventos. Por favor, tente novamente mais tarde.
+        </div>
+      )}
+
       <div className="flex flex-col gap-4">
-        {/* Barra de busca agora fica aqui, sempre visível */}
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -108,7 +155,6 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Componente de filtros agora lida apenas com o resto */}
         <DashboardFilters
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}

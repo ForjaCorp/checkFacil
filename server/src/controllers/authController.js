@@ -154,13 +154,11 @@ export async function validarSessao(req, res) {
     }
 
     return res.status(200).json({ usuario });
-
   } catch (error) {
     console.error('Erro ao validar sessão:', error);
     return res.status(500).json({ error: 'Erro interno ao validar sessão.' });
   }
 }
-
 
 export async function definirSenha(req, res) {
   try {

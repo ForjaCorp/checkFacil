@@ -6,7 +6,7 @@ import {
   type AuthState,
   type AuthContextType,
 } from '@/contexts/authContextCore'
-import api from '@/services/api';
+import api from '@/services/api'
 
 interface AuthProviderProps {
   children: ReactNode
@@ -29,62 +29,58 @@ export function AuthProvider({ children }: AuthProviderProps) {
     token: null,
     isLoading: true,
   })
-  
+
   const logout = useCallback(() => {
     setAuthState({
       isAuthenticated: false,
       user: null,
       token: null,
       isLoading: false,
-    });
-    localStorage.removeItem('user');
-    localStorage.removeItem('userToken');
-  }, []);
-
+    })
+    localStorage.removeItem('user')
+    localStorage.removeItem('userToken')
+  }, [])
 
   useEffect(() => {
     const validateToken = async () => {
-      const storedToken = localStorage.getItem('userToken');
+      const storedToken = localStorage.getItem('userToken')
 
       if (!storedToken) {
         setAuthState({
-            isAuthenticated: false,
-            user: null,
-            token: null,
-            isLoading: false,
-        });
-        return;
+          isAuthenticated: false,
+          user: null,
+          token: null,
+          isLoading: false,
+        })
+        return
       }
 
       try {
-        const response = await api.get('/auth/me');
-        const { usuario } = response.data;
+        const response = await api.get('/auth/me')
+        const { usuario } = response.data
 
         const authenticatedUser: AuthenticatedUser = {
           id: usuario.id,
           email: usuario.email,
-          name: usuario.nome,      
-          userType: usuario.tipoUsuario, 
-        };
-        
+          name: usuario.nome,
+          userType: usuario.tipoUsuario,
+        }
+
         setAuthState({
           isAuthenticated: true,
           user: authenticatedUser,
           token: storedToken,
           isLoading: false,
-        });
-        localStorage.setItem('user', JSON.stringify(usuario));
-
+        })
+        localStorage.setItem('user', JSON.stringify(usuario))
       } catch (error) {
-        console.error('Falha na validação da sessão, deslogando:', error);
-        logout();
+        console.error('Falha na validação da sessão, deslogando:', error)
+        logout()
       }
-    };
+    }
 
-    validateToken();
-  }, [logout]);
-
-
+    validateToken()
+  }, [logout])
 
   /**
    * Sets the authentication state to true and stores user data and
@@ -98,13 +94,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       user: userData,
       token: token || null,
       isLoading: false,
-    });
-    localStorage.setItem('user', JSON.stringify(userData));
+    })
+    localStorage.setItem('user', JSON.stringify(userData))
     if (token) {
-      localStorage.setItem('userToken', token);
+      localStorage.setItem('userToken', token)
     }
-  };
-
+  }
 
   const value: AuthContextType = {
     ...authState,

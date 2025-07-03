@@ -93,3 +93,47 @@ export interface AppGuest {
   status: PresenceStatus
   isCheckedIn: boolean
 }
+
+// Tipo para as opções de query da dashboard
+export interface EventsQueryOptions {
+  page: number
+  search?: string
+  status?: string
+  startDate?: string
+  endDate?: string
+}
+
+// Tipo para o payload de criação de evento
+export interface CreateEventPayload {
+  dadosFesta: {
+    nome_festa: string
+    data_festa: string
+    horario_inicio: string
+    horario_fim: string
+    pacote_escolhido: string
+    numero_criancas_contratado: number
+    numero_adultos_contratado: number
+  }
+  dadosCliente: {
+    nome: string
+    email: string
+    telefone: string
+  }
+}
+
+// Tipo para o payload de atualização de evento
+export type UpdateEventPayload = {
+  horario_inicio: string | null
+  horario_fim: string | null
+  descricao?: string
+  nome_aniversariante?: string
+  idade_aniversariante?: number | null
+  tema_festa?: string
+  festa_deixa_e_pegue?: boolean
+  autoriza_uso_imagem?: boolean
+  instagram_cliente?: string
+  procedimento_convidado_fora_lista?: string | null
+  link_playlist_spotify?: string | null
+  observacoes_festa?: string
+  status: string
+}

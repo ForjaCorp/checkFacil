@@ -469,7 +469,6 @@ export async function checkinConvidado(req, res) {
         mensagem: `Check-in realizado para este convidado`
       };
 
-      
       console.log('Enviando dados para o webhook n8n:', payloadWebhook);
 
       axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
@@ -532,7 +531,6 @@ export async function checkoutConvidado(req, res) {
         mensagem: `Check-out feito ${convidado.checkin_at}.`
       };
 
-      
       console.log('Enviando dados para o webhook n8n:', payloadWebhook);
 
       axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {

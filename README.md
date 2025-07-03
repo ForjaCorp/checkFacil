@@ -62,13 +62,6 @@ Este projeto é um monorepo gerenciado com **Yarn Workspaces** e **Plug'n'Play (
         PORT=3001
         ```
 
-    * **Frontend (`/client/.env`):**
-
-        ```env
-        # URL base da API para o cliente se comunicar com o backend
-        VITE_API_BASE_URL=http://localhost:3001
-        ```
-
 4. **Configuração do Editor (VS Code):**
     Para garantir que o VS Code utilize a versão correta do TypeScript gerenciada pelo Yarn PnP, rode o seguinte comando na raiz do projeto após `yarn install`:
 
