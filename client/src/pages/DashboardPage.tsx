@@ -20,7 +20,7 @@ import { useAuth } from '@/contexts/authContextCore'
 import { useDebounce } from '@/hooks/useDebounce'
 import api from '@/services/api'
 
-import type { ApiEventResponse } from '@/types'
+import type { ApiEventResponse, EventsQueryOptions } from '@/types'
 import type { DateRange } from 'react-day-picker'
 
 export default function DashboardPage() {
@@ -37,14 +37,6 @@ export default function DashboardPage() {
 
   const userRole = user?.userType
   const config = userRole ? dashboardConfig[userRole] : null
-
-  interface EventsQueryOptions {
-    page: number
-    search?: string
-    status?: string
-    startDate?: string
-    endDate?: string
-  }
 
   const fetchEvents = async ({ queryKey }: QueryFunctionContext<[string, EventsQueryOptions]>) => {
     const [_key, options] = queryKey

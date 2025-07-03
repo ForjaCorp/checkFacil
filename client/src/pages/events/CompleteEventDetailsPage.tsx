@@ -14,21 +14,7 @@ import { Form } from '@/components/ui/form'
 import { completeDetailsSchema, type CompleteDetailsFormValues } from '@/schemas/eventSchemas'
 import api from '@/services/api'
 
-type UpdateEventPayload = {
-  horario_inicio: string | null
-  horario_fim: string | null
-  descricao?: string
-  nome_aniversariante?: string
-  idade_aniversariante?: number | null
-  tema_festa?: string
-  festa_deixa_e_pegue?: boolean
-  autoriza_uso_imagem?: boolean
-  instagram_cliente?: string
-  procedimento_convidado_fora_lista?: string | null
-  link_playlist_spotify?: string | null
-  observacoes_festa?: string
-  status: string
-}
+import type { UpdateEventPayload } from '@/types'
 
 function CompleteEventDetailsPage() {
   const [isFetching, setIsFetching] = useState(true)

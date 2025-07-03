@@ -33,22 +33,7 @@ import { cn } from '@/lib/utils'
 import { createDraftFormSchema, type CreateDraftFormValues } from '@/schemas/eventSchemas'
 import api from '@/services/api'
 
-interface CreateEventPayload {
-  dadosFesta: {
-    nome_festa: string
-    data_festa: string
-    horario_inicio: string
-    horario_fim: string
-    pacote_escolhido: string
-    numero_criancas_contratado: number
-    numero_adultos_contratado: number
-  }
-  dadosCliente: {
-    nome: string
-    email: string
-    telefone: string
-  }
-}
+import type { CreateEventPayload } from '@/types'
 
 function CreateDraftEventPage() {
   const navigate = useNavigate()
