@@ -1,0 +1,31 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    image: checkfacil-api:latest
+    secrets:
+      - source: checkfacil_env_file
+        target: /app/server/.env
+    networks:
+      - 4GTNET
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.checkfacil-api.rule=Host(`espacocriar.4growthbr.space`)"
+        - "traefik.http.routers.checkfacil-api.entrypoints=websecure"
+        - "traefik.http.routers.checkfacil-api.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.checkfacil-api.loadbalancer.server.port=3001"
+        - "traefik.docker.network=4GTNET"
+
+secrets:
+  checkfacil_env_file:
+    file: ./config/.env
+
+networks:
+  4GTNET:
+    external: true
+    name: 4GTNET

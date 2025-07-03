@@ -4,27 +4,29 @@ Bem-vindo ao repositório do CheckFacil! Esta é uma Aplicação Web Progressiva
 
 ## Visão Geral da Estrutura
 
-Este projeto é um monorepo gerenciado com **Yarn Workspaces** e **Plug'n'Play (PnP)**. Ele é composto pelos seguintes workspaces:
+Este projeto é um monorepo gerenciado com **Yarn Workspaces**, composto pelos seguintes pacotes:
 
 * **`/client`**: Contém o frontend da aplicação (PWA), responsável pela interface do usuário para o Staff do evento e para os Clientes (organizadores da festa).
 * **`/server`**: Contém a API backend, responsável pela lógica de negócios, autenticação, comunicação com o banco de dados e integrações externas.
+* **`/infra`**: Contém a configuração de infraestrutura como código (IaC), incluindo o `Dockerfile` e arquivos `docker-compose` para deploy.
 
-## ✨ Tecnologias Principais
+## ✨ Tecnologias e Padrões Principais
 
-| Área          | Tecnologia                                                                                                                                                                                                            |
-| :------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Monorepo** | [Yarn 4.x](https://yarnpkg.com/) (Workspaces, PnP), [TypeScript](https://www.typescriptlang.org/), [ESLint](https://eslint.org/), [Prettier](https://prettier.io/)                                                        |
-| **Frontend** | [React](https://react.dev/) (Vite), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [Zod](https://zod.dev/), [React Hook Form](https://react-hook-form.com/) |
-| **Backend** | [Node.js](https://nodejs.org/), [Express.js](https://expressjs.com/), [Sequelize](https://sequelize.org/) (ORM), [MySQL](https://www.mysql.com/), [JWT](https://jwt.io/)                                                  |
-| **DevOps** | [Docker](https://www.docker.com/), [Traefik](https://traefik.io/traefik/) (para o ambiente de produção)                                                                                                                  |
+| Área | Tecnologia |
+| :--- | :--- |
+| **Monorepo** | [Yarn 4.x](https://yarnpkg.com/) (Workspaces), [Turborepo](https://turbo.build/repo), [TypeScript](https://www.typescriptlang.org/), [ESLint](https://eslint.org/), [Prettier](https://prettier.io/) |
+| **Qualidade de Código** | [Husky](https://typicode.github.io/husky/) + [Lint-Staged](https://github.com/okonet/lint-staged) para hooks de pre-commit automatizados. |
+| **Frontend** | [React](https://react.dev/) (Vite), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [TanStack Query](https://tanstack.com/query/latest) (Server State), [Zod](https://zod.dev/), [React Hook Form](https://react-hook-form.com/) |
+| **Backend** | [Node.js](https://nodejs.org/), [Express.js](https://expressjs.com/), [Sequelize](https://sequelize.org/) (ORM), [MySQL](https://www.mysql.com/), [JWT](https://jwt.io/) |
+| **DevOps** | [Docker](https://www.docker.com/), [Traefik](https://traefik.io/traefik/) (Proxy Reverso para Produção) |
 
-## ⚙️ Configuração do Ambiente
+## ⚙️ Configuração do Ambiente Local
 
 ### Pré-requisitos
 
-* Node.js `v20.x` ou superior
+* Node.js `v22.x` ou superior
 * Yarn `v4.x` ou superior
-* Docker e Docker Compose (para o banco de dados) ou uma instância MySQL local.
+* Docker e Docker Compose (para testes locais e deploy)
 
 ### Passos de Instalação
 
@@ -36,83 +38,102 @@ Este projeto é um monorepo gerenciado com **Yarn Workspaces** e **Plug'n'Play (
     ```
 
 2. **Instale as dependências:**
-    Este comando instalará as dependências da raiz e de todos os workspaces (`client` e `server`).
+    Este comando usará o Yarn Workspaces para instalar as dependências da raiz e de todos os pacotes (`client`, `server`).
 
     ```bash
     yarn install
     ```
 
 3. **Configure as Variáveis de Ambiente:**
-    Crie um arquivo `.env` em cada um dos workspaces e preencha com as informações necessárias.
+    Crie um arquivo `.env` na raiz do projeto para o teste local com Docker e um em `/server/.env` para o desenvolvimento do backend.
 
-    * **Backend (`/server/.env`):**
+    * **Raiz do Projeto (`/.env`) - Para `docker compose local`:**
 
         ```env
-        # Banco de Dados
-        DB_HOST=localhost
-        DB_USER=seu_usuario_mysql
-        DB_PASSWORD=sua_senha_mysql
+        # Banco de Dados (exemplo)
+        DB_HOST=mysql_db
+        DB_USER=user
+        DB_PASSWORD=password
         DB_NAME=checkfacil_db
         DB_PORT=3306
 
-        # JWT (gere um segredo forte)
-        JWT_SECRET=seu_segredo_super_secreto_aqui
+        # JWT (essencial)
+        JWT_SECRET=seu_segredo_super_secreto_aqui_para_docker
 
-        # Porta do Servidor
+        # Porta do Servidor (essencial)
         PORT=3001
         ```
 
+    * **Backend (`/server/.env`) - Para `yarn dev`:**
+        *Use as mesmas variáveis acima, ajustando os dados do banco de dados se necessário para o seu ambiente local.*
+
 4. **Configuração do Editor (VS Code):**
-    Para garantir que o VS Code utilize a versão correta do TypeScript gerenciada pelo Yarn PnP, rode o seguinte comando na raiz do projeto após `yarn install`:
+    Para garantir que o VS Code utilize a versão correta do TypeScript gerenciada pelo Yarn, rode:
 
     ```bash
     yarn dlx @yarnpkg/sdks vscode
     ```
 
-    Depois, abra qualquer arquivo `.ts` ou `.tsx`, use o comando `TypeScript: Select TypeScript Version...` (Ctrl+Shift+P) e selecione a **"Use Workspace Version"**.
+    Em seguida, no VS Code, use (Ctrl+Shift+P) para selecionar `TypeScript: Select TypeScript Version...` e escolha a **"Use Workspace Version"**.
 
-## 🚀 Execução do Projeto
+## 🚀 Scripts Principais
 
-* **Para rodar cliente e servidor simultaneamente (recomendado):**
+Todos os comandos devem ser executados a partir da **raiz do monorepo**. O **Turborepo** gerencia a execução otimizada das tarefas.
+
+* **Iniciar Ambiente de Desenvolvimento (Hot-Reload):**
 
     ```bash
     yarn dev
     ```
 
-* **Para rodar apenas o cliente:**
+* **Construir todos os pacotes para produção:**
 
     ```bash
-    yarn dev:client
+    yarn build
     ```
 
-* **Para rodar apenas o servidor:**
+* **Testar a Imagem de Produção Localmente:**
+    Este fluxo permite simular o ambiente de produção na sua máquina.
 
-    ```bash
-    yarn dev:server
-    ```
+    1. **Construir a imagem Docker local:**
 
-## Linting e Formatação
+        ```bash
+        yarn docker:build
+        ```
 
-* **Verificar Linting de todo o projeto:**
+    2. **Subir o container:**
+
+        ```bash
+        yarn docker:up
+        ```
+
+    3. **Derrubar o container após o teste:**
+
+        ```bash
+        yarn docker:down
+        ```
+
+## Linting e Qualidade de Código
+
+A qualidade e a formatação do código são garantidas automaticamente através de um **hook de pre-commit** gerenciado por **Husky** e **Lint-Staged**. Antes de cada `git commit`, `eslint --fix` e `prettier --write` são executados nos arquivos modificados.
+
+Para rodar as verificações manualmente em todo o projeto, use:
+
+* **Verificar Linting:**
 
     ```bash
     yarn lint
     ```
 
-* **Corrigir erros de Linting:**
-
-    ```bash
-    yarn lint:fix
-    ```
-
-* **Verificar formatação com Prettier:**
+* **Verificar Formatação:**
 
     ```bash
     yarn format:check
     ```
 
-* **Formatar código com Prettier:**
+* **Corrigir Linting e Formatação:**
 
     ```bash
+    yarn lint:fix
     yarn format
     ```

@@ -1,31 +1,57 @@
-# IDEs e Sistema
+# ──────────────────────────────
+# ⚙️ IDEs e Arquivos do Sistema
+# ──────────────────────────────
 .vscode/*
 !.vscode/extensions.json
 .idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
 
-# Yarn Berry / PnP
+# ──────────────────────────────
+# 📦 Gerenciadores de Pacote
+# ──────────────────────────────
+
+# Yarn Berry (Plug'n'Play)
 .yarn/*
-
-# Agora, as exceções para o que NÃO deve ser ignorado funcionarão.
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
 
-# Arquivos de cache e estado do Yarn que DEVEM SER IGNORADOS
-# (Estes são cobertos pelo .yarn/*, mas é bom ser explícito)
+# Cache e estado do Yarn
 .yarn/cache
 .yarn/unplugged
 .yarn/build-state
 .yarn/install-state.gz
 
-
-# Lockfiles de outros gerentes
+# Lockfiles de outros gerenciadores
 package-lock.json
 npm-shrinkwrap.json
 
-# Logs
+# Diretório de dependências
+node_modules/
+
+# ──────────────────────────────
+# 🧪 Build, Testes e Coverage
+# ──────────────────────────────
+dist/
+build/
+coverage/
+.turbo/
+
+# Cache de ferramentas específicas
+client/dist
+client/.vite
+
+# ──────────────────────────────
+# 🐞 Logs e PIDs
+# ──────────────────────────────
 logs
 *.log
 npm-debug.log*
@@ -38,24 +64,7 @@ pids
 *.seed
 *.pid.lock
 
-# Diretórios de Dependências e Build
-node_modules/
-dist/
-build/
-coverage/
-.turbo/
-
-# Arquivos de configuração de build específicos do cliente (Vite)
-client/dist
-client/.vite # Cache do Vite
-
-# IDEs e Sistema
-.vscode/
-.idea/
-*.suo
-*.ntvs*
-*.njsproj # Corrigi o typo de 'njsproja'
-*.sln
-*.sw?
-.DS_Store
-Thumbs.db
+# ──────────────────────────────
+# 🔐 Variáveis de Ambiente
+# ──────────────────────────────
+.env

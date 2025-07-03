@@ -1,0 +1,10 @@
+services:
+  api:
+    image: checkfacil-api:latest
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    env_file:
+      - ../.env
+    ports:
+      - "3001:3001"

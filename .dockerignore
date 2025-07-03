@@ -1,0 +1,28 @@
+# Ignora arquivos e pastas do Git
+.git
+.gitignore
+
+# Ignora dependências locais, pois elas serão instaladas dentro do container
+node_modules
+.pnp.*
+.yarn/*
+!/.yarn/patches
+!/.yarn/plugins
+!/.yarn/releases
+!/.yarn/sdks
+!/.yarn/versions
+
+# Ignora arquivos de log e de ambiente que não devem ir para a imagem   
+*.log
+.env
+.env.*
+
+# Ignora pastas de IDEs
+.vscode/
+.idea/
+
+# Ignora a pasta de infraestrutura para ela não se auto-copiar
+infra/
+
+# Ignora o backup que fizemos no servidor
+*.BAK

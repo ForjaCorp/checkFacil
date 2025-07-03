@@ -1,0 +1,27 @@
+{
+  "recommendations": [
+    // 🛠️ Base para TypeScript, lint e formatação
+    "dbaeumer.vscode-eslint", // Suporte a ESLint
+    "esbenp.prettier-vscode", // Suporte a Prettier
+    "ms-vscode.vscode-typescript-next", // Usa a versão do TS do Yarn PnP
+
+    // 🧠 Qualidade de código
+    "yoavbls.pretty-ts-errors", // Erros de TS mais legíveis
+    "bradlc.vscode-tailwindcss", // Tailwind CSS autocomplete
+
+    // ⚛️ React & HTML
+    "formulahendry.auto-close-tag", // Fecha tags HTML/JSX automaticamente
+    "formulahendry.auto-rename-tag", // Renomeia tags em pares
+
+    // 🐳 Docker & Shell (caso use DevOps local)
+    "ms-azuretools.vscode-docker", // Dockerfile, docker-compose, etc.
+    "timonwong.shellcheck", // Linter para shell scripts
+
+    // 📦 Yarn PnP
+    "arcanis.vscode-zipfs" // Faz o VSCode funcionar com PnP
+  ],
+  "unwantedRecommendations": [
+    "eg2.vscode-npm-script", // Desnecessário com Yarn
+    "ms-vscode.vscode-node-azure-pack" // Pouco útil no contexto atual
+  ]
+}
