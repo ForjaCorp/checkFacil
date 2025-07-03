@@ -9,12 +9,12 @@
     "server"
   ],
   "scripts": {
-  "build": "turbo run build",
-  "dev": "turbo run dev",
-  "lint": "turbo run lint",
-  "format": "turbo run format",
-  "format:check": "turbo run format:check",
-  "lint:fix": "eslint . --fix --max-warnings 0"
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "turbo run format",
+    "format:check": "turbo run format:check",
+    "lint:fix": "eslint . --fix --max-warnings 0"
   },
   "devDependencies": {
     "@eslint/json": "^0.12.0",

@@ -1,5 +1,6 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Pencil, PlusCircle, Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -32,128 +33,132 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { useApiMutation } from '@/hooks/useApiMutation'
 import api from '@/services/api'
 
 import type { AddGuestFormValues } from '@/schemas/guestSchemas'
-import type { ApiGuestResponse, AppGuest } from '@/types'
+import type { AppGuest } from '@/types'
 
 function GuestManagementPage() {
   const { eventId } = useParams<{ eventId: string }>()
-  const [guests, setGuests] = useState<AppGuest[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [partyName, setPartyName] = useState('')
+  const queryClient = useQueryClient()
 
-  // Estados para controlar os modais
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingGuest, setEditingGuest] = useState<AppGuest | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [guestToDelete, setGuestToDelete] = useState<AppGuest | null>(null)
 
-  const fetchGuests = useCallback(async () => {
-    if (!eventId) return
-    try {
+  const { data: guests = [], isLoading } = useQuery<AppGuest[]>({
+    queryKey: ['guests', eventId],
+    queryFn: async () => {
+      if (!eventId) return []
       const response = await api.get(`/festa/${eventId}/convidados`)
-      const mappedGuests: AppGuest[] = response.data.map((guestFromApi: ApiGuestResponse) => ({
-        id: guestFromApi.id,
-        nome_convidado: guestFromApi.nome_convidado,
-        tipo_convidado: guestFromApi.tipo_convidado,
-        nascimento_convidado: guestFromApi.nascimento_convidado
-          ? new Date(guestFromApi.nascimento_convidado.replace(/-/g, '/'))
-          : null,
-        e_crianca_atipica: guestFromApi.e_crianca_atipica,
-        telefone_convidado: guestFromApi.telefone_convidado,
-        nome_responsavel: guestFromApi.nome_responsavel,
-        telefone_responsavel: guestFromApi.telefone_responsavel,
-        nome_acompanhante: guestFromApi.nome_acompanhante,
-        telefone_acompanhante: guestFromApi.telefone_acompanhante,
-        observacao_convidado: guestFromApi.observacao_convidado,
-        status: guestFromApi.confirmou_presenca,
-        isCheckedIn: !!guestFromApi.checkin_at,
-      }))
-      setGuests(mappedGuests)
-    } catch (error) {
-      console.error('Erro ao buscar convidados:', error)
-      toast.error('Não foi possível carregar a lista de convidados.')
-    }
-  }, [eventId])
+      return response.data
+    },
+    enabled: !!eventId,
+  })
 
-  // Busca os dados iniciais
-  useEffect(() => {
-    if (!eventId) return
-    const fetchInitialData = async () => {
-      setIsLoading(true)
-      await fetchGuests()
-      try {
-        const eventResponse = await api.get(`/festa/${eventId}`)
-        setPartyName(eventResponse.data.nome_festa)
-      } catch {
-        toast.error('Não foi possível carregar o nome da festa.')
+  const { data: eventData } = useQuery({
+    queryKey: ['event', eventId],
+    queryFn: async () => {
+      if (!eventId) return null
+      const response = await api.get(`/festa/${eventId}`)
+      return response.data
+    },
+    enabled: !!eventId,
+  })
+
+  const partyName = eventData?.nome_festa || ''
+
+  const { mutate: addGuest, isPending: isAdding } = useMutation({
+    mutationFn: (newGuest: AddGuestFormValues) =>
+      api.post(`/festa/${eventId}/convidados`, newGuest),
+
+    onMutate: async (newGuest) => {
+      setIsAddDialogOpen(false) // Fecha o modal imediatamente
+      await queryClient.cancelQueries({ queryKey: ['guests', eventId] })
+      const previousGuests = queryClient.getQueryData<AppGuest[]>(['guests', eventId])
+
+      queryClient.setQueryData<AppGuest[]>(['guests', eventId], (old = []) => [
+        ...old,
+        { id: Date.now(), ...newGuest, status: 'PENDENTE', isCheckedIn: false },
+      ])
+
+      return { previousGuests }
+    },
+    onError: (_err, _newGuest, context) => {
+      if (context?.previousGuests) {
+        queryClient.setQueryData(['guests', eventId], context.previousGuests)
       }
-      setIsLoading(false)
-    }
-    fetchInitialData()
-  }, [eventId, fetchGuests])
-
-  const { mutate: addGuest, isLoading: isAdding } = useApiMutation(
-    (data: AddGuestFormValues) => api.post(`/festa/${eventId}/convidados`, data),
-    'Convidado adicionado com sucesso!',
-    {
-      onSuccess: () => {
-        fetchGuests()
-        setIsAddDialogOpen(false)
-      },
+      toast.error('Falha ao adicionar convidado.')
     },
-  )
-
-  const { mutate: editGuest, isLoading: isEditing } = useApiMutation(
-    (data: AddGuestFormValues) =>
-      api.patch(`/festa/${eventId}/convidados/${editingGuest?.id}`, data),
-    'Convidado atualizado com sucesso!',
-    {
-      onSuccess: () => {
-        fetchGuests()
-        setIsEditDialogOpen(false)
-        setEditingGuest(null)
-      },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['guests', eventId] })
     },
-  )
+  })
 
-  const { mutate: deleteGuest, isLoading: isDeleting } = useApiMutation(
-    () => api.delete(`/festa/${eventId}/convidados/${guestToDelete?.id}`),
-    `Convidado removido com sucesso!`,
-    {
-      onSuccess: () => {
-        fetchGuests()
-        setGuestToDelete(null)
-      },
+  const { mutate: editGuest, isPending: isEditing } = useMutation({
+    mutationFn: (updatedGuest: AddGuestFormValues) =>
+      api.patch(`/festa/${eventId}/convidados/${editingGuest?.id}`, updatedGuest),
+
+    onMutate: async (updatedGuest) => {
+      setIsEditDialogOpen(false)
+      await queryClient.cancelQueries({ queryKey: ['guests', eventId] })
+      const previousGuests = queryClient.getQueryData<AppGuest[]>(['guests', eventId])
+
+      queryClient.setQueryData<AppGuest[]>(['guests', eventId], (old = []) =>
+        old.map((guest) => (guest.id === editingGuest?.id ? { ...guest, ...updatedGuest } : guest)),
+      )
+
+      return { previousGuests }
     },
-  )
+    onError: (_err, _updatedGuest, context) => {
+      if (context?.previousGuests) {
+        queryClient.setQueryData(['guests', eventId], context.previousGuests)
+      }
+      toast.error('Falha ao salvar alterações.')
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['guests', eventId] })
+    },
+  })
 
-  const handleAddGuestSubmit = async (data: AddGuestFormValues) => {
-    try {
-      await addGuest(data)
-    } catch (error) {
-      console.error(error)
-    }
+  const { mutate: deleteGuest, isPending: isDeleting } = useMutation({
+    mutationFn: () => api.delete(`/festa/${eventId}/convidados/${guestToDelete?.id}`),
+
+    onMutate: async () => {
+      if (!guestToDelete) return
+      setGuestToDelete(null) // Fecha o diálogo de confirmação
+      await queryClient.cancelQueries({ queryKey: ['guests', eventId] })
+      const previousGuests = queryClient.getQueryData<AppGuest[]>(['guests', eventId])
+
+      queryClient.setQueryData<AppGuest[]>(['guests', eventId], (old = []) =>
+        old.filter((guest) => guest.id !== guestToDelete.id),
+      )
+
+      return { previousGuests }
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousGuests) {
+        queryClient.setQueryData(['guests', eventId], context.previousGuests)
+      }
+      toast.error('Falha ao remover convidado.')
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['guests', eventId] })
+    },
+  })
+
+  function handleAddGuestSubmit(data: AddGuestFormValues) {
+    addGuest(data)
   }
 
-  const handleEditGuestSubmit = async (data: AddGuestFormValues) => {
+  function handleEditGuestSubmit(data: AddGuestFormValues) {
     if (!editingGuest) return
-    try {
-      await editGuest(data)
-    } catch (error) {
-      console.error(error)
-    }
+    editGuest(data)
   }
 
-  const confirmDeleteGuest = async () => {
-    if (!guestToDelete) return
-    try {
-      await deleteGuest(undefined)
-    } catch (error) {
-      console.error(error)
-    }
+  function confirmDeleteGuest() {
+    deleteGuest()
   }
 
   const handleEditClick = (guest: AppGuest) => {
