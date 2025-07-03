@@ -23,7 +23,7 @@ services:
 
 secrets:
   checkfacil_env_file:
-    file: ./config/.env
+    file: ../config/.env
 
 networks:
   4GTNET:
