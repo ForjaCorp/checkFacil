@@ -62,6 +62,30 @@ export async function criarFesta(req, res) {
         console.error('Erro ao tentar disparar o webhook para n8n:', webhookError.message);
       }
     } else {
+
+      const webhookUrl =
+        'https://webhook.4growthbr.space/webhook/450d7592-a575-4062-9228-ad5f3236bb1d';
+      try {
+        const payloadWebhook = {
+          nomeCliente: clienteOrganizador.nome,
+          emailCliente: clienteOrganizador.email,
+          telefoneCliente: clienteOrganizador.telefone,
+
+        };
+
+        // eslint-disable-next-line no-console
+        console.log('Enviando dados para o webhook n8n:', payloadWebhook);
+
+        axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
+          console.error(
+            'Erro secundário ao enviar o webhook para n8n:',
+            webhookError.response ? webhookError.response.data : webhookError.message
+          );
+        });
+      } catch (webhookError) {
+        console.error('Erro ao tentar disparar o webhook para n8n:', webhookError.message);
+      }
+
       // eslint-disable-next-line no-console
       console.log(`Cliente já existente encontrado: ${clienteOrganizador.email}`);
     }
