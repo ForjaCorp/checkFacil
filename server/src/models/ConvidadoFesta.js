@@ -91,6 +91,11 @@ ConvidadoFesta.init(
         model: 'convidadosFesta',
         key: 'id'
       }
+    },
+    cadastrado_na_hora:{
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: null
     }
   },
   {
