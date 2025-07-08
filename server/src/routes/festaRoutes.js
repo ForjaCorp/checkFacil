@@ -3,10 +3,15 @@ import * as festaController from '../controllers/festaController.js';
 import { verificarTokenJWT } from '../middleware/validarReqAuth.js';
 
 const router = express.Router();
-// Todas as rotas estão protegidas e requerem autenticação via token JWT.
+
+
+
+// Rota pública: Cadastro em grupo de convidados (sem token)
+router.post('/:idFesta/register-guest-group', registrarGrupoConvidados);
 
 // POST /festa/criar -> Cria uma nova festa
 router.post('/criar', verificarTokenJWT, festaController.criarFesta);
+
 
 // GET /festa/listar -> Lista festas com base nas permissões e filtros.
 // Esta rota mais específica vem ANTES da rota genérica /:idFesta.
