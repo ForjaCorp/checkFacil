@@ -1,10 +1,10 @@
-// server/src/server.js
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import playlistRoutes from './routes/playlistsRoutes.js';
 import _models, { sequelize } from './models/index.js';
 import authRoutes from './routes/authRoutes.js';
 import festaRoutes from './routes/festaRoutes.js';
@@ -22,6 +22,7 @@ app.use(express.static(path.join(__dirname, '../../client/dist')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/festa', festaRoutes);
+app.use('/api/playlists', playlistRoutes);
 
 app.get('/*splat', (_req, res) => {
   res.sendFile(path.join(__dirname, '../../client/dist', 'index.html'));
