@@ -1,35 +1,39 @@
-import { AddToCalendarButton } from 'add-to-calendar-button-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { CheckCircle2 } from 'lucide-react';
+import { AddToCalendarButton } from 'add-to-calendar-button-react'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { CheckCircle2 } from 'lucide-react'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 // Interface de dados permanece a mesma
 interface EventData {
-  nome_festa: string;
-  data_festa: string;
-  horario_inicio?: string | null;
-  horario_fim?: string | null;
-  local_festa?: string | null;
+  nome_festa: string
+  data_festa: string
+  horario_inicio?: string | null
+  horario_fim?: string | null
+  local_festa?: string | null
 }
 
 interface SuccessStepProps {
-  event: EventData;
+  event: EventData
 }
 
 export function SuccessStep({ event }: SuccessStepProps) {
-  const enderecoEspacoCriar = 'R. Francisco Portugal, n° 703 - Grageru, Aracaju - SE, 49025-700';
-  
-  // Formatando a data e hora para o formato que a biblioteca exige (YYYY-MM-DD)
-  const startDate = event.data_festa;
-  const startTime = event.horario_inicio?.substring(0, 5) || '00:00';
-  const endTime = event.horario_fim?.substring(0, 5) || '04:00'; // Define 4h de duração se não houver fim
+  const enderecoEspacoCriar = 'R. Francisco Portugal, n° 703 - Grageru, Aracaju - SE, 49025-700'
 
-  const formattedDate = format(new Date(event.data_festa.replace(/-/g, '/')), "EEEE, dd 'de' MMMM", {
-    locale: ptBR,
-  });
-  const timeString = `das ${startTime}h às ${endTime}h`;
+  // Formatando a data e hora para o formato que a biblioteca exige (YYYY-MM-DD)
+  const startDate = event.data_festa
+  const startTime = event.horario_inicio?.substring(0, 5) || '00:00'
+  const endTime = event.horario_fim?.substring(0, 5) || '04:00' // Define 4h de duração se não houver fim
+
+  const formattedDate = format(
+    new Date(event.data_festa.replace(/-/g, '/')),
+    "EEEE, dd 'de' MMMM",
+    {
+      locale: ptBR,
+    },
+  )
+  const timeString = `das ${startTime}h às ${endTime}h`
 
   return (
     <Card className="w-full max-w-lg text-center animate-in fade-in-50">
@@ -50,7 +54,7 @@ export function SuccessStep({ event }: SuccessStepProps) {
             {formattedDate} {timeString}.
           </p>
         </div>
-        
+
         <div className="flex justify-center">
           <div className="[&>button]:w-full [&>button]:max-w-xs [&>button]:h-10 [&>button]:px-4 [&>button]:py-2 [&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:rounded-md [&>button]:font-medium [&>button]:inline-flex [&>button]:items-center [&>button]:justify-center [&>button:hover]:bg-primary/90">
             <AddToCalendarButton
@@ -64,12 +68,12 @@ export function SuccessStep({ event }: SuccessStepProps) {
               timeZone="America/Maceio"
               options={['Apple', 'Google', 'iCal', 'Outlook.com', 'Yahoo']}
               listStyle="modal"
-              buttonStyle='default'
+              buttonStyle="default"
               hideCheckmark
-              />
+            />
           </div>
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

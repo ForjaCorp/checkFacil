@@ -26,7 +26,10 @@ const addChildrenSchema = z.object({
   children: z
     .array(
       z.object({
-        name: z.string().trim().min(3, { message: 'O nome da criança é obrigatório (mínimo 3 letras).' }),
+        name: z
+          .string()
+          .trim()
+          .min(3, { message: 'O nome da criança é obrigatório (mínimo 3 letras).' }),
         dob: z.date().optional(),
         isAtypical: z.boolean().default(false),
       }),
