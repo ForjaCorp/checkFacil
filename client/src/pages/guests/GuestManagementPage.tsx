@@ -191,7 +191,7 @@ function GuestManagementPage() {
                 Preencha os dados abaixo para adicionar um novo convidado à lista.
               </DialogDescription>
             </DialogHeader>
-            <AddGuestForm onSubmit={handleAddGuestSubmit} isLoading={isAdding} mode="add" />{' '}
+            <AddGuestForm onSubmit={handleAddGuestSubmit} isLoading={isAdding} mode="add" />
           </DialogContent>
         </Dialog>
       </header>

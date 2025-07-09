@@ -4,14 +4,11 @@ import { verificarTokenJWT } from '../middleware/validarReqAuth.js';
 
 const router = express.Router();
 
-
-
 // Rota pública: Cadastro em grupo de convidados (sem token)
 router.post('/:idFesta/register-guest-group', festaController.registrarGrupoConvidados);
 
 // POST /festa/criar -> Cria uma nova festa
 router.post('/criar', verificarTokenJWT, festaController.criarFesta);
-
 
 // GET /festa/listar -> Lista festas com base nas permissões e filtros.
 // Esta rota mais específica vem ANTES da rota genérica /:idFesta.

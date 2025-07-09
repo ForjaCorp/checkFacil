@@ -2171,6 +2171,7 @@ const RAW_RUNTIME_STATE =
           ["@types/react", "npm:19.1.6"],\
           ["@types/react-dom", "virtual:5c338bb28b9f3f55173bc5eece02b05a3d8056d1456df39753cd1be0672c950c4909ff364eca83c8d3b5758940400febfd69bd99be94a5243aaaabd19517326c#npm:19.1.6"],\
           ["@vitejs/plugin-react", "virtual:5c338bb28b9f3f55173bc5eece02b05a3d8056d1456df39753cd1be0672c950c4909ff364eca83c8d3b5758940400febfd69bd99be94a5243aaaabd19517326c#npm:4.5.1"],\
+          ["add-to-calendar-button-react", "virtual:5c338bb28b9f3f55173bc5eece02b05a3d8056d1456df39753cd1be0672c950c4909ff364eca83c8d3b5758940400febfd69bd99be94a5243aaaabd19517326c#npm:2.9.1"],\
           ["axios", "npm:1.9.0"],\
           ["class-variance-authority", "npm:0.7.1"],\
           ["clsx", "npm:2.1.1"],\
@@ -5108,6 +5109,43 @@ const RAW_RUNTIME_STATE =
         "packagePeers": [\
           "@types/acorn",\
           "acorn"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["add-to-calendar-button", [\
+      ["npm:2.9.1", {\
+        "packageLocation": "../../.yarn/berry/cache/add-to-calendar-button-npm-2.9.1-bc0a03171d-10c0.zip/node_modules/add-to-calendar-button/",\
+        "packageDependencies": [\
+          ["add-to-calendar-button", "npm:2.9.1"],\
+          ["timezones-ical-library", "npm:1.10.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["add-to-calendar-button-react", [\
+      ["npm:2.9.1", {\
+        "packageLocation": "../../.yarn/berry/cache/add-to-calendar-button-react-npm-2.9.1-c6e4500de2-10c0.zip/node_modules/add-to-calendar-button-react/",\
+        "packageDependencies": [\
+          ["add-to-calendar-button-react", "npm:2.9.1"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:5c338bb28b9f3f55173bc5eece02b05a3d8056d1456df39753cd1be0672c950c4909ff364eca83c8d3b5758940400febfd69bd99be94a5243aaaabd19517326c#npm:2.9.1", {\
+        "packageLocation": "./.yarn/__virtual__/add-to-calendar-button-react-virtual-64dd1e3bf6/3/.yarn/berry/cache/add-to-calendar-button-react-npm-2.9.1-c6e4500de2-10c0.zip/node_modules/add-to-calendar-button-react/",\
+        "packageDependencies": [\
+          ["add-to-calendar-button-react", "virtual:5c338bb28b9f3f55173bc5eece02b05a3d8056d1456df39753cd1be0672c950c4909ff364eca83c8d3b5758940400febfd69bd99be94a5243aaaabd19517326c#npm:2.9.1"],\
+          ["@types/react", "npm:19.1.6"],\
+          ["@types/react-dom", "virtual:5c338bb28b9f3f55173bc5eece02b05a3d8056d1456df39753cd1be0672c950c4909ff364eca83c8d3b5758940400febfd69bd99be94a5243aaaabd19517326c#npm:19.1.6"],\
+          ["add-to-calendar-button", "npm:2.9.1"],\
+          ["react", "npm:19.1.0"],\
+          ["react-dom", "virtual:5c338bb28b9f3f55173bc5eece02b05a3d8056d1456df39753cd1be0672c950c4909ff364eca83c8d3b5758940400febfd69bd99be94a5243aaaabd19517326c#npm:19.1.0"]\
+        ],\
+        "packagePeers": [\
+          "@types/react-dom",\
+          "@types/react",\
+          "react-dom",\
+          "react"\
         ],\
         "linkType": "HARD"\
       }]\
@@ -11220,6 +11258,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../.yarn/berry/cache/text-table-npm-0.2.0-d92a778b59-10c0.zip/node_modules/text-table/",\
         "packageDependencies": [\
           ["text-table", "npm:0.2.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["timezones-ical-library", [\
+      ["npm:1.10.0", {\
+        "packageLocation": "../../.yarn/berry/cache/timezones-ical-library-npm-1.10.0-b63c6ca1df-10c0.zip/node_modules/timezones-ical-library/",\
+        "packageDependencies": [\
+          ["timezones-ical-library", "npm:1.10.0"]\
         ],\
         "linkType": "HARD"\
       }]\

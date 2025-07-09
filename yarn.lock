@@ -1239,6 +1239,7 @@ __metadata:
     "@types/react": "npm:^19.1.2"
     "@types/react-dom": "npm:^19.1.2"
     "@vitejs/plugin-react": "npm:^4.4.1"
+    add-to-calendar-button-react: "npm:^2.9.1"
     axios: "npm:^1.9.0"
     class-variance-authority: "npm:^0.7.1"
     clsx: "npm:^2.1.1"
@@ -3436,6 +3437,27 @@ __metadata:
   bin:
     acorn: bin/acorn
   checksum: 10c0/dbd36c1ed1d2fa3550140000371fcf721578095b18777b85a79df231ca093b08edc6858d75d6e48c73e431c174dcf9214edbd7e6fa5911b93bd8abfa54e47123
+  languageName: node
+  linkType: hard
+
+"add-to-calendar-button-react@npm:^2.9.1":
+  version: 2.9.1
+  resolution: "add-to-calendar-button-react@npm:2.9.1"
+  dependencies:
+    add-to-calendar-button: "npm:^2.9.1"
+  peerDependencies:
+    react: ">=18.0.0"
+    react-dom: ">=18.0.0"
+  checksum: 10c0/dffc71b775d9a3619389ef16c9ec72bb19773911683596e1535817fe19bec1724b47f87c52ca377d0f3f2c82adecd61c638bae52188f7feac5adbb9ef5b8f184
+  languageName: node
+  linkType: hard
+
+"add-to-calendar-button@npm:^2.9.1":
+  version: 2.9.1
+  resolution: "add-to-calendar-button@npm:2.9.1"
+  dependencies:
+    timezones-ical-library: "npm:^1.10.0"
+  checksum: 10c0/f85d251b05b067221dc89f4ace9dd2e0ede9886f59bb6021fd86d0dcf31d49bcaddd1329c77b876ebac2f63b44b413acd0d6ecb2b29343d82ae87ac678c952b1
   languageName: node
   linkType: hard
 
@@ -8704,6 +8726,13 @@ __metadata:
   version: 0.2.0
   resolution: "text-table@npm:0.2.0"
   checksum: 10c0/02805740c12851ea5982686810702e2f14369a5f4c5c40a836821e3eefc65ffeec3131ba324692a37608294b0fd8c1e55a2dd571ffed4909822787668ddbee5c
+  languageName: node
+  linkType: hard
+
+"timezones-ical-library@npm:^1.10.0":
+  version: 1.10.0
+  resolution: "timezones-ical-library@npm:1.10.0"
+  checksum: 10c0/69938d33dbde178cc2332d64f8645859189804db95de7423f5a54900cbff250f865b4e057b10da1395ddd6fc57c52c91220bf2ee90c1bcf0a31bda803e541888
   languageName: node
   linkType: hard
 

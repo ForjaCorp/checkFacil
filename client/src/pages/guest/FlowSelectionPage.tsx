@@ -1,10 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
-import { Loader2, User, Users } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query'
+import { Loader2, User, Users } from 'lucide-react'
+import { Link, useParams } from 'react-router-dom'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import api from '@/services/api';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
+import api from '@/services/api'
 
 // Componente auxiliar para os cards de escolha, para manter o código limpo
 function ChoiceCard({
@@ -14,11 +14,11 @@ function ChoiceCard({
   description,
   disabled,
 }: {
-  to: string;
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  disabled?: boolean;
+  to: string
+  icon: React.ReactNode
+  title: string
+  description: string
+  disabled?: boolean
 }) {
   return (
     <Link to={to} className={cn('outline-none', disabled && 'pointer-events-none')}>
@@ -42,11 +42,11 @@ function ChoiceCard({
         <p className="text-sm text-muted-foreground">{description}</p>
       </Card>
     </Link>
-  );
+  )
 }
 
 export default function FlowSelectionPage() {
-  const { eventId } = useParams<{ eventId: string }>();
+  const { eventId } = useParams<{ eventId: string }>()
 
   const {
     data: event,
@@ -55,13 +55,13 @@ export default function FlowSelectionPage() {
   } = useQuery({
     queryKey: ['public-event', eventId],
     queryFn: async () => {
-      if (!eventId) return null;
-      const response = await api.get(`/festa/${eventId}/public`);
-      return response.data;
+      if (!eventId) return null
+      const response = await api.get(`/festa/${eventId}/public`)
+      return response.data
     },
     enabled: !!eventId,
     retry: 1,
-  });
+  })
 
   const renderHeader = () => {
     if (isLoading) {
@@ -69,7 +69,7 @@ export default function FlowSelectionPage() {
         <div className="flex h-24 items-center justify-center">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
         </div>
-      );
+      )
     }
 
     if (isError || !event) {
@@ -82,16 +82,18 @@ export default function FlowSelectionPage() {
             O link pode estar incorreto ou o evento não está mais disponível.
           </p>
         </div>
-      );
+      )
     }
 
     return (
       <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Confirmar presença em:</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          Confirmar presença em:
+        </h1>
         <p className="text-2xl font-semibold text-primary">{event.nome_festa}</p>
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-muted/30 p-4 sm:p-6">
@@ -122,5 +124,5 @@ export default function FlowSelectionPage() {
         </Card>
       </div>
     </div>
-  );
+  )
 }

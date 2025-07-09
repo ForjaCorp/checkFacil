@@ -1,65 +1,87 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
-import { ArrowRight, Loader2, PlusCircle, Trash2 } from 'lucide-react'
-import { useFieldArray, useForm } from 'react-hook-form'
-import { Link, useParams } from 'react-router-dom'
-import { toast } from 'sonner'
-import * as z from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
+import { useParams } from 'react-router-dom';
+import { toast } from 'sonner';
+import * as z from 'zod';
 
-import { PhoneInput } from '@/components/forms/PhoneInput'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { brazilianPhoneSchema } from '@/lib/phoneUtils'
-import api from '@/services/api'
+import { PhoneInput } from '@/components/forms/PhoneInput';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { brazilianPhoneSchema } from '@/lib/phoneUtils';
+import { SuccessStep } from '@/pages/guest/steps/SuccessStep';
+import api from '@/services/api';
 
-// Schema de validação para o formulário
+// Schema de validação com a correção .trim()
 const adultGuestSchema = z.object({
   adultos: z
     .array(
       z.object({
-        nome: z.string().min(3, { message: 'O nome é obrigatório.' }),
+        nome: z.string().trim().min(3, { message: 'O nome é obrigatório (mínimo 3 letras).' }),
         telefone: brazilianPhoneSchema,
       }),
     )
     .min(1, 'Pelo menos um adulto deve ser informado.'),
-})
+});
 
-type AdultGuestFormValues = z.infer<typeof adultGuestSchema>
+type AdultGuestFormValues = z.infer<typeof adultGuestSchema>;
 
 export default function ConfirmAdultPage() {
-  const { eventId } = useParams<{ eventId: string }>()
+  const { eventId } = useParams<{ eventId: string }>();
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  // Busca os dados do evento para usar na tela de sucesso
+  const { data: eventData } = useQuery({
+    queryKey: ['public-event', eventId],
+    queryFn: async () => {
+      if (!eventId) return null;
+      const response = await api.get(`/festa/${eventId}/public`);
+      return response.data;
+    },
+    enabled: !!eventId,
+  });
 
   const form = useForm<AdultGuestFormValues>({
     resolver: zodResolver(adultGuestSchema),
     defaultValues: {
-      adultos: [{ nome: '', telefone: '' }], // Começa com um adulto
+      adultos: [{ nome: '', telefone: '' }],
     },
-  })
+  });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'adultos',
-  })
+  });
 
   const { mutate: confirmAttendance, isPending } = useMutation({
-    mutationFn: (data: AdultGuestFormValues) =>
-      api.post(`/festa/${eventId}/register-adults`, data),
+    mutationFn: (data: AdultGuestFormValues) => api.post(`/festa/${eventId}/register-adults`, data),
     onSuccess: () => {
-      toast.success('Presença confirmada com sucesso!')
-      // TODO: Redirecionar para uma página de sucesso
+      setIsSuccess(true); // Muda o estado para sucesso
     },
     onError: (error) => {
-      console.error(error)
-      toast.error('Houve um erro.', { description: 'Não foi possível confirmar a presença.' })
+      console.error(error);
+      toast.error('Houve um erro.', { description: 'Não foi possível confirmar a presença.' });
     },
-  })
+  });
 
   const onSubmit = (data: AdultGuestFormValues) => {
-    confirmAttendance(data)
+    confirmAttendance(data);
+  };
+
+  // Renderiza a tela de sucesso se o estado for 'true'
+  if (isSuccess && eventData) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+        <SuccessStep event={eventData} />
+      </div>
+    );
   }
 
+  // Renderização padrão do formulário
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-lg">
@@ -106,9 +128,9 @@ export default function ConfirmAdultPage() {
                   {index > 0 && (
                     <Button
                       type="button"
-                      variant="destructive"
+                      variant="ghost"
                       size="icon"
-                      className="absolute top-2 right-2 h-7 w-7"
+                      className="absolute top-2 right-2 h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => remove(index)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -117,7 +139,6 @@ export default function ConfirmAdultPage() {
                   )}
                 </div>
               ))}
-
               <Button
                 type="button"
                 variant="outline"
@@ -127,7 +148,6 @@ export default function ConfirmAdultPage() {
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Adicionar outro adulto ao meu grupo
               </Button>
-
               <Button type="submit" className="w-full" disabled={isPending}>
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Confirmar Presença
@@ -137,5 +157,5 @@ export default function ConfirmAdultPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

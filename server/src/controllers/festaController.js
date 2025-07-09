@@ -1,4 +1,4 @@
-import models from '../models/index.js';
+import models, { sequelize } from '../models/index.js';
 import { Op } from 'sequelize';
 import { randomBytes } from 'crypto';
 import axios from 'axios';
@@ -74,15 +74,13 @@ export async function criarFesta(req, res) {
         console.error('Erro ao tentar disparar o webhook para n8n:', webhookError.message);
       }
     } else {
-
       const webhookUrl =
         'https://webhook.4growthbr.space/webhook/450d7592-a575-4062-9228-ad5f3236bb1d';
       try {
         const payloadWebhook = {
           nomeCliente: clienteOrganizador.nome,
           emailCliente: clienteOrganizador.email,
-          telefoneCliente: clienteOrganizador.telefone,
-
+          telefoneCliente: clienteOrganizador.telefone
         };
 
         // eslint-disable-next-line no-console
@@ -311,7 +309,7 @@ export async function registrarGrupoConvidados(req, res) {
   const { idFesta } = req.params;
   const { contatoResponsavel, convidados } = req.body;
 
-  const transaction = await models.sequelize.transaction();
+  const transaction = await sequelize.transaction();
 
   try {
     const festa = await models.Festa.findByPk(idFesta);
@@ -324,7 +322,6 @@ export async function registrarGrupoConvidados(req, res) {
     const criancasSalvas = [];
 
     for (const convidado of convidados) {
-      
       if (!convidado.nome || !convidado.tipo_convidado) {
         await transaction.rollback();
         return res.status(400).json({
@@ -333,20 +330,24 @@ export async function registrarGrupoConvidados(req, res) {
       }
 
       // Cria o convidado
-      const novoConvidado = await models.ConvidadoFesta.create({
-        id_festa: idFesta,
-        nome_convidado: convidado.nome,
-        tipo_convidado: convidado.tipo_convidado,
-        nascimento_convidado: convidado.dataNascimento || null,
-        idade_convidado: convidado.dataNascimento ? calcularIdade(convidado.dataNascimento) : null,
-        e_crianca_atipica: convidado.isCriancaAtipica || false,
-        nome_responsavel_contato: contatoResponsavel.nome,
-        telefone_responsavel_contato: contatoResponsavel.telefone,
-        cadastrado_na_hora: true,
-        acompanhado_por_id: convidado.acompanhado_por_id || null
-      }, { transaction });
+      const novoConvidado = await models.ConvidadoFesta.create(
+        {
+          id_festa: idFesta,
+          nome_convidado: convidado.nome,
+          tipo_convidado: convidado.tipo_convidado,
+          nascimento_convidado: convidado.dataNascimento || null,
+          idade_convidado: convidado.dataNascimento
+            ? calcularIdade(convidado.dataNascimento)
+            : null,
+          e_crianca_atipica: convidado.isCriancaAtipica || false,
+          nome_responsavel_contato: contatoResponsavel.nome,
+          telefone_responsavel_contato: contatoResponsavel.telefone,
+          cadastrado_na_hora: true,
+          acompanhado_por_id: convidado.acompanhado_por_id || null
+        },
+        { transaction }
+      );
 
-      
       if (convidado.tipo_convidado.startsWith('CRIANCA') || convidado.e_crianca_atipica) {
         criancasSalvas.push(novoConvidado);
       } else {
@@ -361,13 +362,12 @@ export async function registrarGrupoConvidados(req, res) {
       acompanhantes: acompanhantesSalvos,
       criancas: criancasSalvas
     });
-
   } catch (error) {
     console.error('Erro ao registrar grupo:', error);
     await transaction.rollback();
 
     if (error.name === 'SequelizeValidationError') {
-      const detalhes = error.errors.map(e => e.message);
+      const detalhes = error.errors.map((e) => e.message);
       return res.status(400).json({ error: 'Erro de validação.', detalhes });
     }
 
@@ -377,13 +377,13 @@ export async function registrarGrupoConvidados(req, res) {
 
 export async function registrarAdultos(req, res) {
   const { idFesta } = req.params;
-  const { adultos } = req.body; // Espera um array { nome, telefone }
+  const { adultos } = req.body;
 
   if (!Array.isArray(adultos) || adultos.length === 0) {
     return res.status(400).json({ error: 'A lista de adultos é obrigatória.' });
   }
 
-  const transaction = await models.sequelize.transaction();
+  const transaction = await sequelize.transaction();
 
   try {
     const festa = await models.Festa.findByPk(idFesta, { transaction });
@@ -394,11 +394,18 @@ export async function registrarAdultos(req, res) {
 
     const convidadosSalvos = [];
     for (const adulto of adultos) {
-      if (!adulto.nome || !adulto.telefone) {
+      // Validação mais robusta para cada objeto adulto
+      if (
+        !adulto ||
+        typeof adulto.nome !== 'string' ||
+        typeof adulto.telefone !== 'string' ||
+        adulto.nome.trim() === '' ||
+        adulto.telefone.trim() === ''
+      ) {
         await transaction.rollback();
         return res.status(400).json({
-          error: 'Cada adulto deve ter nome e telefone.',
-          detalhes: adulto,
+          error: 'Cada adulto deve ter nome e telefone válidos.',
+          detalhes: adulto
         });
       }
 
@@ -406,12 +413,12 @@ export async function registrarAdultos(req, res) {
         {
           id_festa: idFesta,
           nome_convidado: adulto.nome,
-          telefone_convidado: adulto.telefone,
-          tipo_convidado: 'ADULTO_PAGANTE', // Conforme sua regra
+          telefone_convidado: adulto.telefone, // O frontend já envia desformatado
+          tipo_convidado: 'ADULTO_PAGANTE',
           confirmou_presenca: 'SIM',
-          cadastrado_na_hora: true, // Indica que o próprio convidado se cadastrou
+          cadastrado_na_hora: true
         },
-        { transaction },
+        { transaction }
       );
       convidadosSalvos.push(novoConvidado);
     }
@@ -420,12 +427,15 @@ export async function registrarAdultos(req, res) {
 
     return res.status(201).json({
       mensagem: 'Adultos confirmados com sucesso!',
-      convidados: convidadosSalvos,
+      convidados: convidadosSalvos
     });
   } catch (error) {
     console.error('Erro ao registrar grupo de adultos:', error);
-    await transaction.rollback();
-    return res.status(500).json({ error: 'Erro interno ao registrar adultos.' });
+    // Garante que o rollback seja executado em caso de erro
+    if (transaction && !transaction.finished) {
+      await transaction.rollback();
+    }
+    return res.status(500).json({ error: 'Erro interno ao processar sua solicitação.' });
   }
 }
 
@@ -795,10 +805,10 @@ export async function buscarFestaPublicaPorId(req, res) {
     const { idFesta } = req.params;
 
     const festa = await models.Festa.findByPk(idFesta, {
-      attributes: ['id', 'nome_festa', 'data_festa', 'status'] // Apenas dados públicos
+      // Adicione o horário de fim aqui
+      attributes: ['id', 'nome_festa', 'data_festa', 'status', 'horario_inicio', 'horario_fim']
     });
 
-    // Não retorna festas que ainda são rascunho ou foram canceladas
     if (!festa || festa.status === 'RASCUNHO' || festa.status === 'CANCELADA') {
       return res.status(404).json({ error: 'Festa não encontrada ou não está disponível.' });
     }
