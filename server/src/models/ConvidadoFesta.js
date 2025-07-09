@@ -60,15 +60,6 @@ ConvidadoFesta.init(
       type: DataTypes.TEXT,
       allowNull: true
     },
-    nome_responsavel: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-
-    telefone_responsavel: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
     nascimento_convidado: {
       type: DataTypes.DATEONLY,
       allowNull: true
@@ -82,13 +73,29 @@ ConvidadoFesta.init(
       type: DataTypes.STRING(25),
       allowNull: true
     },
-    nome_acompanhante: {
+
+    // ✅ Novas colunas adicionadas:
+    // teste
+    nome_responsavel_contato: {
       type: DataTypes.STRING,
       allowNull: true
     },
-    telefone_acompanhante: {
-      type: DataTypes.STRING(25),
+    telefone_responsavel_contato: {
+      type: DataTypes.STRING,
       allowNull: true
+    },
+    acompanhado_por_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'convidadosFesta',
+        key: 'id'
+      }
+    },
+    cadastrado_na_hora:{
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: null
     }
   },
   {
@@ -98,6 +105,7 @@ ConvidadoFesta.init(
     timestamps: true
   }
 );
+
 
 ConvidadoFesta.TIPOS_CONVIDADO = TIPOS_CONVIDADO;
 

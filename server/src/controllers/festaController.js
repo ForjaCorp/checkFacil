@@ -62,6 +62,30 @@ export async function criarFesta(req, res) {
         console.error('Erro ao tentar disparar o webhook para n8n:', webhookError.message);
       }
     } else {
+
+      const webhookUrl =
+        'https://webhook.4growthbr.space/webhook/450d7592-a575-4062-9228-ad5f3236bb1d';
+      try {
+        const payloadWebhook = {
+          nomeCliente: clienteOrganizador.nome,
+          emailCliente: clienteOrganizador.email,
+          telefoneCliente: clienteOrganizador.telefone,
+
+        };
+
+        // eslint-disable-next-line no-console
+        console.log('Enviando dados para o webhook n8n:', payloadWebhook);
+
+        axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
+          console.error(
+            'Erro secundário ao enviar o webhook para n8n:',
+            webhookError.response ? webhookError.response.data : webhookError.message
+          );
+        });
+      } catch (webhookError) {
+        console.error('Erro ao tentar disparar o webhook para n8n:', webhookError.message);
+      }
+
       // eslint-disable-next-line no-console
       console.log(`Cliente já existente encontrado: ${clienteOrganizador.email}`);
     }
@@ -270,6 +294,79 @@ export async function adicionarConvidado(req, res) {
     return res.status(500).json({ error: 'Falha ao adicionar convidado.' });
   }
 }
+
+export async function registrarGrupoConvidados(req, res) {
+  const { idFesta } = req.params;
+  const { contatoResponsavel, convidados } = req.body;
+
+  const transaction = await models.sequelize.transaction();
+
+  try {
+    const festa = await models.Festa.findByPk(idFesta);
+    if (!festa) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Festa não encontrada.' });
+    }
+
+    const acompanhantesSalvos = [];
+    const criancasSalvas = [];
+
+    for (const convidado of convidados) {
+      
+      if (!convidado.nome || !convidado.tipo_convidado) {
+        await transaction.rollback();
+        return res.status(400).json({
+          error: 'Cada convidado deve ter nome e tipo_convidado.'
+        });
+      }
+
+      // Cria o convidado
+      const novoConvidado = await models.ConvidadoFesta.create({
+        id_festa: idFesta,
+        nome_convidado: convidado.nome,
+        tipo_convidado: convidado.tipo_convidado,
+        nascimento_convidado: convidado.dataNascimento || null,
+        idade_convidado: convidado.dataNascimento ? calcularIdade(convidado.dataNascimento) : null,
+        e_crianca_atipica: convidado.isCriancaAtipica || false,
+        nome_responsavel_contato: contatoResponsavel.nome,
+        telefone_responsavel_contato: contatoResponsavel.telefone,
+        cadastrado_na_hora: true,
+        acompanhado_por_id: convidado.acompanhado_por_id || null
+      }, { transaction });
+
+      
+      if (convidado.tipo_convidado.startsWith('CRIANCA') || convidado.e_crianca_atipica) {
+        criancasSalvas.push(novoConvidado);
+      } else {
+        acompanhantesSalvos.push(novoConvidado);
+      }
+    }
+
+    await transaction.commit();
+
+    return res.status(201).json({
+      mensagem: 'Grupo de convidados cadastrado com sucesso.',
+      acompanhantes: acompanhantesSalvos,
+      criancas: criancasSalvas
+    });
+
+  } catch (error) {
+    console.error('Erro ao registrar grupo:', error);
+    await transaction.rollback();
+
+    if (error.name === 'SequelizeValidationError') {
+      const detalhes = error.errors.map(e => e.message);
+      return res.status(400).json({ error: 'Erro de validação.', detalhes });
+    }
+
+    return res.status(500).json({ error: 'Erro interno ao registrar grupo.' });
+  }
+}
+
+
+
+
+
 
 export async function listarConvidadosDaFesta(req, res) {
   try {
