@@ -20,6 +20,12 @@ router.get('/listar', verificarTokenJWT, festaController.buscarFestas);
 // GET /festa/:idFesta -> Busca uma festa específica por ID.
 router.get('/:idFesta', verificarTokenJWT, festaController.buscarFestaPorId);
 
+// GET /festa/:idFesta/public -> Rota pública para a página de seleção de fluxo do convidado.
+router.get('/:idFesta/public', festaController.buscarFestaPublicaPorId);
+
+// POST /festa/:idFesta/register-adults -> Rota pública para o fluxo de confirmação de adultos.
+router.post('/:idFesta/register-adults', festaController.registrarAdultos);
+
 // PATCH /festa/:idFesta -> Atualiza uma festa específica.
 router.patch('/:idFesta', verificarTokenJWT, festaController.atualizarFesta);
 

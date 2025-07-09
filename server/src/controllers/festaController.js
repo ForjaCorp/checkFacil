@@ -3,6 +3,18 @@ import { Op } from 'sequelize';
 import { randomBytes } from 'crypto';
 import axios from 'axios';
 
+function calcularIdade(dataNascimento) {
+  if (!dataNascimento) return null;
+  const hoje = new Date();
+  const nascimento = new Date(dataNascimento);
+  let idade = hoje.getFullYear() - nascimento.getFullYear();
+  const m = hoje.getMonth() - nascimento.getMonth();
+  if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+    idade--;
+  }
+  return idade;
+}
+
 export async function criarFesta(req, res) {
   const { dadosFesta, dadosCliente } = req.body;
 
@@ -363,10 +375,59 @@ export async function registrarGrupoConvidados(req, res) {
   }
 }
 
+export async function registrarAdultos(req, res) {
+  const { idFesta } = req.params;
+  const { adultos } = req.body; // Espera um array { nome, telefone }
 
+  if (!Array.isArray(adultos) || adultos.length === 0) {
+    return res.status(400).json({ error: 'A lista de adultos é obrigatória.' });
+  }
 
+  const transaction = await models.sequelize.transaction();
 
+  try {
+    const festa = await models.Festa.findByPk(idFesta, { transaction });
+    if (!festa) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Festa não encontrada.' });
+    }
 
+    const convidadosSalvos = [];
+    for (const adulto of adultos) {
+      if (!adulto.nome || !adulto.telefone) {
+        await transaction.rollback();
+        return res.status(400).json({
+          error: 'Cada adulto deve ter nome e telefone.',
+          detalhes: adulto,
+        });
+      }
+
+      const novoConvidado = await models.ConvidadoFesta.create(
+        {
+          id_festa: idFesta,
+          nome_convidado: adulto.nome,
+          telefone_convidado: adulto.telefone,
+          tipo_convidado: 'ADULTO_PAGANTE', // Conforme sua regra
+          confirmou_presenca: 'SIM',
+          cadastrado_na_hora: true, // Indica que o próprio convidado se cadastrou
+        },
+        { transaction },
+      );
+      convidadosSalvos.push(novoConvidado);
+    }
+
+    await transaction.commit();
+
+    return res.status(201).json({
+      mensagem: 'Adultos confirmados com sucesso!',
+      convidados: convidadosSalvos,
+    });
+  } catch (error) {
+    console.error('Erro ao registrar grupo de adultos:', error);
+    await transaction.rollback();
+    return res.status(500).json({ error: 'Erro interno ao registrar adultos.' });
+  }
+}
 
 export async function listarConvidadosDaFesta(req, res) {
   try {
@@ -726,5 +787,25 @@ export async function buscarFestaPorId(req, res) {
   } catch (error) {
     console.error('Erro ao buscar festa por ID:', error);
     return res.status(500).json({ error: 'Falha ao buscar a festa.' });
+  }
+}
+
+export async function buscarFestaPublicaPorId(req, res) {
+  try {
+    const { idFesta } = req.params;
+
+    const festa = await models.Festa.findByPk(idFesta, {
+      attributes: ['id', 'nome_festa', 'data_festa', 'status'] // Apenas dados públicos
+    });
+
+    // Não retorna festas que ainda são rascunho ou foram canceladas
+    if (!festa || festa.status === 'RASCUNHO' || festa.status === 'CANCELADA') {
+      return res.status(404).json({ error: 'Festa não encontrada ou não está disponível.' });
+    }
+
+    return res.status(200).json(festa);
+  } catch (error) {
+    console.error('Erro ao buscar dados públicos da festa por ID:', error);
+    return res.status(500).json({ error: 'Falha ao buscar os dados da festa.' });
   }
 }

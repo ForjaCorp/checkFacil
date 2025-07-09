@@ -7,6 +7,9 @@ import { useAuth } from '@/contexts/authContextCore'
 import { AppLayout } from '@/router/AppLayout'
 import { ProtectedRoute } from '@/router/ProtectedRoute'
 
+const FlowSelectionPage = lazy(() => import('@/pages/guest/FlowSelectionPage'))
+const ConfirmAdultPage = lazy(() => import('@/pages/guest/ConfirmAdultPage'));
+const ConfirmResponsiblePage = lazy(() => import('@/pages/guest/ConfirmResponsiblePage'));
 const LoginPage = lazy(() => import('@/pages/LoginPage'))
 const SetPasswordPage = lazy(() => import('@/pages/SetPasswordPage'))
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'))
@@ -49,7 +52,9 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/organizer/choosePassword/:token" element={<SetPasswordPage />} />
-
+          <Route path="/guest/flow-selection/:eventId" element={<FlowSelectionPage />} />
+      <Route path="/guest/:eventId/confirm-adult" element={<ConfirmAdultPage />} />
+      <Route path="/guest/:eventId/confirm-responsible" element={<ConfirmResponsiblePage />} /> 
           <Route
             element={
               <ProtectedRoute element={<AppLayout />} allowedRoles={['Adm_espaco', 'Adm_festa']} />
