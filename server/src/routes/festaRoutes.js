@@ -7,7 +7,7 @@ const router = express.Router();
 
 
 // Rota pública: Cadastro em grupo de convidados (sem token)
-router.post('/:idFesta/register-guest-group', registrarGrupoConvidados);
+router.post('/:idFesta/register-guest-group', festaController.registrarGrupoConvidados);
 
 // POST /festa/criar -> Cria uma nova festa
 router.post('/criar', verificarTokenJWT, festaController.criarFesta);
