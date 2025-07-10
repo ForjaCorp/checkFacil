@@ -627,7 +627,7 @@ export async function checkinConvidado(req, res) {
     await convidado.save();
 
     const webhookUrl =
-      'https://webhook.4growthbr.space/webhook/ab98ae95-08c2-40b2-a942-c40071b588eb'; // URL CheckIN
+      'https://webhook.4growthbr.space/webhook/ab98ae95-08c2-40b2-a942-c40071b588eb';
     try {
       const payloadWebhook = {
         nomeCrianca: convidado.nome_convidado,
@@ -637,7 +637,7 @@ export async function checkinConvidado(req, res) {
         mensagem: `Check-in realizado para este convidado`
       };
 
-      console.log('Enviando dados para o webhook n8n:', payloadWebhook);
+      //console.log('Enviando dados para o webhook n8n:', payloadWebhook);
 
       axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
         console.error(
@@ -699,7 +699,7 @@ export async function checkoutConvidado(req, res) {
         mensagem: `Check-out feito ${convidado.checkin_at}.`
       };
 
-      console.log('Enviando dados para o webhook n8n:', payloadWebhook);
+      //console.log('Enviando dados para o webhook n8n:', payloadWebhook);
 
       axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
         console.error(
