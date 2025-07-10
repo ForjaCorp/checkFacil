@@ -12,7 +12,7 @@
       "env": ["PORT", "JWT_SECRET"]
     },
     "lint": {
-      "outputs": ["!*.json", "!*.js"]
+      "outputs": []
     },
     "format": {},
     "format:check": {}
