@@ -81,7 +81,14 @@ Festa.init(
       ),
       allowNull: false,
       defaultValue: 'RASCUNHO'
+    },
+    link_convite: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
+
+    
+
   },
   {
     sequelize,

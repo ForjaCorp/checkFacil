@@ -808,3 +808,28 @@ export async function buscarFestaPublicaPorId(req, res) {
     return res.status(500).json({ error: 'Falha ao buscar os dados da festa.' });
   }
 }
+
+export async function uploadImagemConvite(req, res) {
+  const { idFesta } = req.params;
+
+  try {
+    const festa = await models.Festa.findByPk(idFesta);
+    if (!festa) return res.status(404).json({ error: 'Festa não encontrada.' });
+
+    if (!req.file) return res.status(400).json({ error: 'Arquivo não enviado.' });
+
+    const url = `${req.protocol}://${req.get('host')}/uploads/convites/${req.file.filename}`;
+
+    festa.link_convite = url;
+    await festa.save();
+
+    return res.status(200).json({
+      mensagem: 'Convite da festa atualizado com sucesso.',
+      link_convite: url
+    });
+  } catch (error) {
+    console.error('Erro no upload do convite:', error);
+    return res.status(500).json({ error: 'Erro ao processar imagem do convite.' });
+  }
+}
+
