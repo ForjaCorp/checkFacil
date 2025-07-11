@@ -73,9 +73,6 @@ ConvidadoFesta.init(
       type: DataTypes.STRING(25),
       allowNull: true
     },
-
-    // ✅ Novas colunas adicionadas:
-    // teste
     nome_responsavel_contato: {
       type: DataTypes.STRING,
       allowNull: true

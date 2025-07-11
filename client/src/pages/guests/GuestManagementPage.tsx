@@ -92,7 +92,6 @@ function GuestManagementPage() {
   const partyName = eventData?.nome_festa || ''
 
   const { mutate: editGuest, isPending: isEditing } = useMutation({
-    // 👇 3. Atualizado para usar o tipo correto
     mutationFn: (updatedGuest: EditGuestFormValues) =>
       api.patch(`/festa/${eventId}/convidados/${editingGuest?.id}`, updatedGuest),
 
@@ -122,7 +121,6 @@ function GuestManagementPage() {
     // ... (lógica de deleção permanece a mesma)
   })
 
-  // 👇 4. A assinatura da função agora usa o tipo correto
   function handleEditGuestSubmit(data: EditGuestFormValues) {
     if (!editingGuest) return
     editGuest(data)
@@ -165,7 +163,6 @@ function GuestManagementPage() {
             <GuestForm
               onSubmit={handleEditGuestSubmit}
               isLoading={isEditing}
-              // 👇 5. initialValues agora só passa os campos que existem no novo schema
               initialValues={{
                 nome_convidado: editingGuest.nome_convidado,
                 tipo_convidado: editingGuest.tipo_convidado, // tipo é necessário para a lógica de UI
@@ -201,7 +198,6 @@ function GuestManagementPage() {
                 {guests.map((guest) => (
                   <TableRow key={guest.id}>
                     <TableCell className="font-medium">{guest.nome_convidado}</TableCell>
-                    {/* 👇 1. Tipo de convidado com nome amigável */}
                     <TableCell className="hidden md:table-cell capitalize">
                       {getGuestTypeFriendlyName(guest.tipo_convidado)}
                     </TableCell>
@@ -214,7 +210,6 @@ function GuestManagementPage() {
                           <Pencil className="h-4 w-4" />
                           <span className="sr-only">Editar</span>
                         </Button>
-                        {/* 👇 2. Estilo do botão de exclusão atualizado */}
                         <Button
                           variant="ghost"
                           size="icon"
