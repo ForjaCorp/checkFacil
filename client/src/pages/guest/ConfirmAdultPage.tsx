@@ -77,7 +77,6 @@ export default function ConfirmAdultPage() {
     confirmAttendance(data)
   }
 
-  // Renderiza a tela de sucesso se o estado for 'true'
   if (isSuccess && eventData) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -86,7 +85,6 @@ export default function ConfirmAdultPage() {
     )
   }
 
-  // Renderização padrão do formulário
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-lg">

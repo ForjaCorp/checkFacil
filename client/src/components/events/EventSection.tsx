@@ -35,7 +35,7 @@ export function EventSection({
         </div>
       ) : events.length > 0 ? (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             {events.map((event) => (
               <EventCard key={event.id} event={event} variant={cardVariant} />
             ))}
