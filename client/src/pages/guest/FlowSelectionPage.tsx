@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { cn } from '@/lib/utils'
 import api from '@/services/api'
 
-// Componente auxiliar para os cards de escolha, para manter o código limpo
 function ChoiceCard({
   to,
   icon,

@@ -23,7 +23,6 @@ import { brazilianPhoneSchema } from '@/lib/phoneUtils'
 import { SuccessStep } from '@/pages/guest/steps/SuccessStep'
 import api from '@/services/api'
 
-// Schema de validação com a correção .trim()
 const adultGuestSchema = z.object({
   adultos: z
     .array(
@@ -41,7 +40,6 @@ export default function ConfirmAdultPage() {
   const { eventId } = useParams<{ eventId: string }>()
   const [isSuccess, setIsSuccess] = useState(false)
 
-  // Busca os dados do evento para usar na tela de sucesso
   const { data: eventData } = useQuery({
     queryKey: ['public-event', eventId],
     queryFn: async () => {
@@ -67,7 +65,7 @@ export default function ConfirmAdultPage() {
   const { mutate: confirmAttendance, isPending } = useMutation({
     mutationFn: (data: AdultGuestFormValues) => api.post(`/festa/${eventId}/register-adults`, data),
     onSuccess: () => {
-      setIsSuccess(true) // Muda o estado para sucesso
+      setIsSuccess(true) 
     },
     onError: (error) => {
       console.error(error)

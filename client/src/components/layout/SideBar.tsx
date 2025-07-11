@@ -1,7 +1,7 @@
 import { LayoutGrid, PlusCircle, LogOut, Music2 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { SideBarLink } from '@/components/layout/SideBarLink' // Importando o novo componente
+import { SideBarLink } from '@/components/layout/SideBarLink'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { TooltipProvider } from '@/components/ui/tooltip'

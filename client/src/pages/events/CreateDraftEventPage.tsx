@@ -144,7 +144,6 @@ function CreateDraftEventPage() {
                       <FormItem>
                         <FormLabel>WhatsApp do Contratante</FormLabel>
                         <FormControl>
-                          {/* O uso do componente não muda */}
                           <PhoneInput placeholder="+55 (XX) 9XXXX-XXXX" {...field} />
                         </FormControl>
                         <FormDescription className="text-left">

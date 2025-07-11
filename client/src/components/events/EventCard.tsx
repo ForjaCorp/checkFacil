@@ -63,7 +63,7 @@ export function EventCard({ event, variant }: EventCardProps) {
         )}
       </CardHeader>
 
-      <CardContent className='flex-grow'>
+      <CardContent className="flex-grow">
         <div className="flex items-center text-sm text-muted-foreground">
           <Calendar className="mr-2 h-4 w-4 shrink-0" />
           <span>{new Date(event.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</span>
@@ -80,7 +80,10 @@ export function EventCard({ event, variant }: EventCardProps) {
                 size="sm"
                 className="w-full sm:w-auto flex-1 text-primary border-primary hover:bg-primary/5 hover:text-primary"
               >
-                <Link to={`/staff/event/${event.id}/details`} className="flex items-center justify-center">
+                <Link
+                  to={`/staff/event/${event.id}/details`}
+                  className="flex items-center justify-center"
+                >
                   <FilePenLine className="h-4 w-4" />
                   <span className="ml-2">Detalhes</span>
                 </Link>
@@ -98,7 +101,10 @@ export function EventCard({ event, variant }: EventCardProps) {
               </Button>
             </div>
             <Button asChild size="sm" variant="success" className="w-full">
-              <Link to={`/staff/event/${event.id}/checkin`} className="flex items-center justify-center">
+              <Link
+                to={`/staff/event/${event.id}/checkin`}
+                className="flex items-center justify-center"
+              >
                 <PlayCircle className="h-4 w-4" />
                 <span className="ml-2">Check-in</span>
               </Link>
@@ -112,7 +118,10 @@ export function EventCard({ event, variant }: EventCardProps) {
               size="sm"
               className="w-full sm:w-auto text-primary border-primary hover:bg-primary/5 hover:text-primary"
             >
-              <Link to={`/organizer/event/${event.id}/details`} className="flex items-center justify-center">
+              <Link
+                to={`/organizer/event/${event.id}/details`}
+                className="flex items-center justify-center"
+              >
                 <FilePenLine className="h-4 w-4" />
                 <span className="ml-2">
                   {event.status === 'RASCUNHO' ? 'Completar' : 'Detalhes'}

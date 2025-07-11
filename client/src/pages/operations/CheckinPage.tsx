@@ -92,10 +92,10 @@ const CheckinPage = () => {
       walkedIn: guestFromApi.cadastrado_na_hora || false,
       checkin_at: guestFromApi.checkin_at || null,
     }
-  } // CORREÇÃO: Adicionada a vírgula/ponto e vírgula que faltava aqui.
+  }
 
   const { data: guests = [], isLoading } = useQuery({
-    queryKey: queryKey, // Usa a variável queryKey
+    queryKey: queryKey,
     queryFn: async () => {
       if (!eventId) return []
 
@@ -119,16 +119,13 @@ const CheckinPage = () => {
       Saiu: 3,
     }
 
-    // Aplica o filtro ANTES de ordenar
     const filteredGuests = guests.filter((guest) => {
       if (statusFilter === 'all') return true
       return guest.status === statusFilter
     })
 
     return [...filteredGuests].sort((a, b) => {
-      // Ordena a lista já filtrada
       switch (sortOrder) {
-        // ... (a lógica de sort permanece a mesma)
         case 'checkin_time_desc': {
           if (a.checkin_at && !b.checkin_at) return -1
           if (!a.checkin_at && b.checkin_at) return 1
@@ -177,7 +174,6 @@ const CheckinPage = () => {
         queryClient.setQueryData(queryKey, context.previousGuests)
       }
 
-      // Lógica de erro type-safe
       let errorMessage = 'Não foi possível fazer o check-in. Tente novamente.'
       if (axios.isAxiosError(_error) && _error.response?.data?.error) {
         errorMessage = _error.response.data.error
@@ -212,7 +208,6 @@ const CheckinPage = () => {
         queryClient.setQueryData(queryKey, context.previousGuests)
       }
 
-      // Lógica de erro type-safe
       let errorMessage = 'Não foi possível fazer o check-out. Tente novamente.'
       if (axios.isAxiosError(_error) && _error.response?.data?.error) {
         errorMessage = _error.response.data.error
@@ -243,8 +238,8 @@ const CheckinPage = () => {
         description="Acompanhe a entrada e saída dos convidados em tempo real."
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-4">
+      <div className="border rounded-lg p-4 lg:p-6 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+        <div className="space-y-4 flex-1">
           <h2 className="text-xl font-semibold">Resumo do Evento</h2>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             {isEventLoading ? (
@@ -272,7 +267,7 @@ const CheckinPage = () => {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 w-full lg:w-2/5 xl:w-1/3">
           <h2 className="text-xl font-semibold">Ações</h2>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -297,6 +292,7 @@ const CheckinPage = () => {
               Presentes
             </Button>
           </div>
+
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
@@ -306,9 +302,9 @@ const CheckinPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-col md:flex-row flex-wrap gap-2">
             <Select value={sortOrder} onValueChange={(value: SortOrder) => setSortOrder(value)}>
-              <SelectTrigger className="flex-1 h-11">
+              <SelectTrigger className="flex-1 w-full h-11 min-w-[240px]">
                 <SelectValue placeholder="Ordenar por..." />
               </SelectTrigger>
               <SelectContent>
@@ -319,7 +315,7 @@ const CheckinPage = () => {
             </Select>
             <Dialog open={isWalkinDialogOpen} onOpenChange={setIsWalkinDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="flex-1 h-11">
+                <Button className="h-9 flex-1 min-w-[240px]">
                   <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Convidado
                 </Button>
               </DialogTrigger>
@@ -336,7 +332,6 @@ const CheckinPage = () => {
           </div>
         </div>
       </div>
-
       <hr className="border-border" />
 
       {isLoading ? (

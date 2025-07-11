@@ -1,5 +1,5 @@
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useGuestConfirmationFlow } from '@/hooks/useGuestConfirmationFlow' // Importando nosso novo hook
+import { useGuestConfirmationFlow } from '@/hooks/useGuestConfirmationFlow'
 
 import { AddChildrenStep } from './steps/AddChildrenStep'
 import { CompanionStep } from './steps/CompanionStep'

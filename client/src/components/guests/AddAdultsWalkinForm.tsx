@@ -55,7 +55,7 @@ export function AddAdultsWalkinForm({ onSuccess }: AddAdultsWalkinFormProps) {
     mutationFn: (data: AdultGuestFormValues) => api.post(`/festa/${eventId}/register-adults`, data),
     onSuccess: () => {
       toast.success('Convidado(s) adicionado(s) com sucesso!')
-      onSuccess() // Chama a função para fechar o dialog e atualizar a lista
+      onSuccess()
     },
     onError: (error) => {
       console.error(error)

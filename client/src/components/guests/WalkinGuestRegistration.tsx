@@ -1,11 +1,8 @@
-// client/src/components/guests/WalkinGuestRegistration.tsx
 
 import { User, Users } from 'lucide-react'
 import { useState } from 'react'
 
-// Importe o novo formulário de adultos que criamos
 
-// Importes necessários para o fluxo de família/crianças
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGuestConfirmationFlow } from '@/hooks/useGuestConfirmationFlow'
 import { unformatPhoneNumber } from '@/lib/phoneUtils'
@@ -16,12 +13,10 @@ import { FinalConfirmationStep } from '@/pages/guest/steps/FinalConfirmationStep
 
 import { AddAdultsWalkinForm } from './AddAdultsWalkinForm'
 
-// Props que o componente recebe (apenas a função de sucesso)
 interface WalkinGuestRegistrationProps {
   onSuccess: () => void
 }
 
-// Componente auxiliar interno para os cards de escolha
 function ChoiceCard({
   onClick,
   icon,
@@ -33,10 +28,9 @@ function ChoiceCard({
   title: string
   description: string
 }) {
-  // Função para lidar com o clique via teclado
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault() // Previne o comportamento padrão (ex: rolar a página com a barra de espaço)
+      event.preventDefault() 
       onClick()
     }
   }
@@ -58,7 +52,6 @@ function ChoiceCard({
   )
 }
 
-// Componente principal que orquestra o fluxo de família
 function GroupWithChildrenFlow({ onSuccess }: { onSuccess: () => void }) {
   const {
     currentStep,
@@ -175,7 +168,6 @@ export function WalkinGuestRegistration({ onSuccess }: WalkinGuestRegistrationPr
     return <GroupWithChildrenFlow onSuccess={onSuccess} />
   }
 
-  // Renderização padrão: a tela de seleção
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
       <ChoiceCard

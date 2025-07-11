@@ -118,8 +118,31 @@ function GuestManagementPage() {
   })
 
   const { mutate: deleteGuest, isPending: isDeleting } = useMutation({
-    // ... (lógica de deleção permanece a mesma)
+    mutationFn: () => api.delete(`/festa/${eventId}/convidados/${guestToDelete?.id}`),
+
+    onMutate: async () => {
+      if (!guestToDelete) return
+      setGuestToDelete(null)
+      await queryClient.cancelQueries({ queryKey: ['guests', eventId] })
+      const previousGuests = queryClient.getQueryData<AppGuest[]>(['guests', eventId])
+
+      queryClient.setQueryData<AppGuest[]>(['guests', eventId], (old = []) =>
+        old.filter((guest) => guest.id !== guestToDelete.id),
+      )
+
+      return { previousGuests }
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousGuests) {
+        queryClient.setQueryData(['guests', eventId], context.previousGuests)
+      }
+      toast.error('Falha ao remover convidado.')
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['guests', eventId] })
+    },
   })
+
 
   function handleEditGuestSubmit(data: EditGuestFormValues) {
     if (!editingGuest) return

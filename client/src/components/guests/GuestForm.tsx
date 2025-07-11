@@ -23,16 +23,15 @@ import { editGuestSchema, type EditGuestFormValues } from '@/schemas/guestSchema
 
 import type { GuestType } from '@/types'
 
-// A prop 'mode' foi removida da interface
 interface GuestFormProps {
   onSubmit: SubmitHandler<EditGuestFormValues>
   isLoading?: boolean
-  initialValues: Partial<EditGuestFormValues & { tipo_convidado: GuestType }> // Inclui o tipo para lógica de UI
+  initialValues: Partial<EditGuestFormValues & { tipo_convidado: GuestType }> 
 }
 
 export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps) {
   const form = useForm<EditGuestFormValues>({
-    resolver: zodResolver(editGuestSchema), // Usa o novo schema
+    resolver: zodResolver(editGuestSchema),
     defaultValues: initialValues,
   })
 
@@ -41,7 +40,6 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* O tipo de convidado agora é apenas um texto informativo, não um campo editável */}
         <div>
           <Label>Tipo de Convidado</Label>
           <p className="text-sm text-muted-foreground pt-2 font-medium">
@@ -129,7 +127,6 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
   )
 }
 
-// Helper function para ser usada aqui e na página de gerenciamento
 const getGuestTypeFriendlyName = (type: string) => {
   const names: { [key: string]: string } = {
     ADULTO_PAGANTE: 'Adulto',

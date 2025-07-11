@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { ActionButton } from '@/components/common/ActionButton'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { PlaylistForm } from '@/components/playlists/PlaylistForm'
 import {
   AlertDialog,
@@ -113,21 +114,17 @@ export default function PlaylistManagementPage() {
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="hidden text-3xl font-bold text-foreground lg:block">
-            Gerenciar Playlists
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Adicione, edite ou remova as playlists pré-definidas para as festas.
-          </p>
-        </div>
-        <Button onClick={openCreateDialog}>
+      <PageHeader
+        title="Gerenciar Playlists"
+        description="Adicione, edite ou remova as playlists pré-definidas para as festas."
+      />
+
+      <div className="w-full">
+        <Button className="w-full" onClick={openCreateDialog}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Playlist
         </Button>
-      </header>
-
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Playlists Disponíveis</CardTitle>

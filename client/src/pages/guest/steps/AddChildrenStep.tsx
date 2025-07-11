@@ -21,7 +21,6 @@ import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 
-// Schema de validação com a correção
 const addChildrenSchema = z.object({
   children: z
     .array(
@@ -35,11 +34,8 @@ const addChildrenSchema = z.object({
       }),
     )
     .min(1, 'Você deve adicionar pelo menos uma criança.')
-    // 2. Usamos 'refine' para garantir que, na hora do submit, a data exista.
-    // Isso nos dá o melhor dos dois mundos: flexibilidade e validação robusta.
     .refine((children) => children.every((child) => !!child.dob), {
       message: 'A data de nascimento é obrigatória para todas as crianças.',
-      // Aponta o erro para o primeiro campo de data que estiver vazio
       path: ['0', 'dob'],
     }),
 })
@@ -55,7 +51,6 @@ interface AddChildrenStepProps {
 export function AddChildrenStep({ onNext, onBack, initialData }: AddChildrenStepProps) {
   const form = useForm<AddChildrenStepValues>({
     resolver: zodResolver(addChildrenSchema),
-    // Use os dados iniciais se eles existirem
     defaultValues: initialData || {
       children: [{ name: '', dob: undefined, isAtypical: false }],
     },
@@ -84,9 +79,8 @@ export function AddChildrenStep({ onNext, onBack, initialData }: AddChildrenStep
                   {index > 0 && (
                     <Button
                       type="button"
-                      variant="ghost" // Mantém o ghost para ser transparente
+                      variant="ghost"
                       size="icon"
-                      // Adiciona classes para o hover vermelho
                       className="absolute top-2 right-2 h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => remove(index)}
                     >

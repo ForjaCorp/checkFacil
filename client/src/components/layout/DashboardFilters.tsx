@@ -69,7 +69,6 @@ function FilterControls({
         </Button>
       </div>
 
-      {/* Filtros Detalhados */}
       <Select value={statusFilter} onValueChange={setStatusFilter}>
         <SelectTrigger>
           <SelectValue placeholder="Status" />
@@ -134,7 +133,6 @@ function FilterControls({
 export function DashboardFilters(props: DashboardFiltersProps) {
   return (
     <>
-      {/* Layout para Mobile (dentro de um Sheet) */}
       <div className="md:hidden">
         <Sheet>
           <SheetTrigger asChild>
@@ -157,7 +155,6 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         </Sheet>
       </div>
 
-      {/* Layout para Desktop */}
       <div className="hidden md:flex flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-2">
           <Button

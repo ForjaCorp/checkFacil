@@ -17,7 +17,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { brazilianPhoneSchema } from '@/lib/phoneUtils'
 
-// Schema simplificado, sem a pergunta "isAttending"
 const responsibleStepSchema = z.object({
   responsibleName: z.string().min(3, 'O nome do responsável é obrigatório.'),
   responsiblePhone: brazilianPhoneSchema,
