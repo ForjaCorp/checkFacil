@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { ActionButton } from '@/components/common/ActionButton'
 import { ShareInviteLink } from '@/components/events/ShareInviteLink'
 import { GuestForm } from '@/components/guests/GuestForm'
 import {
@@ -16,7 +17,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
@@ -165,7 +165,7 @@ function GuestManagementPage() {
               isLoading={isEditing}
               initialValues={{
                 nome_convidado: editingGuest.nome_convidado,
-                tipo_convidado: editingGuest.tipo_convidado, // tipo é necessário para a lógica de UI
+                tipo_convidado: editingGuest.tipo_convidado,
                 nascimento_convidado: editingGuest.nascimento_convidado,
                 e_crianca_atipica: editingGuest.e_crianca_atipica ?? false,
               }}
@@ -206,19 +206,17 @@ function GuestManagementPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => handleEditClick(guest)}>
-                          <Pencil className="h-4 w-4" />
-                          <span className="sr-only">Editar</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        <ActionButton
+                          icon={Pencil}
+                          tooltip="Editar Convidado"
+                          onClick={() => handleEditClick(guest)}
+                        />
+                        <ActionButton
+                          icon={Trash2}
+                          tooltip="Remover Convidado"
+                          variant="destructive"
                           onClick={() => handleDeleteClick(guest)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Remover</span>
-                        </Button>
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

@@ -14,7 +14,6 @@ import { SideBar } from '@/components/layout/SideBar'
  * @returns The AppLayout component.
  */
 export function AppLayout() {
-
   return (
     <div className="flex h-dvh w-full">
       <SideBar />

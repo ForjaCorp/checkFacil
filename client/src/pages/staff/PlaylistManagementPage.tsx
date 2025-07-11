@@ -3,6 +3,7 @@ import { Loader2, Music2, Pencil, PlusCircle, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
+import { ActionButton } from '@/components/common/ActionButton'
 import { PlaylistForm } from '@/components/playlists/PlaylistForm'
 import {
   AlertDialog,
@@ -164,23 +165,17 @@ export default function PlaylistManagementPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
+                        <ActionButton
+                          icon={Pencil}
+                          tooltip="Editar Playlist"
                           onClick={() => openEditDialog(playlist)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                          <span className="sr-only">Editar</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        />
+                        <ActionButton
+                          icon={Trash2}
+                          tooltip="Remover Playlist"
+                          variant="destructive"
                           onClick={() => setPlaylistToDelete(playlist)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Remover</span>
-                        </Button>
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
