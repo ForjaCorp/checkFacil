@@ -1,12 +1,9 @@
-// client/src/hooks/useGuestConfirmationFlow.ts
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
-import { unformatPhoneNumber } from '@/lib/phoneUtils'
 import { type AddChildrenStepValues } from '@/pages/guest/steps/AddChildrenStep'
-import { type CompanionStepValues } from '@/pages/guest/steps/CompanionStep'
 import { type ResponsibleStepValues } from '@/pages/guest/steps/ConfirmResponsibleStep'
 import api from '@/services/api'
 
@@ -19,7 +16,7 @@ interface GuestFlowState {
 
 const calculateAgeOnEventDate = (dob: Date, eventDate: string) => {
   const birthDate = new Date(dob)
-  const partyDate = new Date(eventDate.replace(/-/g, '/')) // Garante compatibilidade de formato
+  const partyDate = new Date(eventDate.replace(/-/g, '/'))
 
   let age = partyDate.getFullYear() - birthDate.getFullYear()
   const monthDiff = partyDate.getMonth() - birthDate.getMonth()
@@ -37,8 +34,9 @@ export function useGuestConfirmationFlow() {
   const getInitialStep = (state: GuestFlowState | null): Step => {
     if (!state?.responsible) return 'RESPONSIBLE'
     if (!state.children) return 'CHILDREN'
-    // Se já temos os dados, recalculamos para onde ir
-    const needsCompanion = state.children.some((child) => child.isAtypical || child.dob === undefined) // DOB undefined como fallback
+    const needsCompanion = state.children.some(
+      (child) => child.isAtypical || child.dob === undefined,
+    )
     return needsCompanion ? 'COMPANION' : 'FINAL_CONFIRMATION'
   }
 
@@ -76,7 +74,7 @@ export function useGuestConfirmationFlow() {
     mutationFn: (payload: object) => api.post(`/festa/${eventId}/register-guest-group`, payload),
     onSuccess: () => {
       toast.success('Presença confirmada com sucesso!')
-      sessionStorage.removeItem(GUEST_FLOW_SESSION_KEY) // Limpa o storage no sucesso
+      sessionStorage.removeItem(GUEST_FLOW_SESSION_KEY)
       setCurrentStep('SUCCESS')
     },
     onError: () => {
@@ -85,51 +83,7 @@ export function useGuestConfirmationFlow() {
     },
   })
 
-  const handleSubmitFlow = (
-    companionData: CompanionStepValues | null,
-    responsibleIsAttending?: boolean,
-  ) => {
-    const { responsible, children } = flowState
-    if (!responsible || !children) return
-
-    let allGuests: object[] = children.map((child) => ({
-      nome: child.name,
-      tipo_convidado: 'CRIANCA_PAGANTE',
-      dataNascimento: child.dob!.toISOString().split('T')[0],
-      isCriancaAtipica: child.isAtypical,
-    }))
-
-    if (companionData?.companionType === 'myself') {
-      allGuests.push({
-        nome: responsible.responsibleName,
-        tipo_convidado: 'ACOMPANHANTE_ATIPICO',
-        telefone: unformatPhoneNumber(responsible.responsiblePhone),
-      })
-    } else if (companionData?.companionType === 'other' && companionData.otherCompanionName) {
-      allGuests.push({
-        nome: companionData.otherCompanionName,
-        tipo_convidado: companionData.isNanny ? 'BABA' : 'ACOMPANHANTE_ATIPICO',
-        telefone: unformatPhoneNumber(companionData.otherCompanionPhone),
-      })
-    } else if (responsibleIsAttending) {
-      allGuests.push({
-        nome: responsible.responsibleName,
-        tipo_convidado: 'ADULTO_PAGANTE',
-        telefone: unformatPhoneNumber(responsible.responsiblePhone),
-      })
-    }
-
-    submitGuests({
-      contatoResponsavel: {
-        nome: responsible.responsibleName,
-        telefone: unformatPhoneNumber(responsible.responsiblePhone),
-      },
-      convidados: allGuests,
-    })
-  }
-
   const handleNextFromResponsible = (data: ResponsibleStepValues) => {
-    // Ao avançar do primeiro passo, garantimos que os dados das crianças sejam limpos.
     setFlowState({ responsible: data, children: null })
     setCurrentStep('CHILDREN')
   }
@@ -142,8 +96,7 @@ export function useGuestConfirmationFlow() {
 
     setFlowState((prev) => ({ ...prev, children: data.children }))
     const needsCompanion = data.children.some(
-      (child) =>
-        child.isAtypical || calculateAgeOnEventDate(child.dob!, eventData.data_festa) < 6,
+      (child) => child.isAtypical || calculateAgeOnEventDate(child.dob!, eventData.data_festa) < 6,
     )
     setCurrentStep(needsCompanion ? 'COMPANION' : 'FINAL_CONFIRMATION')
   }
@@ -169,7 +122,7 @@ export function useGuestConfirmationFlow() {
     childrenNeedingCompanion,
     handleNextFromResponsible,
     handleNextFromChildren,
-    handleSubmitFlow,
+    submitGuests,
     setCurrentStep,
   }
 }

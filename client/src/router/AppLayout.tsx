@@ -1,7 +1,10 @@
 import { Outlet } from 'react-router-dom'
 
 import { BottomNavBar } from '@/components/layout/BottomNavBar'
+import { MobileHeader } from '@/components/layout/MobileHeader'
 import { SideBar } from '@/components/layout/SideBar'
+import { usePageHeader } from '@/hooks/usePageHeader'
+import { cn } from '@/lib/utils'
 
 /**
  * Renders the application layout with a sidebar and bottom navigation bar.
@@ -13,13 +16,17 @@ import { SideBar } from '@/components/layout/SideBar'
  * @returns The AppLayout component.
  */
 export function AppLayout() {
+  const { title } = usePageHeader()
+
   return (
     <div className="flex h-screen w-full">
       <SideBar />
 
       <div className="flex flex-1 flex-col">
+        <MobileHeader />
+
         <main className="flex-1 overflow-y-auto">
-          <div className="px-4 pb-16 md:px-6 lg:px-8 lg:pb-6">
+          <div className="px-4 pt-20 pb-20 md:px-6 lg:px-8 lg:pt-6 lg:pb-6">
             <Outlet />
           </div>
         </main>

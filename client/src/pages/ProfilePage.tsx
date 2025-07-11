@@ -1,11 +1,14 @@
 import { LogOut } from 'lucide-react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/contexts/authContextCore'
+import { usePageHeader } from '@/hooks/usePageHeader'
 
 /**
  * Profile page component.
@@ -17,8 +20,14 @@ import { useAuth } from '@/contexts/authContextCore'
  * @returns The profile page component.
  */
 export default function ProfilePage() {
+  const { setTitle } = usePageHeader()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    setTitle('Meu Perfil')
+    return () => setTitle(null)
+  }, [setTitle])
 
   const handleLogout = () => {
     logout()
@@ -36,11 +45,8 @@ export default function ProfilePage() {
     .substring(0, 2)
 
   return (
-    <div className="flex flex-col gap-6 h-full py-6">
-      <header>
-        <h1 className="text-3xl font-bold text-foreground">Meu Perfil</h1>
-        <p className="text-lg text-muted-foreground">Suas informações de conta.</p>
-      </header>
+    <div className="flex flex-col gap-6 h-full">
+      <PageHeader title="Meu Perfil" description="Suas informações de conta." />
 
       <Card>
         <CardHeader className="flex flex-col items-center text-center">

@@ -11,17 +11,25 @@ import { PersonalizePartySection } from '@/components/events/PersonalizePartySec
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form } from '@/components/ui/form'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import { completeDetailsSchema, type CompleteDetailsFormValues } from '@/schemas/eventSchemas'
 import api from '@/services/api'
 
 import type { UpdateEventPayload } from '@/types'
 
 function CompleteEventDetailsPage() {
+  const { setTitle } = usePageHeader()
   const [isFetching, setIsFetching] = useState(true)
   const [pageError, setPageError] = useState<string | null>(null)
   const [eventStatus, setEventStatus] = useState<string | null>(null)
   const { eventId } = useParams<{ eventId: string }>()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    // Poderíamos até tornar o título dinâmico com o nome da festa aqui
+    setTitle('Detalhes da Festa')
+    return () => setTitle(null)
+  }, [setTitle])
 
   const form = useForm<CompleteDetailsFormValues>({
     resolver: zodResolver(completeDetailsSchema),
@@ -147,7 +155,10 @@ function CompleteEventDetailsPage() {
     <div className="container mx-auto p-4 md:p-6 max-w-3xl">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Complete os Detalhes da Sua Festa</CardTitle>
+          <CardTitle className="hidden text-2xl font-bold lg:block">
+            <h1>Complete os Detalhes da Sua Festa</h1>
+          </CardTitle>
+
           <CardDescription>
             Revise e preencha as informações abaixo para finalizar o agendamento.
           </CardDescription>

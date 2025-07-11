@@ -37,7 +37,7 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
   })
 
   const isChild = initialValues.tipo_convidado?.includes('CRIANCA')
-  
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -78,7 +78,10 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
                       <FormControl>
                         <Button
                           variant="outline"
-                          className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
+                          className={cn(
+                            'w-full pl-3 text-left font-normal',
+                            !field.value && 'text-muted-foreground',
+                          )}
                         >
                           {field.value instanceof Date ? (
                             format(field.value, 'PPP', { locale: ptBR })
@@ -90,7 +93,13 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={field.value ?? undefined} onSelect={field.onChange} captionLayout="dropdown" disabled={(date) => date > new Date()} />
+                      <Calendar
+                        mode="single"
+                        selected={field.value ?? undefined}
+                        onSelect={field.onChange}
+                        captionLayout="dropdown"
+                        disabled={(date) => date > new Date()}
+                      />
                     </PopoverContent>
                   </Popover>
                   <FormMessage />

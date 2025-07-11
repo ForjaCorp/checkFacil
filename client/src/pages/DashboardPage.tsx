@@ -1,11 +1,11 @@
 import { useQuery, type QueryFunctionContext } from '@tanstack/react-query'
 import { endOfMonth, format, startOfMonth, startOfToday } from 'date-fns'
 import { Search } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { EventSection } from '@/components/events/EventSection'
 import { DashboardFilters } from '@/components/layout/DashboardFilters'
-import { DashboardHeader } from '@/components/layout/DashboardHeader'
+import { PageHeader } from '@/components/layout/PageHeader';
 import { Input } from '@/components/ui/input'
 import {
   Pagination,
@@ -18,6 +18,7 @@ import {
 import { dashboardConfig } from '@/config/dashboardConfig'
 import { useAuth } from '@/contexts/authContextCore'
 import { useDebounce } from '@/hooks/useDebounce'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import api from '@/services/api'
 
 import type { ApiEventResponse, EventsQueryOptions } from '@/types'
@@ -25,6 +26,8 @@ import type { DateRange } from 'react-day-picker'
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const config = user ? dashboardConfig[user.userType] : null
+  const { setTitle } = usePageHeader() // Use o hook
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('TODOS')
@@ -36,7 +39,13 @@ export default function DashboardPage() {
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
   const userRole = user?.userType
-  const config = userRole ? dashboardConfig[userRole] : null
+
+  useEffect(() => {
+    if (config) {
+      setTitle(config.header.title)
+    }
+    return () => setTitle(null)
+  }, [config, setTitle])
 
   const fetchEvents = async ({ queryKey }: QueryFunctionContext<[string, EventsQueryOptions]>) => {
     const [_key, options] = queryKey
@@ -131,11 +140,10 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 py-6">
-      <DashboardHeader
+    <div className="flex flex-col gap-6">
+      <PageHeader
         title={config.header.title}
-        subtitle={config.header.getSubtitle(user.name || user.email)}
-        action={config.header.action}
+        description={config.header.getSubtitle(user.name || user.email)}
       />
 
       {isError && (

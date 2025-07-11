@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button'
  */
 const staffConfig = {
   header: {
-    title: 'Painel do Staff',
+    title: 'Festas Agendadas',
     getSubtitle: (userName: string) => `Bem-vindo(a), ${userName}!`,
     action: (
       <Button asChild>
@@ -46,7 +46,7 @@ const staffConfig = {
 
 const organizerConfig = {
   header: {
-    title: 'Meu Painel',
+    title: 'Minhas Festas',
     getSubtitle: (userName: string) => `Bem-vindo(a), ${userName}!`,
     action: null,
   },

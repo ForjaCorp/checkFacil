@@ -1,9 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Pencil, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
-
 
 import { ShareInviteLink } from '@/components/events/ShareInviteLink'
 import { GuestForm } from '@/components/guests/GuestForm'
@@ -34,6 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import { type EditGuestFormValues } from '@/schemas/guestSchemas'
 import api from '@/services/api'
 
@@ -51,9 +51,8 @@ const getGuestTypeFriendlyName = (type: string) => {
   return names[type] || type
 }
 
-
-
 function GuestManagementPage() {
+  const { setTitle } = usePageHeader()
   const { eventId } = useParams<{ eventId: string }>()
   const queryClient = useQueryClient()
 
@@ -80,6 +79,15 @@ function GuestManagementPage() {
     },
     enabled: !!eventId,
   })
+
+  useEffect(() => {
+    if (eventData) {
+      setTitle(`Convidados: ${eventData.nome_festa}`)
+    } else {
+      setTitle('Gerenciar Convidados')
+    }
+    return () => setTitle(null)
+  }, [eventData, setTitle])
 
   const partyName = eventData?.nome_festa || ''
 
@@ -133,12 +141,13 @@ function GuestManagementPage() {
     setGuestToDelete(guest)
   }
 
-
   return (
     <div className="container mx-auto p-4 md:p-6">
       <header className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Gerenciar Convidados</h1>
+          <h1 className="hidden text-3xl font-bold text-foreground lg:block">
+            Gerenciar Convidados
+          </h1>
           {partyName && <p className="text-lg text-muted-foreground">{partyName}</p>}
         </div>
         {eventId && <ShareInviteLink eventId={eventId} />}

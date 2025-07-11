@@ -3,14 +3,16 @@ import { useMutation } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CalendarIcon, Loader2 } from 'lucide-react'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { PhoneInput } from '@/components/forms/PhoneInput'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -29,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import { cn } from '@/lib/utils'
 import { createDraftFormSchema, type CreateDraftFormValues } from '@/schemas/eventSchemas'
 import api from '@/services/api'
@@ -36,7 +39,14 @@ import api from '@/services/api'
 import type { CreateEventPayload } from '@/types'
 
 function CreateDraftEventPage() {
+  const { setTitle } = usePageHeader()
+
   const navigate = useNavigate()
+
+  useEffect(() => {
+    setTitle('Novo Agendamento')
+    return () => setTitle(null)
+  }, [setTitle])
 
   const form = useForm<CreateDraftFormValues>({
     resolver: zodResolver(createDraftFormSchema),
@@ -89,14 +99,12 @@ function CreateDraftEventPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-6 max-w-2xl">
+    <div className="container mx-auto max-w-2xl">
+      <PageHeader
+        title="Iniciar Novo Agendamento"
+        description="Preencha os dados essenciais para criar o rascunho da festa e o acesso do contratante."
+      />
       <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Iniciar Novo Agendamento</CardTitle>
-          <CardDescription>
-            Preencha os dados essenciais para criar o rascunho da festa e o acesso do contratante.
-          </CardDescription>
-        </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
