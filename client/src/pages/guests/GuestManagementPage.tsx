@@ -176,7 +176,9 @@ function GuestManagementPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar Convidado</DialogTitle>
+            <DialogTitle>
+              <h3 className="text-lg font-semibold">Editar Convidado</h3>
+            </DialogTitle>
             <DialogDescription>
               Altere os dados abaixo e clique em &quot;Salvar Alterações&quot;.
             </DialogDescription>
@@ -198,7 +200,11 @@ function GuestManagementPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Convidados</CardTitle>
+          <CardTitle>
+            <h2 className="text-xl font-bold">
+              Lista de Convidados
+              </h2>
+              </CardTitle>
           <CardDescription>Acompanhe, edite ou remova os convidados confirmados.</CardDescription>
         </CardHeader>
         <CardContent>

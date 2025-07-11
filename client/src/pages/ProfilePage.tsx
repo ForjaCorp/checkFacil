@@ -51,7 +51,7 @@ export default function ProfilePage() {
       <Card>
         <CardHeader className="flex flex-col items-center text-center">
           <Avatar className="h-24 w-24 mb-4">
-            <AvatarImage src="/placeholder-for-user-avatar.jpg" />
+            <AvatarImage src="/placeholder-for-user-avatar.jpg" alt={`Avatar de ${user.name}`} />
             <AvatarFallback className="text-3xl">{userInitials}</AvatarFallback>
           </Avatar>
           <CardTitle className="text-2xl">{user.name}</CardTitle>

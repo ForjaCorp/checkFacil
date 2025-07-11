@@ -73,7 +73,7 @@ export function SideBar() {
           <div className="mt-auto p-4 border-t flex flex-col gap-4">
             <Link to="/profile" className="flex items-center gap-3 group">
               <Avatar className="h-9 w-9">
-                <AvatarImage src="" />
+                <AvatarImage src="" alt={`Avatar de ${user?.name}`} />
                 <AvatarFallback>{userInitials}</AvatarFallback>
               </Avatar>
               <div className="grid gap-0.5 text-xs">
