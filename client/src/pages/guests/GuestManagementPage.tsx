@@ -81,13 +81,9 @@ function GuestManagementPage() {
   })
 
   useEffect(() => {
-    if (eventData) {
-      setTitle(`Convidados: ${eventData.nome_festa}`)
-    } else {
-      setTitle('Gerenciar Convidados')
-    }
+    setTitle('Gerenciar Convidados')
     return () => setTitle(null)
-  }, [eventData, setTitle])
+  }, [setTitle])
 
   const partyName = eventData?.nome_festa || ''
 
@@ -163,16 +159,6 @@ function GuestManagementPage() {
 
   return (
     <div className="container mx-auto p-4 md:p-6">
-      <header className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="hidden text-3xl font-bold text-foreground lg:block">
-            Gerenciar Convidados
-          </h1>
-          {partyName && <p className="text-lg text-muted-foreground">{partyName}</p>}
-        </div>
-        {eventId && <ShareInviteLink eventId={eventId} />}
-      </header>
-
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -200,12 +186,16 @@ function GuestManagementPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>
-            <h2 className="text-xl font-bold">
-              Lista de Convidados
-              </h2>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <CardTitle>
+                <h2 className="text-xl font-bold">Lista de Convidados</h2>
               </CardTitle>
-          <CardDescription>Acompanhe, edite ou remova os convidados confirmados.</CardDescription>
+              <CardDescription className="mt-1">{partyName}</CardDescription>
+            </div>
+
+            {eventId && <ShareInviteLink eventId={eventId} />}
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (

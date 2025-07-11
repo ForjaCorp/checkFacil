@@ -10,7 +10,6 @@ import { CompanionStep, type CompanionStepValues } from '@/pages/guest/steps/Com
 import { ConfirmResponsibleStep } from '@/pages/guest/steps/ConfirmResponsibleStep'
 import { FinalConfirmationStep } from '@/pages/guest/steps/FinalConfirmationStep'
 
-
 interface WalkinGuestRegistrationProps {
   onSuccess: () => void
 }
@@ -28,7 +27,7 @@ function ChoiceCard({
 }) {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault() 
+      event.preventDefault()
       onClick()
     }
   }
