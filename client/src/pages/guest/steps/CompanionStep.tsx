@@ -58,7 +58,7 @@ interface CompanionStepProps {
   onBack: () => void
   childrenNeedingCompanion: ChildNeedingCompanion[]
   isSubmitting: boolean
-  responsibleName?: string | null // Nova propriedade
+  responsibleName?: string | null
 }
 
 export function CompanionStep({
@@ -66,7 +66,7 @@ export function CompanionStep({
   onBack,
   childrenNeedingCompanion,
   isSubmitting,
-  responsibleName, // Nova propriedade
+  responsibleName,
 }: CompanionStepProps) {
   const form = useForm<CompanionStepValues>({
     resolver: zodResolver(companionStepSchema),

@@ -81,12 +81,12 @@ export function AddAdultsWalkinForm({ onSuccess }: AddAdultsWalkinFormProps) {
               name={`adultos.${index}.nome`}
               render={({ field }) => (
                 <FormItem>
-                  {' '}
-                  <FormLabel>Nome Completo</FormLabel>{' '}
+                  
+                  <FormLabel>Nome Completo</FormLabel>
                   <FormControl>
                     <Input placeholder="Nome do convidado" {...field} />
-                  </FormControl>{' '}
-                  <FormMessage />{' '}
+                  </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -95,12 +95,12 @@ export function AddAdultsWalkinForm({ onSuccess }: AddAdultsWalkinFormProps) {
               name={`adultos.${index}.telefone`}
               render={({ field }) => (
                 <FormItem>
-                  {' '}
-                  <FormLabel>Telefone/WhatsApp</FormLabel>{' '}
+                  
+                  <FormLabel>Telefone/WhatsApp</FormLabel>
                   <FormControl>
                     <PhoneInput placeholder="+55 (XX) 9XXXX-XXXX" {...field} />
-                  </FormControl>{' '}
-                  <FormMessage />{' '}
+                  </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />

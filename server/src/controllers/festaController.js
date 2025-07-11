@@ -60,10 +60,6 @@ export async function criarFesta(req, res) {
 
           token: tokenDefinicaoSenha
         };
-
-        // eslint-disable-next-line no-console
-        console.log('Enviando dados para o webhook n8n:', payloadWebhook);
-
         axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
           console.error(
             'Erro secundário ao enviar o webhook para n8n:',
@@ -82,10 +78,6 @@ export async function criarFesta(req, res) {
           emailCliente: clienteOrganizador.email,
           telefoneCliente: clienteOrganizador.telefone
         };
-
-        // eslint-disable-next-line no-console
-        console.log('Enviando dados para o webhook n8n:', payloadWebhook);
-
         axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
           console.error(
             'Erro secundário ao enviar o webhook para n8n:',
@@ -95,9 +87,6 @@ export async function criarFesta(req, res) {
       } catch (webhookError) {
         console.error('Erro ao tentar disparar o webhook para n8n:', webhookError.message);
       }
-
-      // eslint-disable-next-line no-console
-      console.log(`Cliente já existente encontrado: ${clienteOrganizador.email}`);
     }
 
     const novaFesta = await models.Festa.create({

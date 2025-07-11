@@ -43,7 +43,6 @@ export function ShareInviteLink({ eventId }: ShareInviteLinkProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        {/* 2. Adicionado 'cursor-pointer' para garantir o feedback visual no hover */}
         <Button className="w-full cursor-pointer sm:w-auto">
           <LinkIcon className="mr-2 h-4 w-4" />
           Convidar Pessoas
