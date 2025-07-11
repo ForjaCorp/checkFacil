@@ -49,15 +49,18 @@ export type AddChildrenStepValues = z.infer<typeof addChildrenSchema>
 interface AddChildrenStepProps {
   onNext: (data: AddChildrenStepValues) => void
   onBack: () => void
+  initialData?: AddChildrenStepValues
 }
 
-export function AddChildrenStep({ onNext, onBack }: AddChildrenStepProps) {
+export function AddChildrenStep({ onNext, onBack, initialData }: AddChildrenStepProps) {
   const form = useForm<AddChildrenStepValues>({
     resolver: zodResolver(addChildrenSchema),
-    defaultValues: {
+    // Use os dados iniciais se eles existirem
+    defaultValues: initialData || {
       children: [{ name: '', dob: undefined, isAtypical: false }],
     },
   })
+
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,

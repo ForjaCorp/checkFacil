@@ -1,24 +1,61 @@
 import * as React from 'react'
+import { useIMask } from 'react-imask'
 
 import { Input } from '@/components/ui/input'
-import { formatPhoneNumber, unformatPhoneNumber } from '@/lib/phoneUtils'
 
 export interface PhoneInputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
 const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
-  ({ onChange, ...props }, ref) => {
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const rawValue = unformatPhoneNumber(e.target.value)
-      const formattedValue = formatPhoneNumber(rawValue)
+  ({ onChange, onBlur, name, value, ...props }, ref) => {
+    const {
+      ref: iMaskRef,
+      value: maskedValue,
+      setValue,
+    } = useIMask(
+      {
+        mask: '+{55} (00) 00000-0000',
+        lazy: false, 
+        placeholderChar: '_', 
+      },
+      
+      {
+        onAccept: (_, mask) => {
+          const event = {
+            target: {
+              name: name,
+              value: mask.unmaskedValue, 
+            },
+          }
+          if (onChange) {
+            onChange(event as React.ChangeEvent<HTMLInputElement>)
+          }
+        },
+      },
+    )
 
-      e.target.value = formattedValue
+    React.useEffect(() => {
+      setValue(String(value || ''))
+    }, [value, setValue])
 
-      if (onChange) {
-        onChange(e)
+    const combinedRef = (instance: HTMLInputElement | null) => {
+      iMaskRef.current = instance
+      if (typeof ref === 'function') {
+        ref(instance)
+      } else if (ref) {
+        ref.current = instance
       }
     }
 
-    return <Input {...props} ref={ref} onChange={handleInputChange} type="tel" maxLength={19} />
+    return (
+      <Input
+        {...props}
+        ref={combinedRef}
+        name={name}
+        onBlur={onBlur}
+        value={maskedValue} 
+        autoComplete="tel" 
+      />
+    )
   },
 )
 PhoneInput.displayName = 'PhoneInput'

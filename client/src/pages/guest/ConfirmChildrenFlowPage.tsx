@@ -1,11 +1,16 @@
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useGuestConfirmationFlow } from '@/hooks/useGuestConfirmationFlow'; // Importando nosso novo hook
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useGuestConfirmationFlow } from '@/hooks/useGuestConfirmationFlow' // Importando nosso novo hook
 
-import { AddChildrenStep } from './steps/AddChildrenStep';
-import { CompanionStep } from './steps/CompanionStep';
-import { ConfirmResponsibleStep } from './steps/ConfirmResponsibleStep';
-import { FinalConfirmationStep } from './steps/FinalConfirmationStep';
-import { SuccessStep } from './steps/SuccessStep';
+import { AddChildrenStep } from './steps/AddChildrenStep'
+import { CompanionStep } from './steps/CompanionStep'
+import { ConfirmResponsibleStep } from './steps/ConfirmResponsibleStep'
+import { FinalConfirmationStep } from './steps/FinalConfirmationStep'
+import { SuccessStep } from './steps/SuccessStep'
+
+export type ChildNeedingCompanion = {
+  name: string
+  reason: string
+}
 
 export default function ConfirmChildrenFlowPage() {
   const {
@@ -18,7 +23,7 @@ export default function ConfirmChildrenFlowPage() {
     handleNextFromChildren,
     handleSubmitFlow,
     setCurrentStep,
-  } = useGuestConfirmationFlow();
+  } = useGuestConfirmationFlow()
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -29,7 +34,11 @@ export default function ConfirmChildrenFlowPage() {
         />
       )}
       {currentStep === 'CHILDREN' && (
-        <AddChildrenStep onNext={handleNextFromChildren} onBack={() => setCurrentStep('RESPONSIBLE')} />
+        <AddChildrenStep
+          onNext={handleNextFromChildren}
+          onBack={() => setCurrentStep('RESPONSIBLE')}
+          initialData={flowState.children ? { children: flowState.children } : undefined}
+        />
       )}
       {currentStep === 'COMPANION' && (
         <CompanionStep
@@ -37,6 +46,7 @@ export default function ConfirmChildrenFlowPage() {
           onBack={() => setCurrentStep('CHILDREN')}
           childrenNeedingCompanion={childrenNeedingCompanion}
           isSubmitting={isPending}
+          responsibleName={flowState.responsible?.responsibleName}
         />
       )}
       {currentStep === 'FINAL_CONFIRMATION' && (
@@ -53,12 +63,12 @@ export default function ConfirmChildrenFlowPage() {
           <CardHeader>
             <CardTitle className="text-destructive">Ocorreu um Erro</CardTitle>
             <CardDescription>
-              Não foi possível confirmar a presença. Por favor, tente novamente mais tarde ou contate o
-              organizador da festa.
+              Não foi possível confirmar a presença. Por favor, tente novamente mais tarde ou
+              contate o organizador da festa.
             </CardDescription>
           </CardHeader>
         </Card>
       )}
     </div>
-  );
+  )
 }

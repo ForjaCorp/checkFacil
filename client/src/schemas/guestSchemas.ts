@@ -102,3 +102,12 @@ export const addGuestSchema = z
   })
 
 export type AddGuestFormValues = z.infer<typeof addGuestSchema>
+
+export const editGuestSchema = z.object({
+  nome_convidado: z.string().min(3, { message: 'Nome do convidado é obrigatório.' }),
+  nascimento_convidado: z.date().optional().nullable(),
+  e_crianca_atipica: z.boolean().default(false),
+})
+
+// Exporta o novo tipo também
+export type EditGuestFormValues = z.infer<typeof editGuestSchema>

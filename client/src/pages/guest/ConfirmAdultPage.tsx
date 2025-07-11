@@ -1,20 +1,27 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
-import { useState } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
-import { toast } from 'sonner';
-import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { Loader2, PlusCircle, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { useFieldArray, useForm } from 'react-hook-form'
+import { useParams } from 'react-router-dom'
+import { toast } from 'sonner'
+import * as z from 'zod'
 
-import { PhoneInput } from '@/components/forms/PhoneInput';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { brazilianPhoneSchema } from '@/lib/phoneUtils';
-import { SuccessStep } from '@/pages/guest/steps/SuccessStep';
-import api from '@/services/api';
+import { PhoneInput } from '@/components/forms/PhoneInput'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { brazilianPhoneSchema } from '@/lib/phoneUtils'
+import { SuccessStep } from '@/pages/guest/steps/SuccessStep'
+import api from '@/services/api'
 
 // Schema de validação com a correção .trim()
 const adultGuestSchema = z.object({
@@ -26,51 +33,51 @@ const adultGuestSchema = z.object({
       }),
     )
     .min(1, 'Pelo menos um adulto deve ser informado.'),
-});
+})
 
-type AdultGuestFormValues = z.infer<typeof adultGuestSchema>;
+type AdultGuestFormValues = z.infer<typeof adultGuestSchema>
 
 export default function ConfirmAdultPage() {
-  const { eventId } = useParams<{ eventId: string }>();
-  const [isSuccess, setIsSuccess] = useState(false);
+  const { eventId } = useParams<{ eventId: string }>()
+  const [isSuccess, setIsSuccess] = useState(false)
 
   // Busca os dados do evento para usar na tela de sucesso
   const { data: eventData } = useQuery({
     queryKey: ['public-event', eventId],
     queryFn: async () => {
-      if (!eventId) return null;
-      const response = await api.get(`/festa/${eventId}/public`);
-      return response.data;
+      if (!eventId) return null
+      const response = await api.get(`/festa/${eventId}/public`)
+      return response.data
     },
     enabled: !!eventId,
-  });
+  })
 
   const form = useForm<AdultGuestFormValues>({
     resolver: zodResolver(adultGuestSchema),
     defaultValues: {
       adultos: [{ nome: '', telefone: '' }],
     },
-  });
+  })
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'adultos',
-  });
+  })
 
   const { mutate: confirmAttendance, isPending } = useMutation({
     mutationFn: (data: AdultGuestFormValues) => api.post(`/festa/${eventId}/register-adults`, data),
     onSuccess: () => {
-      setIsSuccess(true); // Muda o estado para sucesso
+      setIsSuccess(true) // Muda o estado para sucesso
     },
     onError: (error) => {
-      console.error(error);
-      toast.error('Houve um erro.', { description: 'Não foi possível confirmar a presença.' });
+      console.error(error)
+      toast.error('Houve um erro.', { description: 'Não foi possível confirmar a presença.' })
     },
-  });
+  })
 
   const onSubmit = (data: AdultGuestFormValues) => {
-    confirmAttendance(data);
-  };
+    confirmAttendance(data)
+  }
 
   // Renderiza a tela de sucesso se o estado for 'true'
   if (isSuccess && eventData) {
@@ -78,7 +85,7 @@ export default function ConfirmAdultPage() {
       <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
         <SuccessStep event={eventData} />
       </div>
-    );
+    )
   }
 
   // Renderização padrão do formulário
@@ -97,7 +104,9 @@ export default function ConfirmAdultPage() {
               {fields.map((field, index) => (
                 <div key={field.id} className="space-y-4 rounded-md border p-4 relative">
                   <h3 className="font-semibold text-foreground">
-                    {index === 0 ? 'Seus Dados (Responsável pelo Grupo)' : `Convidado Adicional ${index}`}
+                    {index === 0
+                      ? 'Seus Dados (Responsável pelo Grupo)'
+                      : `Convidado Adicional ${index}`}
                   </h3>
                   <FormField
                     control={form.control}
@@ -157,5 +166,5 @@ export default function ConfirmAdultPage() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

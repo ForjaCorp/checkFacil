@@ -16,7 +16,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { brazilianPhoneSchema } from '@/lib/phoneUtils'
 import { type ChildNeedingCompanion } from '@/pages/guest/ConfirmChildrenFlowPage'
@@ -59,6 +58,7 @@ interface CompanionStepProps {
   onBack: () => void
   childrenNeedingCompanion: ChildNeedingCompanion[]
   isSubmitting: boolean
+  responsibleName?: string | null // Nova propriedade
 }
 
 export function CompanionStep({
@@ -66,6 +66,7 @@ export function CompanionStep({
   onBack,
   childrenNeedingCompanion,
   isSubmitting,
+  responsibleName, // Nova propriedade
 }: CompanionStepProps) {
   const form = useForm<CompanionStepValues>({
     resolver: zodResolver(companionStepSchema),
@@ -114,73 +115,92 @@ export function CompanionStep({
                       value={field.value}
                       className="flex flex-col space-y-3"
                     >
-                      <FormItem className="flex items-center space-x-3 space-y-0 rounded-md border p-4 has-[:checked]:border-primary has-[:checked]:ring-1 has-[:checked]:ring-primary">
-                        <FormControl>
-                          <RadioGroupItem value="myself" />
-                        </FormControl>
-                        <Label className="font-normal cursor-pointer flex-1">
-                          Eu serei o acompanhante (e confirmo minha presença na festa).
-                        </Label>
+                      <FormItem>
+                        <FormLabel className="font-normal flex items-center space-x-3 space-y-0 rounded-md border p-4 cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-1 has-[:checked]:ring-primary">
+                          <FormControl>
+                            <RadioGroupItem value="myself" />
+                          </FormControl>
+                          <span className="flex-1">
+                            Eu serei o acompanhante{' '}
+                            {responsibleName && (
+                              <span className="font-semibold">({responsibleName})</span>
+                            )}
+                          </span>
+                        </FormLabel>
                       </FormItem>
-
-                      <FormItem className="rounded-md border p-4 has-[:checked]:border-primary has-[:checked]:ring-1 has-[:checked]:ring-primary">
-                        <div className="flex items-center space-x-3">
+                      <FormItem>
+                        <FormLabel className="font-normal flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-1 has-[:checked]:ring-primary">
                           <FormControl>
                             <RadioGroupItem value="other" />
                           </FormControl>
-                          <Label className="font-normal cursor-pointer flex-1">
-                            Outra pessoa irá como acompanhante
-                          </Label>
-                        </div>
-
-                        {watchedCompanionType === 'other' && (
-                          // DIV ALTERADA AQUI
-                          <div className="mt-4 space-y-4 border-l-2 pl-6 pt-1">
-                            <FormField
-                              control={form.control}
-                              name="otherCompanionName"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Nome do Acompanhante</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="otherCompanionPhone"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Telefone do Acompanhante</FormLabel>
-                                  <FormControl>
-                                    <PhoneInput {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="isNanny"
-                              render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 pt-2">
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">
-                                    Este acompanhante é uma babá profissional?
-                                  </FormLabel>
-                                </FormItem>
-                              )}
-                            />
+                          <div className="flex-1 flex flex-col">
+                            <span>Outra pessoa irá como acompanhante</span>
+                            <div
+                              className={`
+                                overflow-hidden transition-all duration-300 ease-in-out
+                                ${
+                                  watchedCompanionType === 'other'
+                                    ? 'mt-4 max-h-96 opacity-100'
+                                    : 'max-h-0 opacity-0'
+                                }
+                              `}
+                            >
+                              <div className="space-y-4 border-l-2 border-slate-200 pl-6 pt-1 dark:border-slate-700">
+                                <FormField
+                                  control={form.control}
+                                  name="otherCompanionName"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-sm">
+                                        Nome do Acompanhante
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Nome completo"
+                                          className="h-9"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="otherCompanionPhone"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-sm">
+                                        Telefone do Acompanhante
+                                      </FormLabel>
+                                      <FormControl>
+                                        <PhoneInput className="h-9" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="isNanny"
+                                  render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center space-x-3 pt-2">
+                                      <FormControl>
+                                        <Checkbox
+                                          checked={field.value}
+                                          onCheckedChange={field.onChange}
+                                        />
+                                      </FormControl>
+                                      <FormLabel className="font-normal text-sm">
+                                        Este acompanhante é uma babá profissional?
+                                      </FormLabel>
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
                           </div>
-                        )}
+                        </FormLabel>
                       </FormItem>
                     </RadioGroup>
                   </FormControl>

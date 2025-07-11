@@ -1,6 +1,6 @@
 // client/src/hooks/useGuestConfirmationFlow.ts
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -17,19 +17,50 @@ interface GuestFlowState {
   children: AddChildrenStepValues['children'] | null
 }
 
-const calculateAge = (dob: Date) => {
-  const diff = Date.now() - dob.getTime()
-  const ageDate = new Date(diff)
-  return Math.abs(ageDate.getUTCFullYear() - 1970)
+const calculateAgeOnEventDate = (dob: Date, eventDate: string) => {
+  const birthDate = new Date(dob)
+  const partyDate = new Date(eventDate.replace(/-/g, '/')) // Garante compatibilidade de formato
+
+  let age = partyDate.getFullYear() - birthDate.getFullYear()
+  const monthDiff = partyDate.getMonth() - birthDate.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && partyDate.getDate() < birthDate.getDate())) {
+    age--
+  }
+  return age
 }
+
+const GUEST_FLOW_SESSION_KEY = 'guestConfirmationFlowState'
 
 export function useGuestConfirmationFlow() {
   const { eventId } = useParams<{ eventId: string }>()
-  const [currentStep, setCurrentStep] = useState<Step>('RESPONSIBLE')
-  const [flowState, setFlowState] = useState<GuestFlowState>({
-    responsible: null,
-    children: null,
+
+  const getInitialStep = (state: GuestFlowState | null): Step => {
+    if (!state?.responsible) return 'RESPONSIBLE'
+    if (!state.children) return 'CHILDREN'
+    // Se já temos os dados, recalculamos para onde ir
+    const needsCompanion = state.children.some((child) => child.isAtypical || child.dob === undefined) // DOB undefined como fallback
+    return needsCompanion ? 'COMPANION' : 'FINAL_CONFIRMATION'
+  }
+
+  const [flowState, setFlowState] = useState<GuestFlowState>(() => {
+    try {
+      const storedState = sessionStorage.getItem(GUEST_FLOW_SESSION_KEY)
+      return storedState ? JSON.parse(storedState) : { responsible: null, children: null }
+    } catch (error) {
+      console.error('Falha ao ler o estado da sessão:', error)
+      return { responsible: null, children: null }
+    }
   })
+
+  const [currentStep, setCurrentStep] = useState<Step>(getInitialStep(flowState))
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(GUEST_FLOW_SESSION_KEY, JSON.stringify(flowState))
+    } catch (error) {
+      console.error('Falha ao salvar o estado na sessão:', error)
+    }
+  }, [flowState])
 
   const { data: eventData } = useQuery({
     queryKey: ['public-event', eventId],
@@ -45,6 +76,7 @@ export function useGuestConfirmationFlow() {
     mutationFn: (payload: object) => api.post(`/festa/${eventId}/register-guest-group`, payload),
     onSuccess: () => {
       toast.success('Presença confirmada com sucesso!')
+      sessionStorage.removeItem(GUEST_FLOW_SESSION_KEY) // Limpa o storage no sucesso
       setCurrentStep('SUCCESS')
     },
     onError: () => {
@@ -97,21 +129,33 @@ export function useGuestConfirmationFlow() {
   }
 
   const handleNextFromResponsible = (data: ResponsibleStepValues) => {
+    // Ao avançar do primeiro passo, garantimos que os dados das crianças sejam limpos.
     setFlowState({ responsible: data, children: null })
     setCurrentStep('CHILDREN')
   }
 
   const handleNextFromChildren = (data: AddChildrenStepValues) => {
+    if (!eventData?.data_festa) {
+      toast.error('Não foi possível carregar a data da festa. Tente novamente.')
+      return
+    }
+
     setFlowState((prev) => ({ ...prev, children: data.children }))
     const needsCompanion = data.children.some(
-      (child) => child.isAtypical || calculateAge(child.dob!) < 6,
+      (child) =>
+        child.isAtypical || calculateAgeOnEventDate(child.dob!, eventData.data_festa) < 6,
     )
     setCurrentStep(needsCompanion ? 'COMPANION' : 'FINAL_CONFIRMATION')
   }
 
   const childrenNeedingCompanion =
     flowState.children
-      ?.filter((c) => c.isAtypical || calculateAge(c.dob!) < 6)
+      ?.filter(
+        (c) =>
+          c.dob &&
+          eventData?.data_festa &&
+          (c.isAtypical || calculateAgeOnEventDate(c.dob, eventData.data_festa) < 6),
+      )
       .map((c) => ({
         name: c.name,
         reason: c.isAtypical ? 'Criança atípica' : 'Menor de 6 anos',
