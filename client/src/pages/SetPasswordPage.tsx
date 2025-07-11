@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -17,6 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import api from '@/services/api'
 
 const setPasswordSchema = z
@@ -32,8 +34,14 @@ const setPasswordSchema = z
 type SetPasswordFormValues = z.infer<typeof setPasswordSchema>
 
 export default function SetPasswordPage() {
+  const { setTitle } = usePageHeader()
   const { token } = useParams<{ token: string }>()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    setTitle('Definir Nova Senha')
+    return () => setTitle(null)
+  }, [setTitle])
 
   const form = useForm<SetPasswordFormValues>({
     resolver: zodResolver(setPasswordSchema),

@@ -24,9 +24,9 @@ export function ShareInviteLink({ eventId }: ShareInviteLinkProps) {
 
   const inviteLink = `${window.location.origin}/guest/flow-selection/${eventId}`
 
-  const partyName = "nossa festa" 
+  const partyName = 'nossa festa'
   const whatsappText = encodeURIComponent(
-    `Olá! 🎉 Você foi convidado para ${partyName}! Confirme sua presença através do link: ${inviteLink}`
+    `Olá! 🎉 Você foi convidado para ${partyName}! Confirme sua presença através do link: ${inviteLink}`,
   )
   const whatsappUrl = `https://wa.me/?text=${whatsappText}`
 

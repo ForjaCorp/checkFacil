@@ -61,7 +61,6 @@ export function AddChildrenStep({ onNext, onBack, initialData }: AddChildrenStep
     },
   })
 
-
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'children',

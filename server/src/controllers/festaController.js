@@ -342,7 +342,7 @@ export async function registrarGrupoConvidados(req, res) {
           e_crianca_atipica: convidado.isCriancaAtipica || false,
           nome_responsavel_contato: contatoResponsavel.nome,
           telefone_responsavel_contato: contatoResponsavel.telefone,
-          cadastrado_na_hora: true,
+          cadastrado_na_hora: convidado.cadastrado_na_hora || null,
           acompanhado_por_id: convidado.acompanhado_por_id || null
         },
         { transaction }

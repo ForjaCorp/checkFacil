@@ -14,16 +14,16 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
     } = useIMask(
       {
         mask: '+{55} (00) 00000-0000',
-        lazy: false, 
-        placeholderChar: '_', 
+        lazy: false,
+        placeholderChar: '_',
       },
-      
+
       {
         onAccept: (_, mask) => {
           const event = {
             target: {
               name: name,
-              value: mask.unmaskedValue, 
+              value: mask.unmaskedValue,
             },
           }
           if (onChange) {
@@ -52,8 +52,8 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
         ref={combinedRef}
         name={name}
         onBlur={onBlur}
-        value={maskedValue} 
-        autoComplete="tel" 
+        value={maskedValue}
+        autoComplete="tel"
       />
     )
   },
