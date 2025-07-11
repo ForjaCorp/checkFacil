@@ -31,8 +31,7 @@ app.get('/*splat', (_req, res) => {
 async function LigarServidor() {
   try {
     await sequelize.authenticate();
-    app.listen(port, () => {
-    });
+    app.listen(port, () => {});
   } catch (error) {
     console.error('Não foi possível conectar ao banco de dados ou iniciar o servidor:', error);
     process.exit(1);

@@ -81,7 +81,6 @@ export function AddAdultsWalkinForm({ onSuccess }: AddAdultsWalkinFormProps) {
               name={`adultos.${index}.nome`}
               render={({ field }) => (
                 <FormItem>
-                  
                   <FormLabel>Nome Completo</FormLabel>
                   <FormControl>
                     <Input placeholder="Nome do convidado" {...field} />
@@ -95,7 +94,6 @@ export function AddAdultsWalkinForm({ onSuccess }: AddAdultsWalkinFormProps) {
               name={`adultos.${index}.telefone`}
               render={({ field }) => (
                 <FormItem>
-                  
                   <FormLabel>Telefone/WhatsApp</FormLabel>
                   <FormControl>
                     <PhoneInput placeholder="+55 (XX) 9XXXX-XXXX" {...field} />

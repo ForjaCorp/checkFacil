@@ -114,12 +114,12 @@
   html,
   body,
   #root {
-    @apply h-full; /* Garante que a raiz do app ocupe 100% da altura */
+    @apply h-full;
   }
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-hidden;
   }
 }
