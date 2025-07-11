@@ -20,7 +20,6 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, variant }: EventCardProps) {
-  // NOVO e final sistema de nomes e cores para as badges
   const getStatusInfo = (
     status: string,
   ): {
@@ -59,58 +58,47 @@ export function EventCard({ event, variant }: EventCardProps) {
             {statusInfo.text}
           </Badge>
         </div>
-        {/* Mostra o organizador apenas para o staff, para não ser redundante para o próprio organizador */}
         {isStaff && (
           <CardDescription>Organizador: {event.organizerName || 'Não definido'}</CardDescription>
         )}
       </CardHeader>
 
-      <CardContent>
+      <CardContent className='flex-grow'>
         <div className="flex items-center text-sm text-muted-foreground">
           <Calendar className="mr-2 h-4 w-4 shrink-0" />
           <span>{new Date(event.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</span>
         </div>
       </CardContent>
 
-      <div className="flex-grow" />
-
-      {/* A lógica dos botões agora está AQUI DENTRO */}
-      <CardFooter className={`grid gap-2 pt-4 mt-auto ${isStaff ? 'grid-cols-3' : 'grid-cols-2'}`}>
+      <CardFooter className="flex flex-col gap-2 pt-4 border-t-2 border-dashed">
         {isStaff ? (
           <>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="text-primary border-primary hover:bg-primary/5 hover:text-primary"
-            >
-              <Link
-                to={`/staff/event/${event.id}/details`}
-                className="flex items-center justify-center whitespace-nowrap"
+            <div className="flex sm:flex-row gap-2 w-full">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto flex-1 text-primary border-primary hover:bg-primary/5 hover:text-primary"
               >
-                <FilePenLine className="h-4 w-4" />
-                <span className="ml-2">Detalhes</span>
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="text-primary border-primary hover:bg-primary/5 hover:text-primary"
-            >
-              <Link
-                to={`/event/${event.id}/guests`}
-                className="flex items-center justify-center whitespace-nowrap"
+                <Link to={`/staff/event/${event.id}/details`} className="flex items-center justify-center">
+                  <FilePenLine className="h-4 w-4" />
+                  <span className="ml-2">Detalhes</span>
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto flex-1 text-primary border-primary hover:bg-primary/5 hover:text-primary"
               >
-                <Users className="h-4 w-4" />
-                <span className="ml-2">Convidados</span>
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="success">
-              <Link
-                to={`/staff/event/${event.id}/checkin`}
-                className="flex items-center justify-center whitespace-nowrap"
-              >
+                <Link to={`/event/${event.id}/guests`} className="flex items-center justify-center">
+                  <Users className="h-4 w-4" />
+                  <span className="ml-2">Convidados</span>
+                </Link>
+              </Button>
+            </div>
+            <Button asChild size="sm" variant="success" className="w-full">
+              <Link to={`/staff/event/${event.id}/checkin`} className="flex items-center justify-center">
                 <PlayCircle className="h-4 w-4" />
                 <span className="ml-2">Check-in</span>
               </Link>
@@ -122,23 +110,17 @@ export function EventCard({ event, variant }: EventCardProps) {
               asChild
               variant="outline"
               size="sm"
-              className="text-primary border-primary hover:bg-primary/5 hover:text-primary"
+              className="w-full sm:w-auto text-primary border-primary hover:bg-primary/5 hover:text-primary"
             >
-              <Link
-                to={`/organizer/event/${event.id}/details`}
-                className="flex items-center justify-center whitespace-nowrap"
-              >
+              <Link to={`/organizer/event/${event.id}/details`} className="flex items-center justify-center">
                 <FilePenLine className="h-4 w-4" />
                 <span className="ml-2">
                   {event.status === 'RASCUNHO' ? 'Completar' : 'Detalhes'}
                 </span>
               </Link>
             </Button>
-            <Button asChild size="sm">
-              <Link
-                to={`/event/${event.id}/guests`}
-                className="flex items-center justify-center whitespace-nowrap"
-              >
+            <Button asChild size="sm" className="w-full sm:w-auto">
+              <Link to={`/event/${event.id}/guests`} className="flex items-center justify-center">
                 <Users className="h-4 w-4" />
                 <span className="ml-2">Convidados</span>
               </Link>
