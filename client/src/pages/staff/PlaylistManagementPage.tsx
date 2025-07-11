@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Music2, Pencil, PlusCircle, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { ActionButton } from '@/components/common/ActionButton'
@@ -50,6 +50,7 @@ export default function PlaylistManagementPage() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [playlistToDelete, setPlaylistToDelete] = useState<Playlist | null>(null)
   const [playlistToEdit, setPlaylistToEdit] = useState<Playlist | null>(null)
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
     setTitle('Gerenciar Playlists')
@@ -107,7 +108,8 @@ export default function PlaylistManagementPage() {
     setIsFormOpen(true)
   }
 
-  const openEditDialog = (playlist: Playlist) => {
+  const openEditDialog = (playlist: Playlist, event: React.MouseEvent<HTMLButtonElement>) => {
+    triggerRef.current = event.currentTarget
     setPlaylistToEdit(playlist)
     setIsFormOpen(true)
   }
@@ -165,13 +167,17 @@ export default function PlaylistManagementPage() {
                         <ActionButton
                           icon={Pencil}
                           tooltip="Editar Playlist"
-                          onClick={() => openEditDialog(playlist)}
+                          onClick={(e) => openEditDialog(playlist, e)}
                         />
+
                         <ActionButton
                           icon={Trash2}
                           tooltip="Remover Playlist"
                           variant="destructive"
-                          onClick={() => setPlaylistToDelete(playlist)}
+                          onClick={(e) => {
+                            triggerRef.current = e.currentTarget
+                            setPlaylistToDelete(playlist)
+                          }}
                         />
                       </div>
                     </TableCell>
@@ -191,7 +197,15 @@ export default function PlaylistManagementPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      <Dialog
+        open={isFormOpen}
+        onOpenChange={(isOpen) => {
+          setIsFormOpen(isOpen)
+          if (!isOpen) {
+            triggerRef.current?.focus()
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -209,7 +223,15 @@ export default function PlaylistManagementPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!playlistToDelete} onOpenChange={() => setPlaylistToDelete(null)}>
+      <AlertDialog
+        open={!!playlistToDelete}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            triggerRef.current?.focus()
+          }
+          setPlaylistToDelete(isOpen ? playlistToDelete : null)
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>

@@ -1,8 +1,7 @@
-
 import { User, Users } from 'lucide-react'
 import { useState } from 'react'
 
-
+import { AddAdultsWalkinForm } from '@/components/guests/AddAdultsWalkinForm'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGuestConfirmationFlow } from '@/hooks/useGuestConfirmationFlow'
 import { unformatPhoneNumber } from '@/lib/phoneUtils'
@@ -11,7 +10,6 @@ import { CompanionStep, type CompanionStepValues } from '@/pages/guest/steps/Com
 import { ConfirmResponsibleStep } from '@/pages/guest/steps/ConfirmResponsibleStep'
 import { FinalConfirmationStep } from '@/pages/guest/steps/FinalConfirmationStep'
 
-import { AddAdultsWalkinForm } from './AddAdultsWalkinForm'
 
 interface WalkinGuestRegistrationProps {
   onSuccess: () => void

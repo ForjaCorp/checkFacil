@@ -27,7 +27,7 @@ import type { DateRange } from 'react-day-picker'
 export default function DashboardPage() {
   const { user } = useAuth()
   const config = user ? dashboardConfig[user.userType] : null
-  const { setTitle } = usePageHeader() 
+  const { setTitle } = usePageHeader()
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('TODOS')
@@ -116,7 +116,7 @@ export default function DashboardPage() {
   }
 
   const applyCategoryFilter = (category: 'this_month' | 'upcoming' | 'completed') => {
-    clearFilters() 
+    clearFilters()
     switch (category) {
       case 'this_month': {
         const today = new Date()

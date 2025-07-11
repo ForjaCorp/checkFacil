@@ -143,7 +143,6 @@ function GuestManagementPage() {
     },
   })
 
-
   function handleEditGuestSubmit(data: EditGuestFormValues) {
     if (!editingGuest) return
     editGuest(data)

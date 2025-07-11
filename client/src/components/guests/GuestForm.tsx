@@ -26,7 +26,7 @@ import type { GuestType } from '@/types'
 interface GuestFormProps {
   onSubmit: SubmitHandler<EditGuestFormValues>
   isLoading?: boolean
-  initialValues: Partial<EditGuestFormValues & { tipo_convidado: GuestType }> 
+  initialValues: Partial<EditGuestFormValues & { tipo_convidado: GuestType }>
 }
 
 export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps) {

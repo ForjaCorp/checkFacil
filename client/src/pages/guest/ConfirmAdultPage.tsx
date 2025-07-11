@@ -65,7 +65,7 @@ export default function ConfirmAdultPage() {
   const { mutate: confirmAttendance, isPending } = useMutation({
     mutationFn: (data: AdultGuestFormValues) => api.post(`/festa/${eventId}/register-adults`, data),
     onSuccess: () => {
-      setIsSuccess(true) 
+      setIsSuccess(true)
     },
     onError: (error) => {
       console.error(error)
