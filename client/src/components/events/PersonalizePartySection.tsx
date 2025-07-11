@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   FormControl,
@@ -8,6 +10,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
   Select,
   SelectContent,
@@ -20,11 +23,24 @@ import { Textarea } from '@/components/ui/textarea'
 import type { CompleteDetailsFormValues } from '@/schemas/eventSchemas'
 import type { UseFormReturn } from 'react-hook-form'
 
-interface PersonalizePartySectionProps {
-  form: UseFormReturn<CompleteDetailsFormValues>
+interface Playlist {
+  id: number
+  nome: string
+  link: string
 }
 
-export function PersonalizePartySection({ form }: PersonalizePartySectionProps) {
+interface PersonalizePartySectionProps {
+  form: UseFormReturn<CompleteDetailsFormValues>
+  playlists: Playlist[]
+}
+
+export function PersonalizePartySection({ form, playlists }: PersonalizePartySectionProps) {
+  const [playlistChoice, setPlaylistChoice] = useState<'custom' | 'predefined'>('custom')
+
+  const handlePlaylistSelect = (playlistLink: string) => {
+    form.setValue('spotifyPlaylistLink', playlistLink, { shouldValidate: true })
+  }
+
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4 border-b pb-2">Personalize Sua Festa</h3>
@@ -174,24 +190,75 @@ export function PersonalizePartySection({ form }: PersonalizePartySectionProps) 
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="spotifyPlaylistLink"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Link da Playlist do Spotify (Opcional)</FormLabel>
+        <div className="space-y-4 rounded-md border p-4">
+          <h4 className="font-medium">Música da Festa</h4>
+          <RadioGroup
+            value={playlistChoice}
+            onValueChange={(value: 'custom' | 'predefined') => setPlaylistChoice(value)}
+            className="space-y-2"
+          >
+            <FormItem className="flex items-center space-x-3 space-y-0">
               <FormControl>
-                <Input
-                  type="url"
-                  placeholder="https://open.spotify.com/playlist/..."
-                  {...field}
-                  className="focus:border-primary focus:ring-2 focus:ring-primary/30"
-                />
+                <RadioGroupItem value="custom" />
               </FormControl>
-              <FormMessage />
+              <FormLabel className="font-normal">Usar minha própria playlist do Spotify</FormLabel>
             </FormItem>
+            <FormItem className="flex items-center space-x-3 space-y-0">
+              <FormControl>
+                <RadioGroupItem value="predefined" />
+              </FormControl>
+              <FormLabel className="font-normal">
+                Escolher uma playlist pré-definida
+              </FormLabel>
+            </FormItem>
+          </RadioGroup>
+
+          {playlistChoice === 'custom' ? (
+            <FormField
+              control={form.control}
+              name="spotifyPlaylistLink"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Link da Playlist do Spotify</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="url"
+                      placeholder="https://open.spotify.com/playlist/..."
+                      {...field}
+                      className="focus:border-primary focus:ring-2 focus:ring-primary/30"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : (
+            <FormField
+              control={form.control}
+              name="spotifyPlaylistLink"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Playlists do Espaço Criar</FormLabel>
+                  <Select onValueChange={handlePlaylistSelect}>
+                    <FormControl>
+                      <SelectTrigger className="focus:border-primary focus:ring-2 focus:ring-primary/30">
+                        <SelectValue placeholder="Selecione uma playlist..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {playlists.map((playlist) => (
+                        <SelectItem key={playlist.id} value={playlist.link}>
+                          {playlist.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           )}
-        />
+        </div>
         <FormField
           control={form.control}
           name="partyObservations"

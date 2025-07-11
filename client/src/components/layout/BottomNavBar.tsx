@@ -1,4 +1,4 @@
-import { LayoutGrid, PlusCircle, User } from 'lucide-react'
+import { LayoutGrid, PlusCircle, User, Music2 } from 'lucide-react'
 
 import { BottomNavLink } from '@/components/layout/BottomNavLink'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -24,7 +24,7 @@ export function BottomNavBar() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border shadow-t-md z-50 lg:hidden">
       <TooltipProvider delayDuration={0}>
-        <div className={`grid h-full ${isStaff ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        <div className={`grid h-full ${isStaff ? 'grid-cols-4' : 'grid-cols-2'}`}>
           <BottomNavLink
             to={isStaff ? '/staff/dashboard' : '/organizer/dashboard'}
             icon={<LayoutGrid className="h-6 w-6" />}
@@ -32,11 +32,18 @@ export function BottomNavBar() {
           />
 
           {isStaff && (
-            <BottomNavLink
-              to="/staff/events/createEventDraft"
-              icon={<PlusCircle className="h-6 w-6" />}
-              label="Criar"
-            />
+            <>
+              <BottomNavLink
+                to="/staff/events/createEventDraft"
+                icon={<PlusCircle className="h-6 w-6" />}
+                label="Criar"
+              />
+              <BottomNavLink
+                to="/staff/playlists"
+                icon={<Music2 className="h-6 w-6" />}
+                label="Playlists"
+              />
+            </>
           )}
 
           <BottomNavLink to="/profile" icon={<User className="h-6 w-6" />} label="Perfil" />

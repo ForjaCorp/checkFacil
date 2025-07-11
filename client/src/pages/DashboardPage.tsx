@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 
 import { EventSection } from '@/components/events/EventSection'
 import { DashboardFilters } from '@/components/layout/DashboardFilters'
-import { PageHeader } from '@/components/layout/PageHeader';
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Input } from '@/components/ui/input'
 import {
   Pagination,
@@ -37,8 +37,6 @@ export default function DashboardPage() {
   >(null)
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
-
-  const userRole = user?.userType
 
   useEffect(() => {
     if (config) {

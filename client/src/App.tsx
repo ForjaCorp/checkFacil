@@ -18,6 +18,7 @@ const CompleteEventDetailsPage = lazy(() => import('@/pages/events/CompleteEvent
 const GuestManagementPage = lazy(() => import('@/pages/guests/GuestManagementPage'))
 const CheckinPage = lazy(() => import('@/pages/operations/CheckinPage'))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
+const PlaylistManagementPage = lazy(() => import('@/pages/staff/PlaylistManagementPage'))
 
 /**
  * Main App component.
@@ -54,7 +55,6 @@ function App() {
           <Route path="/organizer/choosePassword/:token" element={<SetPasswordPage />} />
           <Route path="/guest/flow-selection/:eventId" element={<FlowSelectionPage />} />
           <Route path="/guest/:eventId/confirm-adult" element={<ConfirmAdultPage />} />
-          {/* A rota agora aponta para o componente Coordenador */}
           <Route path="/guest/:eventId/confirm-responsible" element={<ConfirmChildrenFlowPage />} />
           <Route
             element={
@@ -66,6 +66,7 @@ function App() {
             <Route path="/staff/events/createEventDraft" element={<CreateDraftEventPage />} />
             <Route path="/staff/event/:eventId/details" element={<CompleteEventDetailsPage />} />
             <Route path="/staff/event/:eventId/checkin" element={<CheckinPage />} />
+            <Route path="/staff/playlists" element={<PlaylistManagementPage />} />
             <Route path="/organizer/dashboard" element={<DashboardPage />} />
             <Route
               path="/organizer/event/:eventId/details"

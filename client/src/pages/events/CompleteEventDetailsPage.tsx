@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
@@ -113,6 +113,14 @@ function CompleteEventDetailsPage() {
     fetchEventData()
   }, [eventId, form])
 
+  const { data: playlists = [] } = useQuery({
+    queryKey: ['playlists'],
+    queryFn: async () => {
+      const response = await api.get('/playlists')
+      return response.data
+    },
+  })
+
   const onSubmit: SubmitHandler<CompleteDetailsFormValues> = (values) => {
     const updatePayload: UpdateEventPayload = {
       horario_inicio: values.startTime || null,
@@ -167,7 +175,7 @@ function CompleteEventDetailsPage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <ContractedDetailsSection form={form} />
-              <PersonalizePartySection form={form} />
+              <PersonalizePartySection form={form} playlists={playlists} />
               <Button type="submit" className="w-full" disabled={isPending}>
                 {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {isPending

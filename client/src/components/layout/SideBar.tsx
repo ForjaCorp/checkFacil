@@ -1,4 +1,4 @@
-import { LayoutGrid, PlusCircle, LogOut } from 'lucide-react'
+import { LayoutGrid, PlusCircle, LogOut, Music2 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { SideBarLink } from '@/components/layout/SideBarLink' // Importando o novo componente
@@ -52,12 +52,20 @@ export function SideBar() {
               />
 
               {isStaff && (
-                <SideBarLink
-                  to="/staff/events/createEventDraft"
-                  icon={<PlusCircle className="h-5 w-5" />}
-                  label="Criar Festa"
-                  tooltip="Criar Nova Festa"
-                />
+                <>
+                  <SideBarLink
+                    to="/staff/events/createEventDraft"
+                    icon={<PlusCircle className="h-5 w-5" />}
+                    label="Criar Festa"
+                    tooltip="Criar Nova Festa"
+                  />
+                  <SideBarLink
+                    to="/staff/playlists"
+                    icon={<Music2 className="h-5 w-5" />}
+                    label="Playlists"
+                    tooltip="Gerenciar Playlists"
+                  />
+                </>
               )}
             </nav>
           </div>
