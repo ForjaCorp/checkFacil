@@ -42,6 +42,7 @@ Festa.init(
     horario_fim: { type: DataTypes.TIME, allowNull: true },
     local_festa: { type: DataTypes.STRING, allowNull: true },
     descricao: { type: DataTypes.TEXT, allowNull: true },
+
     pacote_escolhido: {
       type: DataTypes.ENUM(
         TIPOS_PACOTE_FESTA.KIDS,
@@ -52,6 +53,7 @@ Festa.init(
       ),
       allowNull: true
     },
+
     numero_adultos_contratado: { type: DataTypes.INTEGER, allowNull: true },
     numero_criancas_contratado: { type: DataTypes.INTEGER, allowNull: true },
     nome_aniversariante: { type: DataTypes.STRING, allowNull: true },
@@ -70,6 +72,7 @@ Festa.init(
       type: DataTypes.INTEGER,
       allowNull: false
     },
+
     status: {
       type: DataTypes.ENUM(
         'RASCUNHO',
@@ -82,13 +85,58 @@ Festa.init(
       allowNull: false,
       defaultValue: 'RASCUNHO'
     },
+
     link_convite: {
       type: DataTypes.STRING,
       allowNull: true
+    },
+
+    // ✅ Novos campos adicionados para perguntas 5 a 9:
+    decorador_nome: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    decorador_contato: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    tem_material_terceirizado: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false
+    },
+    material_terceirizado_contato: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    local_decoracao: {
+      type: DataTypes.ENUM('PLAY', 'CASINHAS'),
+      allowNull: true
+    },
+    buffet_nome: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    buffet_contato: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    bebidas_fornecedor_nome: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    bebidas_fornecedor_contato: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    fornecedor_extra_nome: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    fornecedor_extra_contato: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
-
-    
-
   },
   {
     sequelize,
