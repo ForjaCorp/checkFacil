@@ -49,8 +49,8 @@ export const formatPhoneNumber = (value: string): string => {
 export const brazilianPhoneSchema = z
   .string()
   .transform((value) => unformatPhoneNumber(value))
-  .refine((value) => value.length === 13, {
-    message: 'O telefone deve ter 13 dígitos (código do país + DDD + número).',
+  .refine((value) => value.length >= 13, {
+    message: 'O telefone parece incompleto. Verifique o DDD e o número.',
   })
   .refine((value) => value.startsWith('55'), {
     message: 'O número deve começar com o código do país 55.',
@@ -67,9 +67,9 @@ export const brazilianPhoneSchema = z
       return validDDDs.includes(ddd)
     },
     {
-      message: 'DDD inválido.',
+      message: 'O DDD informado é inválido.',
     },
   )
   .refine((value) => value.substring(4, 5) === '9', {
-    message: 'O número de celular deve conter o nono dígito.',
+    message: 'O número de celular deve ter o 9º dígito.',
   })

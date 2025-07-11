@@ -92,7 +92,7 @@ ConvidadoFesta.init(
         key: 'id'
       }
     },
-    cadastrado_na_hora:{
+    cadastrado_na_hora: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
       defaultValue: null
@@ -105,7 +105,6 @@ ConvidadoFesta.init(
     timestamps: true
   }
 );
-
 
 ConvidadoFesta.TIPOS_CONVIDADO = TIPOS_CONVIDADO;
 
