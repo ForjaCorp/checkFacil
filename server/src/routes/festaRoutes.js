@@ -79,4 +79,11 @@ router.patch(
   festaController.checkoutConvidado
 );
 
+router.post(
+  '/:idFesta/convite/upload',
+  verificarTokenJWT,
+  uploadConvite.single('arquivo'),
+  uploadImagemConvite
+);
+
 export default router;

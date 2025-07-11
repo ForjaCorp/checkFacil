@@ -39,5 +39,8 @@
     "prettier-plugin-tailwindcss": "^0.6.12",
     "turbo": "^2.5.4",
     "typescript": "~5.8.3"
+  },
+  "dependencies": {
+    "multer": "^2.0.1"
   }
 }
