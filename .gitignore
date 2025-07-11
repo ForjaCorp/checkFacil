@@ -1,5 +1,5 @@
 # ──────────────────────────────
-# ⚙️ IDEs e Arquivos do Sistema
+# ⚙️ IDEs, Editores e Arquivos do Sistema
 # ──────────────────────────────
 .vscode/*
 !.vscode/extensions.json
@@ -13,10 +13,9 @@
 Thumbs.db
 
 # ──────────────────────────────
-# 📦 Gerenciadores de Pacote
+# 📦 Gerenciadores de Pacote e Dependências
 # ──────────────────────────────
-
-# Yarn Berry (Plug'n'Play)
+# Regras específicas para Yarn Berry (Plug'n'Play)
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
@@ -27,30 +26,36 @@ Thumbs.db
 # Cache e estado do Yarn
 .yarn/cache
 .yarn/unplugged
-.yarn/build-state
+.yarn/build-state.yml
 .yarn/install-state.gz
 
-# Lockfiles de outros gerenciadores
+# Lockfiles de outros gerenciadores (para evitar confusão)
 package-lock.json
 npm-shrinkwrap.json
+pnpm-lock.yaml
 
-# Diretório de dependências
+# Diretório de dependências tradicional
 node_modules/
 
 # ──────────────────────────────
-# 🧪 Build, Testes e Coverage
+# 🛠️ Build, Testes e Bundlers
 # ──────────────────────────────
+# Saídas de build genéricas
 dist/
 build/
+out/
+
+# Ferramentas de Monorepo e Testes
 coverage/
 .turbo/
 
-# Cache de ferramentas específicas
+# Cache específico de ferramentas do frontend
 client/dist
 client/.vite
+*.local
 
 # ──────────────────────────────
-# 🐞 Logs e PIDs
+# 🐞 Logs e Arquivos de Processo
 # ──────────────────────────────
 logs
 *.log
@@ -65,6 +70,8 @@ pids
 *.pid.lock
 
 # ──────────────────────────────
-# 🔐 Variáveis de Ambiente
+# 🔐 Variáveis de Ambiente e Arquivos Sensíveis
 # ──────────────────────────────
 .env
+.env.local
+.env.*.local
