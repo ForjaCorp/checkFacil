@@ -207,9 +207,7 @@ export function PersonalizePartySection({ form, playlists }: PersonalizePartySec
               <FormControl>
                 <RadioGroupItem value="predefined" />
               </FormControl>
-              <FormLabel className="font-normal">
-                Escolher uma playlist pré-definida
-              </FormLabel>
+              <FormLabel className="font-normal">Escolher uma playlist pré-definida</FormLabel>
             </FormItem>
           </RadioGroup>
 

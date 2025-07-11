@@ -89,7 +89,7 @@ export function EventCard({ event, variant }: EventCardProps) {
                 className="flex items-center justify-center whitespace-nowrap"
               >
                 <FilePenLine className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:ml-2">Detalhes</span>
+                <span className="ml-2">Detalhes</span>
               </Link>
             </Button>
             <Button
@@ -103,16 +103,16 @@ export function EventCard({ event, variant }: EventCardProps) {
                 className="flex items-center justify-center whitespace-nowrap"
               >
                 <Users className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:ml-2">Convidados</span>
+                <span className="ml-2">Convidados</span>
               </Link>
             </Button>
-            <Button asChild size="sm" className="bg-green-600 text-white hover:bg-green-700">
+            <Button asChild size="sm" variant="success">
               <Link
                 to={`/staff/event/${event.id}/checkin`}
                 className="flex items-center justify-center whitespace-nowrap"
               >
                 <PlayCircle className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:ml-2">Check-in</span>
+                <span className="ml-2">Check-in</span>
               </Link>
             </Button>
           </>
@@ -129,7 +129,7 @@ export function EventCard({ event, variant }: EventCardProps) {
                 className="flex items-center justify-center whitespace-nowrap"
               >
                 <FilePenLine className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:ml-2">
+                <span className="ml-2">
                   {event.status === 'RASCUNHO' ? 'Completar' : 'Detalhes'}
                 </span>
               </Link>
@@ -140,7 +140,7 @@ export function EventCard({ event, variant }: EventCardProps) {
                 className="flex items-center justify-center whitespace-nowrap"
               >
                 <Users className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:ml-2">Convidados</span>
+                <span className="ml-2">Convidados</span>
               </Link>
             </Button>
           </>

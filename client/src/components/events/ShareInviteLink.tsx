@@ -69,7 +69,7 @@ export function ShareInviteLink({ eventId }: ShareInviteLinkProps) {
           </div>
         </div>
         <DialogFooter className="pt-4">
-          <Button asChild className="w-full bg-green-600 text-white hover:bg-green-700">
+          <Button asChild className="w-full" variant="success">
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
               <MessageCircle className="mr-2 h-4 w-4" />
               Compartilhar no WhatsApp
