@@ -45,7 +45,7 @@ function FilterControls({
 }: DashboardFiltersProps) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
         <Button
           variant={activeCategory === 'this_month' ? 'default' : 'outline'}
           size="sm"
@@ -69,7 +69,6 @@ function FilterControls({
         </Button>
       </div>
 
-      {/* Filtros Detalhados */}
       <Select value={statusFilter} onValueChange={setStatusFilter}>
         <SelectTrigger>
           <SelectValue placeholder="Status" />
@@ -134,8 +133,7 @@ function FilterControls({
 export function DashboardFilters(props: DashboardFiltersProps) {
   return (
     <>
-      {/* Layout para Mobile (dentro de um Sheet) */}
-      <div className="md:hidden">
+      <div className="lg:hidden">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" className="w-full">
@@ -157,8 +155,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         </Sheet>
       </div>
 
-      {/* Layout para Desktop */}
-      <div className="hidden md:flex flex-row justify-between items-center gap-4">
+      <div className="hidden lg:flex flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-2">
           <Button
             variant={props.activeCategory === 'this_month' ? 'default' : 'outline'}

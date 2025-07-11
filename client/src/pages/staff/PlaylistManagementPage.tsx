@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Music2, Pencil, PlusCircle, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { ActionButton } from '@/components/common/ActionButton'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { PlaylistForm } from '@/components/playlists/PlaylistForm'
 import {
   AlertDialog,
@@ -49,6 +50,7 @@ export default function PlaylistManagementPage() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [playlistToDelete, setPlaylistToDelete] = useState<Playlist | null>(null)
   const [playlistToEdit, setPlaylistToEdit] = useState<Playlist | null>(null)
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
     setTitle('Gerenciar Playlists')
@@ -106,28 +108,25 @@ export default function PlaylistManagementPage() {
     setIsFormOpen(true)
   }
 
-  const openEditDialog = (playlist: Playlist) => {
+  const openEditDialog = (playlist: Playlist, event: React.MouseEvent<HTMLButtonElement>) => {
+    triggerRef.current = event.currentTarget
     setPlaylistToEdit(playlist)
     setIsFormOpen(true)
   }
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="hidden text-3xl font-bold text-foreground lg:block">
-            Gerenciar Playlists
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Adicione, edite ou remova as playlists pré-definidas para as festas.
-          </p>
-        </div>
-        <Button onClick={openCreateDialog}>
+      <PageHeader
+        title="Gerenciar Playlists"
+        description="Adicione, edite ou remova as playlists pré-definidas para as festas."
+      />
+
+      <div className="w-full">
+        <Button className="w-full" onClick={openCreateDialog}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Playlist
         </Button>
-      </header>
-
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Playlists Disponíveis</CardTitle>
@@ -168,13 +167,17 @@ export default function PlaylistManagementPage() {
                         <ActionButton
                           icon={Pencil}
                           tooltip="Editar Playlist"
-                          onClick={() => openEditDialog(playlist)}
+                          onClick={(e) => openEditDialog(playlist, e)}
                         />
+
                         <ActionButton
                           icon={Trash2}
                           tooltip="Remover Playlist"
                           variant="destructive"
-                          onClick={() => setPlaylistToDelete(playlist)}
+                          onClick={(e) => {
+                            triggerRef.current = e.currentTarget
+                            setPlaylistToDelete(playlist)
+                          }}
                         />
                       </div>
                     </TableCell>
@@ -194,7 +197,15 @@ export default function PlaylistManagementPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      <Dialog
+        open={isFormOpen}
+        onOpenChange={(isOpen) => {
+          setIsFormOpen(isOpen)
+          if (!isOpen) {
+            triggerRef.current?.focus()
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -212,7 +223,15 @@ export default function PlaylistManagementPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!playlistToDelete} onOpenChange={() => setPlaylistToDelete(null)}>
+      <AlertDialog
+        open={!!playlistToDelete}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            triggerRef.current?.focus()
+          }
+          setPlaylistToDelete(isOpen ? playlistToDelete : null)
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>

@@ -10,7 +10,6 @@ const timeStringSchema = z
  * @file Contém os schemas de validação Zod para os formulários de Festa/Evento.
  */
 
-// Schema base para o rascunho da festa, usado pelo Staff.
 export const createDraftFormSchema = z.object({
   organizerName: z.string().min(1, 'Nome do contratante é obrigatório.'),
   organizerEmail: z
@@ -30,7 +29,6 @@ export const createDraftFormSchema = z.object({
   contractedAdults: z.coerce.number().int().positive({ message: 'Deve ser um número positivo.' }),
 })
 
-// Schema para a página de detalhes completos, que estende o rascunho.
 export const completeDetailsSchema = createDraftFormSchema.extend({
   description: z.string().optional().or(z.literal('')),
   birthdayPersonName: z.string().min(1, 'Nome do aniversariante é obrigatório.'),
@@ -51,6 +49,5 @@ export const completeDetailsSchema = createDraftFormSchema.extend({
   partyObservations: z.string().optional().or(z.literal('')),
 })
 
-// Tipos inferidos a partir dos schemas para uso nos componentes
 export type CreateDraftFormValues = z.infer<typeof createDraftFormSchema>
 export type CompleteDetailsFormValues = z.infer<typeof completeDetailsSchema>

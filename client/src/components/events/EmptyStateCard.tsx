@@ -1,5 +1,3 @@
-// client/src/components/events/EmptyStateCard.tsx
-
 import { Inbox } from 'lucide-react'
 
 import type { ReactNode } from 'react'

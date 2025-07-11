@@ -1,7 +1,7 @@
 import { LayoutGrid, PlusCircle, LogOut, Music2 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { SideBarLink } from '@/components/layout/SideBarLink' // Importando o novo componente
+import { SideBarLink } from '@/components/layout/SideBarLink'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -73,7 +73,7 @@ export function SideBar() {
           <div className="mt-auto p-4 border-t flex flex-col gap-4">
             <Link to="/profile" className="flex items-center gap-3 group">
               <Avatar className="h-9 w-9">
-                <AvatarImage src="" />
+                <AvatarImage src="" alt={`Avatar de ${user?.name}`} />
                 <AvatarFallback>{userInitials}</AvatarFallback>
               </Avatar>
               <div className="grid gap-0.5 text-xs">

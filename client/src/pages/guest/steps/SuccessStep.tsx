@@ -5,7 +5,6 @@ import { CheckCircle2 } from 'lucide-react'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-// Interface de dados permanece a mesma
 interface EventData {
   nome_festa: string
   data_festa: string
@@ -21,11 +20,9 @@ interface SuccessStepProps {
 export function SuccessStep({ event }: SuccessStepProps) {
   const enderecoEspacoCriar = 'R. Francisco Portugal, n° 703 - Grageru, Aracaju - SE, 49025-700'
 
-  // Formatando a data e hora para o formato que a biblioteca exige (YYYY-MM-DD)
   const startDate = event.data_festa
   const startTime = event.horario_inicio?.substring(0, 5) || '00:00'
-  const endTime = event.horario_fim?.substring(0, 5) || '04:00' // Define 4h de duração se não houver fim
-
+  const endTime = event.horario_fim?.substring(0, 5) || '04:00'
   const formattedDate = format(
     new Date(event.data_festa.replace(/-/g, '/')),
     "EEEE, dd 'de' MMMM",

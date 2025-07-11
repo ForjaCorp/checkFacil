@@ -1,5 +1,3 @@
-// client/src/components/layout/MobileHeader.tsx
-
 import { ChevronLeft } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 

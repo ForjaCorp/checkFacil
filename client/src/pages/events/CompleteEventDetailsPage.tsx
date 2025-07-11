@@ -26,7 +26,6 @@ function CompleteEventDetailsPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Poderíamos até tornar o título dinâmico com o nome da festa aqui
     setTitle('Detalhes da Festa')
     return () => setTitle(null)
   }, [setTitle])

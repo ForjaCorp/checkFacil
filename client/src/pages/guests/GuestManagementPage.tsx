@@ -81,13 +81,9 @@ function GuestManagementPage() {
   })
 
   useEffect(() => {
-    if (eventData) {
-      setTitle(`Convidados: ${eventData.nome_festa}`)
-    } else {
-      setTitle('Gerenciar Convidados')
-    }
+    setTitle('Gerenciar Convidados')
     return () => setTitle(null)
-  }, [eventData, setTitle])
+  }, [setTitle])
 
   const partyName = eventData?.nome_festa || ''
 
@@ -118,7 +114,29 @@ function GuestManagementPage() {
   })
 
   const { mutate: deleteGuest, isPending: isDeleting } = useMutation({
-    // ... (lógica de deleção permanece a mesma)
+    mutationFn: () => api.delete(`/festa/${eventId}/convidados/${guestToDelete?.id}`),
+
+    onMutate: async () => {
+      if (!guestToDelete) return
+      setGuestToDelete(null)
+      await queryClient.cancelQueries({ queryKey: ['guests', eventId] })
+      const previousGuests = queryClient.getQueryData<AppGuest[]>(['guests', eventId])
+
+      queryClient.setQueryData<AppGuest[]>(['guests', eventId], (old = []) =>
+        old.filter((guest) => guest.id !== guestToDelete.id),
+      )
+
+      return { previousGuests }
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousGuests) {
+        queryClient.setQueryData(['guests', eventId], context.previousGuests)
+      }
+      toast.error('Falha ao remover convidado.')
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['guests', eventId] })
+    },
   })
 
   function handleEditGuestSubmit(data: EditGuestFormValues) {
@@ -141,20 +159,12 @@ function GuestManagementPage() {
 
   return (
     <div className="container mx-auto p-4 md:p-6">
-      <header className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="hidden text-3xl font-bold text-foreground lg:block">
-            Gerenciar Convidados
-          </h1>
-          {partyName && <p className="text-lg text-muted-foreground">{partyName}</p>}
-        </div>
-        {eventId && <ShareInviteLink eventId={eventId} />}
-      </header>
-
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar Convidado</DialogTitle>
+            <DialogTitle>
+              <h3 className="text-lg font-semibold">Editar Convidado</h3>
+            </DialogTitle>
             <DialogDescription>
               Altere os dados abaixo e clique em &quot;Salvar Alterações&quot;.
             </DialogDescription>
@@ -176,8 +186,16 @@ function GuestManagementPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Convidados</CardTitle>
-          <CardDescription>Acompanhe, edite ou remova os convidados confirmados.</CardDescription>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <CardTitle>
+                <h2 className="text-xl font-bold">Lista de Convidados</h2>
+              </CardTitle>
+              <CardDescription className="mt-1">{partyName}</CardDescription>
+            </div>
+
+            {eventId && <ShareInviteLink eventId={eventId} />}
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (

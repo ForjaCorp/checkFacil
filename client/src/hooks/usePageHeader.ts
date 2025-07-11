@@ -1,4 +1,3 @@
-// client/src/hooks/usePageHeader.ts
 import { useContext } from 'react'
 
 import { PageHeaderContext } from '@/contexts/PageHeaderContext'

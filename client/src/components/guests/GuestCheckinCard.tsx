@@ -7,7 +7,6 @@ import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/comp
 import type { VariantProps } from 'class-variance-authority'
 
 type BadgeVariant = VariantProps<typeof badgeVariants>['variant']
-// Usaremos a mesma interface de convidado da página de check-in
 interface CheckinGuest {
   id: number
   name: string
@@ -48,7 +47,6 @@ export function GuestCheckinCard({
         return { text: 'Aguardando', variant: 'secondary' }
     }
   }
-
   const statusInfo = getStatusInfo()
 
   return (
@@ -66,7 +64,7 @@ export function GuestCheckinCard({
           </CardDescription>
         )}
       </CardHeader>
-      <CardFooter className="grid grid-cols-2 gap-2">
+      <CardFooter className="grid grid-cols-2 gap-2 pt-6 border-t-2 border-dashed">
         <Button
           variant="outline"
           onClick={() => onCheckin(guest.id)}
