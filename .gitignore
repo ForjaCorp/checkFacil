@@ -75,3 +75,6 @@ pids
 .env
 .env.local
 .env.*.local
+
+# Ignorar arquivos de upload do servidor
+/server/uploads

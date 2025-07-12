@@ -1282,6 +1282,7 @@ __metadata:
     express: "npm:^5.1.0"
     jsonwebtoken: "npm:^9.0.2"
     morgan: "npm:^1.10.0"
+    multer: "npm:^2.0.1"
     mysql2: "npm:^3.14.1"
     nodemon: "npm:^3.1.10"
     sequelize: "npm:^6.37.7"

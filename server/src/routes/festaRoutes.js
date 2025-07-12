@@ -1,6 +1,9 @@
 import express from 'express';
 import * as festaController from '../controllers/festaController.js';
 import { verificarTokenJWT } from '../middleware/validarReqAuth.js';
+import { uploadConvite } from '../middleware/uploadConvite.js';
+import { uploadImagemConvite } from '../controllers/festaController.js';
+
 
 const router = express.Router();
 
@@ -85,5 +88,6 @@ router.post(
   uploadConvite.single('arquivo'),
   uploadImagemConvite
 );
+
 
 export default router;
