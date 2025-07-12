@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { usePageHeader } from '@/hooks/usePageHeader'
 import { brazilianPhoneSchema } from '@/lib/phoneUtils'
 import { SuccessStep } from '@/pages/guest/steps/SuccessStep'
 import api from '@/services/api'
@@ -38,6 +39,7 @@ type AdultGuestFormValues = z.infer<typeof adultGuestSchema>
 
 export default function ConfirmAdultPage() {
   const { eventId } = useParams<{ eventId: string }>()
+  const { setTitle } = usePageHeader()
   const [isSuccess, setIsSuccess] = useState(false)
 
   const { data: eventData } = useQuery({
@@ -49,6 +51,13 @@ export default function ConfirmAdultPage() {
     },
     enabled: !!eventId,
   })
+
+  useEffect(() => {
+    if (eventData?.nome_festa) {
+      setTitle(`Festa de ${eventData.nome_festa}`)
+    }
+    return () => setTitle(null)
+  }, [eventData, setTitle])
 
   const form = useForm<AdultGuestFormValues>({
     resolver: zodResolver(adultGuestSchema),
@@ -86,7 +95,7 @@ export default function ConfirmAdultPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+    <div className="flex min-h-screen w-full items-center justify-center bg-muted/30 px-4 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-0">
       <Card className="w-full max-w-lg">
         <CardHeader>
           <CardTitle className="text-2xl">Confirmar Presença de Adulto(s)</CardTitle>
