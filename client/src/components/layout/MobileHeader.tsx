@@ -9,8 +9,12 @@ export function MobileHeader() {
   const { title } = usePageHeader()
   const location = useLocation()
 
-  const hideBackButtonOnRoutes = ['/staff/dashboard', '/organizer/dashboard']
-  const showBackButton = !hideBackButtonOnRoutes.includes(location.pathname)
+  const hideBackButtonOnRoutes = [
+    '/staff/dashboard',
+    '/organizer/dashboard',
+    '/guest/flow-selection',
+  ]
+  const showBackButton = !hideBackButtonOnRoutes.some((path) => location.pathname.startsWith(path))
 
   return (
     <header className="fixed top-0 left-0 right-0 h-16 bg-card border-b border-border shadow-sm z-50 lg:hidden flex items-center px-2 gap-2">

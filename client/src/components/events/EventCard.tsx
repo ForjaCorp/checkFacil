@@ -113,29 +113,28 @@ export function EventCard({ event, variant }: EventCardProps) {
         ) : (
           <>
             <div className="flex w-full gap-2">
-
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="flex-1 w-full sm:w-auto text-primary border-primary hover:bg-primary/5 hover:text-primary"
-            >
-              <Link
-                to={`/organizer/event/${event.id}/details`}
-                className="flex items-center justify-center"
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="flex-1 w-full sm:w-auto text-primary border-primary hover:bg-primary/5 hover:text-primary"
               >
-                <FilePenLine className="h-4 w-4" />
-                <span className="ml-2">
-                  {event.status === 'RASCUNHO' ? 'Completar' : 'Detalhes'}
-                </span>
-              </Link>
-            </Button>
-            <Button asChild size="sm" className="flex-1 w-full sm:w-auto">
-              <Link to={`/event/${event.id}/guests`} className="flex items-center justify-center">
-                <Users className="h-4 w-4" />
-                <span className="ml-2">Convidados</span>
-              </Link>
-            </Button>
+                <Link
+                  to={`/organizer/event/${event.id}/details`}
+                  className="flex items-center justify-center"
+                >
+                  <FilePenLine className="h-4 w-4" />
+                  <span className="ml-2">
+                    {event.status === 'RASCUNHO' ? 'Completar' : 'Detalhes'}
+                  </span>
+                </Link>
+              </Button>
+              <Button asChild size="sm" className="flex-1 w-full sm:w-auto">
+                <Link to={`/event/${event.id}/guests`} className="flex items-center justify-center">
+                  <Users className="h-4 w-4" />
+                  <span className="ml-2">Convidados</span>
+                </Link>
+              </Button>
             </div>
           </>
         )}
