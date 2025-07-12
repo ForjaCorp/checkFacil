@@ -123,8 +123,8 @@ export interface CreateEventPayload {
 
 // Tipo para o payload de atualização de evento
 export type UpdateEventPayload = {
-  horario_inicio: string | null
-  horario_fim: string | null
+  horario_inicio: string | null | undefined;
+  horario_fim: string | null | undefined;
   descricao?: string
   nome_aniversariante?: string
   idade_aniversariante?: number | null
