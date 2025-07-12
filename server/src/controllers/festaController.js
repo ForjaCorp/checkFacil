@@ -794,8 +794,15 @@ export async function buscarFestaPublicaPorId(req, res) {
     const { idFesta } = req.params;
 
     const festa = await models.Festa.findByPk(idFesta, {
-      // Adicione o horário de fim aqui
-      attributes: ['id', 'nome_festa', 'data_festa', 'status', 'horario_inicio', 'horario_fim']
+      attributes: [
+        'id',
+        'nome_festa',
+        'data_festa',
+        'status',
+        'horario_inicio',
+        'horario_fim',
+        'link_convite'
+      ]
     });
 
     if (!festa || festa.status === 'RASCUNHO' || festa.status === 'CANCELADA') {
@@ -832,5 +839,3 @@ export async function uploadImagemConvite(req, res) {
     return res.status(500).json({ error: 'Erro ao processar imagem do convite.' });
   }
 }
-
-

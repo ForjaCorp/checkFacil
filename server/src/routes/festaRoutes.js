@@ -4,7 +4,6 @@ import { verificarTokenJWT } from '../middleware/validarReqAuth.js';
 import { uploadConvite } from '../middleware/uploadConvite.js';
 import { uploadImagemConvite } from '../controllers/festaController.js';
 
-
 const router = express.Router();
 
 // Rota pública: Cadastro em grupo de convidados (sem token)
@@ -88,6 +87,5 @@ router.post(
   uploadConvite.single('arquivo'),
   uploadImagemConvite
 );
-
 
 export default router;
