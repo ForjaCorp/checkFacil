@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
 
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGuestConfirmationFlow } from '@/hooks/useGuestConfirmationFlow'
@@ -17,6 +17,8 @@ export type ChildNeedingCompanion = {
 }
 
 export default function ConfirmChildrenFlowPage() {
+  const navigate = useNavigate()
+
   const {
     currentStep,
     eventData,
@@ -25,7 +27,7 @@ export default function ConfirmChildrenFlowPage() {
     childrenNeedingCompanion,
     handleNextFromResponsible,
     handleNextFromChildren,
-    submitGuests,
+    handleGroupSubmit,
     setCurrentStep,
   } = useGuestConfirmationFlow()
 
@@ -44,6 +46,7 @@ export default function ConfirmChildrenFlowPage() {
         <ConfirmResponsibleStep
           onNext={handleNextFromResponsible}
           initialData={flowState.responsible}
+          onBack={() => navigate(-1)} 
         />
       )}
       {currentStep === 'CHILDREN' && (
@@ -55,7 +58,7 @@ export default function ConfirmChildrenFlowPage() {
       )}
       {currentStep === 'COMPANION' && (
         <CompanionStep
-          onFinalSubmit={(data) => submitGuests(data)}
+          onFinalSubmit={(data) => handleGroupSubmit(data, undefined)}
           onBack={() => setCurrentStep('CHILDREN')}
           childrenNeedingCompanion={childrenNeedingCompanion}
           isSubmitting={isPending}
@@ -64,18 +67,7 @@ export default function ConfirmChildrenFlowPage() {
       )}
       {currentStep === 'FINAL_CONFIRMATION' && (
         <FinalConfirmationStep
-          onSubmit={(isAttending) => {
-            const payload = {
-              responsible: flowState.responsible,
-              children: flowState.children,
-              isAttending,
-            }
-            if (payload.responsible && payload.children) {
-              submitGuests(payload)
-            } else {
-              toast.error('Erro: dados de confirmação de presença inválidos')
-            }
-          }}
+          onSubmit={(isAttending) => handleGroupSubmit(null, isAttending)}
           onBack={() => setCurrentStep('CHILDREN')}
           childrenData={flowState.children!}
           isSubmitting={isPending}
