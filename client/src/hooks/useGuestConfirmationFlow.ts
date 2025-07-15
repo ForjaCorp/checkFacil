@@ -3,9 +3,12 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { unformatPhoneNumber } from '@/lib/phoneUtils'
 import { type AddChildrenStepValues } from '@/pages/guest/steps/AddChildrenStep'
+import { type CompanionStepValues } from '@/pages/guest/steps/CompanionStep'
 import { type ResponsibleStepValues } from '@/pages/guest/steps/ConfirmResponsibleStep'
 import api from '@/services/api'
+
 
 type Step = 'RESPONSIBLE' | 'CHILDREN' | 'COMPANION' | 'FINAL_CONFIRMATION' | 'SUCCESS' | 'ERROR'
 
@@ -70,7 +73,7 @@ export function useGuestConfirmationFlow() {
     enabled: !!eventId,
   })
 
-  const { mutate: submitGuests, isPending } = useMutation({
+  const { mutate: submitGroup, isPending } = useMutation({
     mutationFn: (payload: object) => api.post(`/festa/${eventId}/register-guest-group`, payload),
     onSuccess: () => {
       toast.success('Presença confirmada com sucesso!')
@@ -82,6 +85,51 @@ export function useGuestConfirmationFlow() {
       setCurrentStep('ERROR')
     },
   })
+
+    const handleGroupSubmit = (
+    companionData: CompanionStepValues | null,
+    responsibleIsAttending?: boolean,
+  ) => {
+    const { responsible, children } = flowState;
+    if (!responsible || !children) {
+      toast.error('Erro: dados de confirmação de presença inválidos');
+      return;
+    }
+
+    const allGuests: object[] = children.map((child) => ({
+      nome_convidado: child.name,
+      tipo_convidado: 'CRIANCA_PAGANTE',
+      nascimento_convidado: new Date(child.dob!).toISOString().split('T')[0], 
+      e_crianca_atipica: child.isAtypical,
+      confirmou_presenca: 'SIM',
+    }));
+
+    if (companionData?.companionType === 'myself' || responsibleIsAttending) {
+      allGuests.push({
+        nome_convidado: responsible.responsibleName,
+        tipo_convidado: 'ADULTO_PAGANTE',
+        telefone_convidado: unformatPhoneNumber(responsible.responsiblePhone),
+        confirmou_presenca: 'SIM',
+      });
+    } else if (companionData?.companionType === 'other' && companionData.otherCompanionName) {
+      allGuests.push({
+        nome_convidado: companionData.otherCompanionName,
+        tipo_convidado: companionData.isNanny ? 'BABA' : 'ACOMPANHANTE_ATIPICO',
+        telefone_convidado: unformatPhoneNumber(companionData.otherCompanionPhone),
+        confirmou_presenca: 'SIM',
+      });
+    }
+
+    const payload = {
+      contatoResponsavel: {
+        nome: responsible.responsibleName,
+        telefone: unformatPhoneNumber(responsible.responsiblePhone),
+      },
+      convidados: allGuests,
+    };
+
+    submitGroup(payload);
+  }
 
   const handleNextFromResponsible = (data: ResponsibleStepValues) => {
     setFlowState({ responsible: data, children: null })
@@ -122,7 +170,7 @@ export function useGuestConfirmationFlow() {
     childrenNeedingCompanion,
     handleNextFromResponsible,
     handleNextFromChildren,
-    submitGuests,
+    handleGroupSubmit,
     setCurrentStep,
   }
 }
