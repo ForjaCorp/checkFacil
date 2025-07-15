@@ -37,6 +37,8 @@ import { usePageHeader } from '@/hooks/usePageHeader'
 import { type EditGuestFormValues } from '@/schemas/guestSchemas'
 import api from '@/services/api'
 
+import { NaHoraBadge } from './NaHoraBadge'
+
 import type { AppGuest } from '@/types'
 
 const getGuestTypeFriendlyName = (type: string) => {
@@ -207,20 +209,23 @@ function GuestManagementPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome do Convidado</TableHead>
-                  <TableHead className="hidden md:table-cell">Tipo</TableHead>
-                  <TableHead className="hidden sm:table-cell">Responsável</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="hidden md:table-cell">Responsável</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {guests.map((guest) => (
                   <TableRow key={guest.id}>
-                    <TableCell className="font-medium">{guest.nome_convidado}</TableCell>
-                    <TableCell className="hidden md:table-cell capitalize">
+                    <TableCell className="font-medium">
+                      {guest.nome_convidado}
+                      {guest.cadastrado_na_hora && <NaHoraBadge />}
+                    </TableCell>
+                    <TableCell className="capitalize">
                       {getGuestTypeFriendlyName(guest.tipo_convidado)}
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {guest.nome_responsavel || 'N/A'}
+                    <TableCell className="hidden md:table-cell">
+                      {guest.tipo_convidado.startsWith('CRIANCA') ? guest.nome_responsavel_contato || '' : ''}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
