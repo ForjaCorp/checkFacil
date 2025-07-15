@@ -311,31 +311,32 @@ export async function registrarGrupoConvidados(req, res) {
     const criancasSalvas = [];
 
     for (const convidado of convidados) {
-      if (!convidado.nome || !convidado.tipo_convidado) {
+      if (!convidado.nome_convidado || !convidado.tipo_convidado) { 
         await transaction.rollback();
         return res.status(400).json({
-          error: 'Cada convidado deve ter nome e tipo_convidado.'
+            error: 'Cada convidado deve ter nome_convidado e tipo_convidado.' // Mensagem atualizada
         });
-      }
+    }
 
-      // Cria o convidado
-      const novoConvidado = await models.ConvidadoFesta.create(
+    // 2. CORRIGIR OS CAMPOS NA CRIAÇÃO DO REGISTRO
+    const novoConvidado = await models.ConvidadoFesta.create(
         {
-          id_festa: idFesta,
-          nome_convidado: convidado.nome,
-          tipo_convidado: convidado.tipo_convidado,
-          nascimento_convidado: convidado.dataNascimento || null,
-          idade_convidado: convidado.dataNascimento
-            ? calcularIdade(convidado.dataNascimento)
-            : null,
-          e_crianca_atipica: convidado.isCriancaAtipica || false,
-          nome_responsavel_contato: contatoResponsavel.nome,
-          telefone_responsavel_contato: contatoResponsavel.telefone,
-          cadastrado_na_hora: convidado.cadastrado_na_hora || null,
-          acompanhado_por_id: convidado.acompanhado_por_id || null
+            id_festa: idFesta,
+            nome_convidado: convidado.nome_convidado,                
+            tipo_convidado: convidado.tipo_convidado,
+            nascimento_convidado: convidado.nascimento_convidado || null, 
+            idade_convidado: convidado.nascimento_convidado
+                ? calcularIdade(convidado.nascimento_convidado)
+                : null,
+            e_crianca_atipica: convidado.e_crianca_atipica || false,   
+            nome_responsavel_contato: contatoResponsavel.nome,
+            telefone_responsavel_contato: contatoResponsavel.telefone,
+            cadastrado_na_hora: convidado.cadastrado_na_hora || null,
+            acompanhado_por_id: convidado.acompanhado_por_id || null
         },
         { transaction }
-      );
+    );
+
 
       if (convidado.tipo_convidado.startsWith('CRIANCA') || convidado.e_crianca_atipica) {
         criancasSalvas.push(novoConvidado);
