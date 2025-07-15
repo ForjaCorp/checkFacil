@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowRight, Info, Loader2 } from 'lucide-react'
+import { ArrowRight, Loader2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
+import { StepHeader } from '@/components/common/StepHeader'
 import { PhoneInput } from '@/components/forms/PhoneInput'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
@@ -77,28 +78,21 @@ export function CompanionStep({
 
   return (
     <Card className="w-full max-w-lg">
-      <CardHeader>
-        <CardTitle>Acompanhante Obrigatório</CardTitle>
-        <CardDescription>
-          Para a segurança de{' '}
-          <span className="font-semibold text-primary">
-            {formatNameList(childrenNeedingCompanion.map((c) => c.name))}
-          </span>
-          , confirme quem irá acompanhá-las.
-        </CardDescription>
-      </CardHeader>
+<StepHeader
+        title="Acompanhante Obrigatório"
+        description="Para a segurança das crianças, confirme quem irá acompanhá-las."
+        onBack={onBack}
+      />
+      
       <CardContent>
-        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/50 dark:bg-blue-900/20">
-          <h4 className="flex items-center font-semibold text-blue-800 dark:text-blue-200">
-            <Info className="mr-2 h-5 w-5" /> Por que isso é necessário?
-          </h4>
-          <ul className="mt-2 list-disc pl-5 text-sm text-blue-700 dark:text-blue-300">
-            {childrenNeedingCompanion.map((child) => (
-              <li key={child.name}>
-                <span className="font-medium">{child.name}</span>: {child.reason}
-              </li>
-            ))}
-          </ul>
+<div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-900/50 dark:bg-blue-900/20">
+          <p>
+            É necessário um acompanhante para{' '}
+            <span className="font-semibold text-primary">
+              {formatNameList(childrenNeedingCompanion.map((c) => c.name))}
+            </span>
+            , pois são crianças atípicas ou menores de 6 anos.
+          </p>
         </div>
 
         <Form {...form}>

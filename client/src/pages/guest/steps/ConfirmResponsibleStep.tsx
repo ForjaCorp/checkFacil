@@ -3,9 +3,10 @@ import { ArrowRight, Loader2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
+import { StepHeader } from '@/components/common/StepHeader'
 import { PhoneInput } from '@/components/forms/PhoneInput'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -26,10 +27,11 @@ export type ResponsibleStepValues = z.infer<typeof responsibleStepSchema>
 
 interface ConfirmResponsibleStepProps {
   onNext: (data: ResponsibleStepValues) => void
-  initialData?: ResponsibleStepValues | null
+  initialData?: ResponsibleStepValues | null,
+  onBack: () => void
 }
 
-export function ConfirmResponsibleStep({ onNext, initialData }: ConfirmResponsibleStepProps) {
+export function ConfirmResponsibleStep({ onNext, initialData, onBack }: ConfirmResponsibleStepProps) {
   const form = useForm<ResponsibleStepValues>({
     resolver: zodResolver(responsibleStepSchema),
     defaultValues: initialData || { responsibleName: '', responsiblePhone: '' },
@@ -39,12 +41,11 @@ export function ConfirmResponsibleStep({ onNext, initialData }: ConfirmResponsib
 
   return (
     <Card className="w-full max-w-lg">
-      <CardHeader>
-        <CardTitle className="text-2xl">Contato do Responsável</CardTitle>
-        <CardDescription>
-          Para a segurança das crianças, precisamos de um contato de emergência.
-        </CardDescription>
-      </CardHeader>
+      <StepHeader
+        title="Contato do Responsável"
+        description="Para a segurança das crianças, precisamos de um contato de emergência."
+        onBack={onBack}
+      />
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onNext)} className="space-y-6">

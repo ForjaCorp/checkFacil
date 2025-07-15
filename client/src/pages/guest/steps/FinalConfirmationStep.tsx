@@ -1,10 +1,10 @@
 import { Loader2, PartyPopper } from 'lucide-react'
 import { useState } from 'react'
 
+import { StepHeader } from '@/components/common/StepHeader'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-
-import { type AddChildrenStepValues } from './AddChildrenStep'
+import { Card, CardContent } from '@/components/ui/card'
+import { type AddChildrenStepValues } from '@/pages/guest/steps/AddChildrenStep'
 
 interface FinalConfirmationStepProps {
   onSubmit: (isAttending: boolean) => void
@@ -35,14 +35,13 @@ export function FinalConfirmationStep({
 
   return (
     <Card className="w-full max-w-lg">
-      <CardHeader className="text-center">
-        <PartyPopper className="mx-auto h-12 w-12 text-primary" />
-        <CardTitle className="text-2xl">Quase lá!</CardTitle>
-        <CardDescription>
-          A presença de <span className="font-semibold">{childrenNames}</span> está pronta para ser
-          confirmada. Só mais uma pergunta:
-        </CardDescription>
-      </CardHeader>
+<StepHeader
+        title="Quase lá!"
+        description={`A presença de ${childrenNames} está pronta para ser confirmada. Só mais uma pergunta:`}
+        onBack={onBack}
+        // Passe o ícone com um tamanho menor para o alinhamento
+        icon={<PartyPopper className="h-8 w-8" />}
+      />
       <CardContent className="space-y-4">
         <p className="text-center font-semibold">Você (o responsável) também irá à festa?</p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

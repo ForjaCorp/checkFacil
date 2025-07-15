@@ -5,9 +5,10 @@ import { ArrowRight, CalendarIcon, Loader2, PlusCircle, Trash2 } from 'lucide-re
 import { useFieldArray, useForm } from 'react-hook-form'
 import * as z from 'zod'
 
+import { StepHeader } from '@/components/common/StepHeader'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
@@ -65,10 +66,11 @@ export function AddChildrenStep({ onNext, onBack, initialData }: AddChildrenStep
 
   return (
     <Card className="w-full max-w-2xl">
-      <CardHeader>
-        <CardTitle className="text-2xl">Adicionar Crianças</CardTitle>
-        <CardDescription>Informe os dados de cada criança que irá à festa.</CardDescription>
-      </CardHeader>
+      <StepHeader
+        title="Adicionar Crianças"
+        description="Informe os dados de cada criança que irá à festa."
+        onBack={onBack}
+      />
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onNext)} className="space-y-6">
