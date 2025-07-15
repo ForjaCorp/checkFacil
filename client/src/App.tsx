@@ -56,7 +56,7 @@ function App() {
           <Route path="/organizer/choosePassword/:token" element={<SetPasswordPage />} />
 
           <Route element={<PublicLayout />}>
-            <Route path="/guest/flow-selection/:eventId" element={<FlowSelectionPage />} />
+            <Route path="/guest/:eventId/flow-selection" element={<FlowSelectionPage />} />
             <Route path="/guest/:eventId/confirm-adult" element={<ConfirmAdultPage />} />
             <Route
               path="/guest/:eventId/confirm-responsible"

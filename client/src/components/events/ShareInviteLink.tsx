@@ -41,7 +41,7 @@ export function ShareInviteLink({ eventId }: ShareInviteLinkProps) {
     enabled: !!eventId,
   })
 
-  const inviteLink = `${window.location.origin}/guest/flow-selection/${eventId}`
+  const inviteLink = `${window.location.origin}/guest/${eventId}/flow-selection`
   const partyName = eventData?.nome_festa || 'nossa festa'
   const inviteImageURL = eventData?.link_convite
 
