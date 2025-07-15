@@ -22,7 +22,7 @@ export function BottomNavBar() {
   const isStaff = user?.userType === 'Adm_espaco'
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border shadow-t-md z-50 lg:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-primary border-t border-border shadow-t-md z-50 lg:hidden">
       <TooltipProvider delayDuration={0}>
         <div className={`grid h-full ${isStaff ? 'grid-cols-4' : 'grid-cols-2'}`}>
           <BottomNavLink
