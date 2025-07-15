@@ -50,7 +50,14 @@ export function EventCard({ event, variant }: EventCardProps) {
   const isStaff = variant === 'staff'
 
   return (
-    <Card className="flex flex-col transition-shadow duration-300 hover:shadow-lg">
+    <Card className="flex flex-col transition-shadow duration-300 hover:shadow-lg relative">
+      {/* Marca d'água da logo Espaço Criar */}
+      <img
+        src="/espacocriar-logo.png"
+        alt="Logo Espaço Criar"
+        className="absolute top-2 right-0 w-42 h-42 pointer-events-none select-none z-0"
+        style={{ objectFit: 'contain', opacity: 0.15 }}
+      />
       <CardHeader>
         <div className="flex justify-between items-start gap-2">
           <CardTitle className="text-lg font-bold">{event.name}</CardTitle>

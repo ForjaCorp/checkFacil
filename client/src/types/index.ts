@@ -92,6 +92,8 @@ export interface AppGuest {
   observacao_convidado?: string | null
   status: PresenceStatus
   isCheckedIn: boolean
+  cadastrado_na_hora?: boolean
+  nome_responsavel_contato?: string | null
 }
 
 // Tipo para as opções de query da dashboard

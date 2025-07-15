@@ -25,8 +25,8 @@ interface BottomNavLinkProps {
 
 export function BottomNavLink({ to, icon, label }: BottomNavLinkProps) {
   const baseClasses = 'flex flex-col items-center justify-center gap-1 w-full h-full'
-  const inactiveClasses = 'text-muted-foreground'
-  const activeClasses = 'text-primary'
+  const inactiveClasses = 'text-primary-foreground'
+  const activeClasses = 'text-yellow-300'
 
   return (
     <NavLink to={to}>

@@ -136,7 +136,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
       <div className="lg:hidden">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full bg-primary text-primary-foreground">
               <Filter className="mr-2 h-4 w-4" />
               Mais Filtros
             </Button>

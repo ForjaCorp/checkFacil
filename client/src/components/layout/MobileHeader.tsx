@@ -17,7 +17,7 @@ export function MobileHeader() {
   const showBackButton = !hideBackButtonOnRoutes.some((path) => location.pathname.startsWith(path))
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-card border-b border-border shadow-sm z-50 lg:hidden flex items-center px-2 gap-2">
+    <header className="fixed top-0 left-0 right-0 h-16 bg-primary text-primary-foreground border-b border-border shadow-sm z-50 lg:hidden flex items-center px-2 gap-2">
       <div className="flex-none w-10 h-10">
         {showBackButton && (
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Voltar">
