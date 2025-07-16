@@ -1,4 +1,4 @@
-export function NaHoraBadge() {
+export function ExtraBadge() {
   return (
     <span
       style={{
@@ -12,7 +12,7 @@ export function NaHoraBadge() {
         verticalAlign: 'middle',
       }}
     >
-      Na Hora
+      Extra
     </span>
-  );
+  )
 }

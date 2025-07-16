@@ -321,7 +321,7 @@ const CheckinPage = () => {
               </DialogTrigger>
               <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Cadastrar Convidado na Hora</DialogTitle>
+                  <DialogTitle>Cadastrar Convidado Extra</DialogTitle>
                   <DialogDescription>
                     Preencha os dados do responsável e dos convidados.
                   </DialogDescription>

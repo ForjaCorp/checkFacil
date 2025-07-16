@@ -47,6 +47,18 @@ export const completeDetailsSchema = createDraftFormSchema
       .optional()
       .or(z.literal('')),
     partyObservations: z.string().optional().or(z.literal('')),
+    // Campos de fornecedores
+    decoradorNome: z.string().optional().or(z.literal('')),
+    decoradorContato: z.string().optional().or(z.literal('')),
+    temMaterialTerceirizado: z.boolean().default(false),
+    materialTerceirizadoContato: z.string().optional().or(z.literal('')),
+    localDecoracao: z.enum(['PLAY', 'CASINHAS']).optional().or(z.literal('')),
+    buffetNome: z.string().optional().or(z.literal('')),
+    buffetContato: z.string().optional().or(z.literal('')),
+    bebidasFornecedorNome: z.string().optional().or(z.literal('')),
+    bebidasFornecedorContato: z.string().optional().or(z.literal('')),
+    fornecedorExtraNome: z.string().optional().or(z.literal('')),
+    fornecedorExtraContato: z.string().optional().or(z.literal('')),
   })
   .omit({
     organizerName: true,

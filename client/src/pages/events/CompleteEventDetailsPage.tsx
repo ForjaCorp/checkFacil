@@ -16,13 +16,18 @@ import { usePageHeader } from '@/hooks/usePageHeader'
 import { completeDetailsSchema, type CompleteDetailsFormValues } from '@/schemas/eventSchemas'
 import api from '@/services/api'
 
+import { FornecedorSection } from './FornecedorSection'
+
 import type { UpdateEventPayload } from '@/types'
 
-// CORREÇÃO: Tipo específico para os dados da API para evitar 'any'
+// Tipos para os enums para garantir a tipagem correta
 type PackageType = 'KIDS' | 'KIDS_MAIS_PARK' | 'PLAY' | 'PLAY_MAIS_PARK' | 'SUPER_FESTA_COMPLETA'
 type GuestPolicy = 'PERMITIR_ANOTAR' | 'CHAMAR_ANFITRIAO'
+type LocalDecoracaoType = 'PLAY' | 'CASINHAS'
 
+// Interface para os dados da API, garantindo que o `id` e outros campos existam
 interface ApiEventData {
+  id: number
   status: string
   organizador?: { nome: string; email: string; telefone: string }
   nome_festa: string
@@ -43,61 +48,68 @@ interface ApiEventData {
   link_playlist_spotify: string
   observacoes_festa: string
   link_convite?: string
+  // Fornecedores
+  decorador_nome?: string
+  decorador_contato?: string
+  tem_material_terceirizado?: boolean
+  material_terceirizado_contato?: string
+  local_decoracao?: LocalDecoracaoType
+  buffet_nome?: string
+  buffet_contato?: string
+  bebidas_fornecedor_nome?: string
+  bebidas_fornecedor_contato?: string
+  fornecedor_extra_nome?: string
+  fornecedor_extra_contato?: string
 }
 
-function CompleteEventDetailsPage() {
-  const { setTitle } = usePageHeader()
+interface Playlist {
+  id: number
+  nome: string
+  link: string
+}
+
+// ===================================================================
+// Componente de Formulário (responsável apenas por renderizar e interagir)
+// ===================================================================
+function EventForm({ eventData, playlists }: { eventData: ApiEventData; playlists: Playlist[] }) {
   const { eventId } = useParams<{ eventId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const {
-    data: eventData,
-    isLoading: isFetching,
-    isError: pageError,
-  } = useQuery<ApiEventData>({
-    queryKey: ['event', eventId],
-    queryFn: async () => {
-      if (!eventId) throw new Error('ID do evento não encontrado')
-      const response = await api.get(`/festa/${eventId}`)
-      return response.data
-    },
-    enabled: !!eventId,
-  })
-
   const form = useForm<CompleteDetailsFormValues>({
     resolver: zodResolver(completeDetailsSchema),
+    // Os valores default são populados aqui, garantindo que o form já comece "controlado"
+    defaultValues: {
+      partyName: eventData.nome_festa,
+      partyDate: new Date(eventData.data_festa.replace(/-/g, '/')),
+      packageType: eventData.pacote_escolhido,
+      contractedAdults: eventData.numero_adultos_contratado || 0,
+      contractedChildren: eventData.numero_criancas_contratado || 0,
+      startTime: eventData.horario_inicio ? eventData.horario_inicio.substring(0, 5) : null,
+      endTime: eventData.horario_fim ? eventData.horario_fim.substring(0, 5) : null,
+      birthdayPersonName: eventData.nome_aniversariante || '',
+      birthdayPersonAge: eventData.idade_aniversariante || undefined,
+      partyTheme: eventData.tema_festa || '',
+      description: eventData.descricao || '',
+      isDropOffParty: eventData.festa_deixa_e_pegue || false,
+      allowsImageUse: eventData.autoriza_uso_imagem || false,
+      clientInstagram: eventData.instagram_cliente || '',
+      guestNotInListPolicy: eventData.procedimento_convidado_fora_lista || undefined,
+      spotifyPlaylistLink: eventData.link_playlist_spotify || '',
+      partyObservations: eventData.observacoes_festa || '',
+      decoradorNome: eventData.decorador_nome || '',
+      decoradorContato: eventData.decorador_contato || '',
+      temMaterialTerceirizado: eventData.tem_material_terceirizado || false,
+      materialTerceirizadoContato: eventData.material_terceirizado_contato || '',
+      localDecoracao: eventData.local_decoracao || undefined,
+      buffetNome: eventData.buffet_nome || '',
+      buffetContato: eventData.buffet_contato || '',
+      bebidasFornecedorNome: eventData.bebidas_fornecedor_nome || '',
+      bebidasFornecedorContato: eventData.bebidas_fornecedor_contato || '',
+      fornecedorExtraNome: eventData.fornecedor_extra_nome || '',
+      fornecedorExtraContato: eventData.fornecedor_extra_contato || '',
+    },
   })
-
-  useEffect(() => {
-    if (eventData) {
-      const formValuesToSet = {
-        organizerName: eventData.organizador?.nome || '',
-        organizerEmail: eventData.organizador?.email || '',
-        organizerPhone: eventData.organizador?.telefone || '',
-        partyName: eventData.nome_festa,
-        partyDate: eventData.data_festa
-          ? new Date(eventData.data_festa.replace(/-/g, '/'))
-          : new Date(),
-        packageType: eventData.pacote_escolhido,
-        contractedAdults: eventData.numero_adultos_contratado || 0,
-        contractedChildren: eventData.numero_criancas_contratado || 0,
-        startTime: eventData.horario_inicio ? eventData.horario_inicio.substring(0, 5) : null,
-        endTime: eventData.horario_fim ? eventData.horario_fim.substring(0, 5) : null,
-        birthdayPersonName: eventData.nome_aniversariante || '',
-        birthdayPersonAge: eventData.idade_aniversariante || undefined,
-        partyTheme: eventData.tema_festa || '',
-        description: eventData.descricao || '',
-        isDropOffParty: eventData.festa_deixa_e_pegue || false,
-        allowsImageUse: eventData.autoriza_uso_imagem || false,
-        clientInstagram: eventData.instagram_cliente || '',
-        guestNotInListPolicy: eventData.procedimento_convidado_fora_lista || undefined,
-        spotifyPlaylistLink: eventData.link_playlist_spotify || '',
-        partyObservations: eventData.observacoes_festa || '',
-      }
-      form.reset(formValuesToSet)
-    }
-  }, [eventData, form])
 
   const { mutate: updateEvent, isPending: isSaving } = useMutation({
     mutationFn: (payload: UpdateEventPayload) => api.patch(`/festa/${eventId}`, payload),
@@ -126,16 +138,6 @@ function CompleteEventDetailsPage() {
     }
   }
 
-  useEffect(() => {
-    setTitle('Detalhes da Festa')
-    return () => setTitle(null)
-  }, [setTitle])
-
-  const { data: playlists = [] } = useQuery({
-    queryKey: ['playlists'],
-    queryFn: async () => (await api.get('/playlists')).data,
-  })
-
   const onSubmit: SubmitHandler<CompleteDetailsFormValues> = (values) => {
     const updatePayload: UpdateEventPayload = {
       descricao: values.description,
@@ -149,14 +151,134 @@ function CompleteEventDetailsPage() {
       link_playlist_spotify: values.spotifyPlaylistLink || null,
       observacoes_festa: values.partyObservations,
       status: 'PRONTA',
-      // CORREÇÃO: Garantindo que o valor seja `string | null`
       horario_inicio: values.startTime || null,
       horario_fim: values.endTime || null,
+      decorador_nome: values.decoradorNome || '',
+      decorador_contato: values.decoradorContato || '',
+      tem_material_terceirizado: values.temMaterialTerceirizado || false,
+      material_terceirizado_contato: values.materialTerceirizadoContato || '',
+      local_decoracao: values.localDecoracao || null,
+      buffet_nome: values.buffetNome || '',
+      buffet_contato: values.buffetContato || '',
+      bebidas_fornecedor_nome: values.bebidasFornecedorNome || '',
+      bebidas_fornecedor_contato: values.bebidasFornecedorContato || '',
+      fornecedor_extra_nome: values.fornecedorExtraNome || '',
+      fornecedor_extra_contato: values.fornecedorExtraContato || '',
     }
     updateEvent(updatePayload)
   }
 
-  if (isFetching) {
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="hidden text-2xl font-bold lg:block">
+              <h1>Complete os Detalhes da Sua Festa</h1>
+            </CardTitle>
+            <CardDescription>
+              Revise e preencha as informações abaixo para finalizar o agendamento.
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <ContractedDetailsSection form={form} />
+            <PersonalizePartySection form={form} playlists={playlists} />
+            <FornecedorSection form={form} />
+            <div className="space-y-4 rounded-md border p-4">
+              <h4 className="font-medium">Imagem do Convite</h4>
+              {eventData?.link_convite ? (
+                <div className="my-4">
+                  <p className="text-sm text-muted-foreground mb-2">Convite atual:</p>
+                  <img
+                    src={eventData.link_convite}
+                    alt="Convite da Festa"
+                    className="rounded-md max-h-60 w-auto"
+                  />
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground py-2">Nenhum convite enviado ainda.</p>
+              )}
+              <p className="text-sm text-muted-foreground">
+                {eventData?.link_convite
+                  ? 'Para alterar, envie uma nova imagem:'
+                  : 'Faça o upload da imagem que será compartilhada:'}
+              </p>
+              <Input
+                type="file"
+                accept="image/png, image/jpeg"
+                onChange={handleInviteImageUpload}
+                disabled={isUploading || isSaving}
+              />
+              {isUploading && (
+                <p className="text-sm text-primary flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Enviando imagem...
+                </p>
+              )}
+            </div>
+            <Button type="submit" className="w-full" disabled={isSaving || isUploading}>
+              {(isSaving || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSaving
+                ? 'Salvando...'
+                : isUploading
+                  ? 'Aguarde o upload...'
+                  : eventData?.status === 'RASCUNHO'
+                    ? 'Finalizar Agendamento e Salvar'
+                    : 'Salvar Alterações'}
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  )
+}
+
+// ===================================================================
+// Página Principal (responsável por buscar dados e controlar estados)
+// ===================================================================
+function CompleteEventDetailsPage() {
+  const { setTitle } = usePageHeader()
+  const { eventId } = useParams<{ eventId: string }>()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    setTitle('Detalhes da Festa')
+    return () => setTitle(null)
+  }, [setTitle])
+
+  const {
+    data: eventData,
+    isLoading: isFetchingEvent,
+    isError: isEventError,
+    error: eventError,
+  } = useQuery<ApiEventData>({
+    queryKey: ['event', eventId],
+    queryFn: async () => {
+      if (!eventId) throw new Error('ID do evento não encontrado')
+      const response = await api.get(`/festa/${eventId}`)
+      return response.data
+    },
+    enabled: !!eventId,
+  })
+
+  const {
+    data: playlists,
+    isLoading: isFetchingPlaylists,
+    isError: isPlaylistsError,
+    error: playlistsError,
+  } = useQuery<Playlist[]>({
+    queryKey: ['playlists'],
+    queryFn: async () => (await api.get('/playlists')).data,
+  })
+
+  const isLoading = isFetchingEvent || isFetchingPlaylists
+  const isError = isEventError || isPlaylistsError
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -164,7 +286,8 @@ function CompleteEventDetailsPage() {
     )
   }
 
-  if (pageError) {
+  if (isError || !eventData) {
+    console.error('Erro ao buscar dados:', eventError || playlistsError)
     return (
       <div className="text-center p-8">
         <p className="text-destructive">Não foi possível carregar os detalhes do evento.</p>
@@ -175,74 +298,10 @@ function CompleteEventDetailsPage() {
     )
   }
 
+  // Renderiza o formulário apenas quando TODOS os dados estiverem prontos.
   return (
     <div className="container mx-auto p-4 md:p-6 max-w-3xl">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="hidden text-2xl font-bold lg:block">
-                <h1>Complete os Detalhes da Sua Festa</h1>
-              </CardTitle>
-              <CardDescription>
-                Revise e preencha as informações abaixo para finalizar o agendamento.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <ContractedDetailsSection form={form} />
-              <PersonalizePartySection form={form} playlists={playlists} />
-              <div className="space-y-4 rounded-md border p-4">
-                <h4 className="font-medium">Imagem do Convite</h4>
-                {eventData?.link_convite ? (
-                  <div className="my-4">
-                    <p className="text-sm text-muted-foreground mb-2">Convite atual:</p>
-                    <img
-                      src={eventData.link_convite}
-                      alt="Convite da Festa"
-                      className="rounded-md max-h-60 w-auto"
-                    />
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground py-2">
-                    Nenhum convite enviado ainda.
-                  </p>
-                )}
-                <p className="text-sm text-muted-foreground">
-                  {eventData?.link_convite
-                    ? 'Para alterar, envie uma nova imagem:'
-                    : 'Faça o upload da imagem que será compartilhada:'}
-                </p>
-                <Input
-                  type="file"
-                  accept="image/png, image/jpeg"
-                  onChange={handleInviteImageUpload}
-                  disabled={isUploading || isSaving}
-                />
-                {isUploading && (
-                  <p className="text-sm text-primary flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Enviando imagem...
-                  </p>
-                )}
-              </div>
-              <Button type="submit" className="w-full" disabled={isSaving || isUploading}>
-                {(isSaving || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isSaving
-                  ? 'Salvando...'
-                  : isUploading
-                    ? 'Aguarde o upload...'
-                    : eventData?.status === 'RASCUNHO'
-                      ? 'Finalizar Agendamento e Salvar'
-                      : 'Salvar Alterações'}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+      <EventForm eventData={eventData} playlists={playlists || []} />
     </div>
   )
 }
