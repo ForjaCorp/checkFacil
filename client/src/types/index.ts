@@ -138,4 +138,16 @@ export type UpdateEventPayload = {
   link_playlist_spotify?: string | null
   observacoes_festa?: string
   status: string
+  // Fornecedores
+  decorador_nome?: string
+  decorador_contato?: string
+  tem_material_terceirizado?: boolean
+  material_terceirizado_contato?: string
+  local_decoracao?: 'PLAY' | 'CASINHAS' | null
+  buffet_nome?: string
+  buffet_contato?: string
+  bebidas_fornecedor_nome?: string
+  bebidas_fornecedor_contato?: string
+  fornecedor_extra_nome?: string
+  fornecedor_extra_contato?: string
 }
