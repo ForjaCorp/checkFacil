@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 
 import { ActionButton } from '@/components/common/ActionButton'
 import { ShareInviteLink } from '@/components/events/ShareInviteLink'
+import { ExtraBadge } from '@/components/guests/ExtraBadge'
 import { GuestForm } from '@/components/guests/GuestForm'
 import {
   AlertDialog,
@@ -36,8 +37,6 @@ import {
 import { usePageHeader } from '@/hooks/usePageHeader'
 import { type EditGuestFormValues } from '@/schemas/guestSchemas'
 import api from '@/services/api'
-
-import { NaHoraBadge } from './NaHoraBadge'
 
 import type { AppGuest } from '@/types'
 
@@ -219,13 +218,15 @@ function GuestManagementPage() {
                   <TableRow key={guest.id}>
                     <TableCell className="font-medium">
                       {guest.nome_convidado}
-                      {guest.cadastrado_na_hora && <NaHoraBadge />}
+                      {guest.cadastrado_na_hora && <ExtraBadge />}
                     </TableCell>
                     <TableCell className="capitalize">
                       {getGuestTypeFriendlyName(guest.tipo_convidado)}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      {guest.tipo_convidado.startsWith('CRIANCA') ? guest.nome_responsavel_contato || '' : ''}
+                      {guest.tipo_convidado.startsWith('CRIANCA')
+                        ? guest.nome_responsavel_contato || ''
+                        : ''}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

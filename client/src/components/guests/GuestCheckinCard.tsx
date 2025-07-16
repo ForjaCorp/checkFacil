@@ -1,5 +1,6 @@
 import { Loader2, UserCheck, UserX } from 'lucide-react'
 
+import { ExtraBadge } from '@/components/guests/ExtraBadge'
 import { badgeVariants, Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -60,7 +61,7 @@ export function GuestCheckinCard({
         </div>
         {guest.walkedIn && (
           <CardDescription>
-            <Badge variant="outline">Cadastrado na Hora</Badge>
+            <ExtraBadge />
           </CardDescription>
         )}
       </CardHeader>
