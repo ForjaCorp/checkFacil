@@ -266,15 +266,31 @@ function GuestManagementPage() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredGuests.map((guest) => (
-            <GuestCard
-              key={guest.id}
-              guest={guest}
-              onEdit={handleEditClick}
-              onDelete={handleDeleteClick}
-              isActionLoading={isDeleting}
-            />
-          ))}
+          {isLoading ? (
+            // Show skeleton loaders while loading
+            Array.from({ length: 8 }).map((_, index) => (
+              <GuestCard
+                key={`skeleton-${index}`}
+                guest={null}
+                onEdit={handleEditClick}
+                onDelete={handleDeleteClick}
+                isActionLoading={false}
+                isLoading={true}
+              />
+            ))
+          ) : (
+            // Show actual guest cards when data is loaded
+            filteredGuests.map((guest) => (
+              <GuestCard
+                key={guest.id}
+                guest={guest}
+                onEdit={handleEditClick}
+                onDelete={handleDeleteClick}
+                isActionLoading={isDeleting}
+                isLoading={false}
+              />
+            ))
+          )}
         </div>
       )}
 

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
-import { Clock, Calendar, Loader2, PlusCircle, Search } from 'lucide-react'
+import { Clock, Calendar, PlusCircle, Search } from 'lucide-react'
 import { useMemo, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -344,8 +344,17 @@ const CheckinPage = () => {
       <hr className="border-border" />
 
       {isLoading ? (
-        <div className="flex items-center justify-center h-48">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <GuestCheckinCard
+              key={`skeleton-${index}`}
+              guest={null}
+              isActionLoading={false}
+              onCheckin={() => {}}
+              onCheckout={() => {}}
+              isLoading={true}
+            />
+          ))}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -357,6 +366,7 @@ const CheckinPage = () => {
                 isActionLoading={isActionLoading === guest.id}
                 onCheckin={handleCheckin}
                 onCheckout={handleCheckout}
+                isLoading={false}
               />
             ))
           ) : (

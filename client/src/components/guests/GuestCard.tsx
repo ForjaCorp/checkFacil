@@ -2,6 +2,7 @@ import { Edit, Loader2, Trash2 } from 'lucide-react'
 
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { ExtraBadge } from '@/components/guests/ExtraBadge'
+import { GuestCardSkeleton } from '@/components/guests/skeletons/GuestCardSkeleton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,14 +11,24 @@ import { getGuestTypeBadgeVariant, getGuestTypeName } from '@/lib/guestTypes'
 import type { AppGuest } from '@/types/guest'
 
 interface GuestCardProps {
-  guest: AppGuest
+  guest: AppGuest | null
   onEdit: (guest: AppGuest) => void
   onDelete: (guest: AppGuest) => void
   isActionLoading?: boolean
+  isLoading?: boolean
 }
 
 // Inner component that might throw errors
-const GuestCardContent = ({ guest, onEdit, onDelete, isActionLoading = false }: GuestCardProps) => {
+const GuestCardContent = ({ 
+  guest, 
+  onEdit, 
+  onDelete, 
+  isActionLoading = false,
+  isLoading = false 
+}: GuestCardProps) => {
+  if (isLoading || !guest) {
+    return <GuestCardSkeleton />
+  }
   // This is where an error might occur, for example with invalid guest data
   const badgeVariant = getGuestTypeBadgeVariant(guest.tipo_convidado)
   const guestTypeName = getGuestTypeName(guest.tipo_convidado)

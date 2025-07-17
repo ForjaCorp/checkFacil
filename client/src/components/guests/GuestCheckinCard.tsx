@@ -1,6 +1,7 @@
 import { Loader2, UserCheck, UserX } from 'lucide-react'
 
 import { ExtraBadge } from '@/components/guests/ExtraBadge'
+import { GuestCheckinCardSkeleton } from '@/components/guests/skeletons/GuestCheckinCardSkeleton'
 import { badgeVariants, Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,10 +18,11 @@ export interface CheckinGuest {
 }
 
 interface GuestCheckinCardProps {
-  guest: CheckinGuest
+  guest: CheckinGuest | null
   isActionLoading: boolean
   onCheckin: (guestId: number) => void
   onCheckout: (guestId: number) => void
+  isLoading?: boolean
 }
 
 interface StatusInfo {
@@ -34,7 +36,11 @@ export function GuestCheckinCard({
   isActionLoading,
   onCheckin,
   onCheckout,
+  isLoading = false,
 }: GuestCheckinCardProps) {
+  if (isLoading || !guest) {
+    return <GuestCheckinCardSkeleton />
+  }
   const getStatusInfo = (): StatusInfo => {
     switch (guest.status) {
       case 'Presente':
