@@ -26,9 +26,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+// Hooks
 import { useDebounce } from '@/hooks/useDebounce'
 import { usePageHeader } from '@/hooks/usePageHeader'
+// Services
 import api from '@/services/api'
+
+// Types
+import type { GuestType } from '@/types'
 
 interface ApiGuestResponse {
   id: number
@@ -44,6 +49,7 @@ interface CheckinGuest {
   status: 'Aguardando' | 'Presente' | 'Saiu'
   walkedIn: boolean
   checkin_at: string | null
+  guestType: GuestType
 }
 
 const CheckinPage = () => {
@@ -78,7 +84,9 @@ const CheckinPage = () => {
     return () => setTitle(null)
   }, [eventData, setTitle])
 
-  const mapGuestData = (guestFromApi: ApiGuestResponse): CheckinGuest => {
+  const mapGuestData = (
+    guestFromApi: ApiGuestResponse & { tipo_convidado: GuestType },
+  ): CheckinGuest => {
     let status: CheckinGuest['status'] = 'Aguardando'
     if (guestFromApi.checkout_at) {
       status = 'Saiu'
@@ -91,6 +99,7 @@ const CheckinPage = () => {
       status,
       walkedIn: guestFromApi.cadastrado_na_hora || false,
       checkin_at: guestFromApi.checkin_at || null,
+      guestType: guestFromApi.tipo_convidado,
     }
   }
 
