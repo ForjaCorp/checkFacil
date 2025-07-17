@@ -3,13 +3,14 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
+import { StepHeader } from '@/components/common/StepHeader'
 import { PhoneInput } from '@/components/forms/PhoneInput'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -40,6 +41,7 @@ type AdultGuestFormValues = z.infer<typeof adultGuestSchema>
 export default function ConfirmAdultPage() {
   const { eventId } = useParams<{ eventId: string }>()
   const { setTitle } = usePageHeader()
+  const navigate = useNavigate()
   const [isSuccess, setIsSuccess] = useState(false)
 
   const { data: eventData } = useQuery({
@@ -97,12 +99,11 @@ export default function ConfirmAdultPage() {
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-muted/30 px-4 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-0">
       <Card className="w-full max-w-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl">Confirmar Presença de Adulto(s)</CardTitle>
-          <CardDescription>
-            Preencha seus dados. Se mais alguém for com você, adicione ao grupo.
-          </CardDescription>
-        </CardHeader>
+        <StepHeader
+          title="Confirmar Presença de Adulto(s)"
+          description="Preencha seus dados. Se mais alguém for com você, adicione ao grupo."
+          onBack={() => navigate(-1)}
+        />
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

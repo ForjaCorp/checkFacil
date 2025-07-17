@@ -25,8 +25,8 @@ export function StepHeader({
   icon, 
 }: StepHeaderProps) {  
   return (
-    <>
-      <CardHeader>
+    <div className="relative">
+      <CardHeader className="pb-4">
         <div className="flex items-start gap-4">
           {onBack && (
             <Button
@@ -49,7 +49,9 @@ export function StepHeader({
           </div>
         </div>
       </CardHeader>
-      <Separator className="mb-6" />
-    </>
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-border">
+        <Separator className="h-px" />
+      </div>
+    </div>
   )
 }
