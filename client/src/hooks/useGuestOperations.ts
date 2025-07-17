@@ -37,11 +37,20 @@ export function useGuestOperations(eventId: string) {
 
       return { previousGuests }
     },
+    onSuccess: () => {
+      toast.success('Convidado atualizado com sucesso!', {
+        position: 'top-center',
+        duration: 3000,
+      })
+    },
     onError: (_err, _variables, context) => {
       if (context?.previousGuests) {
         queryClient.setQueryData(queryKey, context.previousGuests)
       }
-      toast.error('Falha ao salvar alterações.')
+      toast.error('Falha ao salvar alterações. Tente novamente.', {
+        position: 'top-center',
+        duration: 3000,
+      })
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey })
@@ -54,18 +63,30 @@ export function useGuestOperations(eventId: string) {
     onMutate: async (guestId) => {
       await queryClient.cancelQueries({ queryKey })
       const previousGuests = queryClient.getQueryData<BaseGuest[]>(queryKey)
+      const guestToDelete = previousGuests?.find((guest) => guest.id === guestId)
 
       queryClient.setQueryData<BaseGuest[]>(queryKey, (old = []) =>
         old.filter((guest) => guest.id !== guestId),
       )
 
-      return { previousGuests }
+      return { previousGuests, guestToDelete }
     },
-    onError: (_err, _variables, context) => {
+    onSuccess: (_, __, context) => {
+      const guestName = context?.guestToDelete?.nome_convidado || 'O convidado'
+      toast.success(`${guestName} foi removido com sucesso!`, {
+        position: 'top-center',
+        duration: 3000,
+      })
+    },
+    onError: (_err, _, context) => {
       if (context?.previousGuests) {
         queryClient.setQueryData(queryKey, context.previousGuests)
       }
-      toast.error('Falha ao remover convidado.')
+      const guestName = context?.guestToDelete?.nome_convidado || 'O convidado'
+      toast.error(`Falha ao remover ${guestName.toLowerCase()}. Tente novamente.`, {
+        position: 'top-center',
+        duration: 3000,
+      })
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey })
