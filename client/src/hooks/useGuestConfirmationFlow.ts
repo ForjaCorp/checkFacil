@@ -55,11 +55,21 @@ export function useGuestConfirmationFlow() {
 
   const [currentStep, setCurrentStep] = useState<Step>(getInitialStep(flowState))
 
+  // Salva o estado no sessionStorage quando ele muda
   useEffect(() => {
     try {
       sessionStorage.setItem(GUEST_FLOW_SESSION_KEY, JSON.stringify(flowState))
     } catch (error) {
       console.error('Falha ao salvar o estado na sessão:', error)
+    }
+
+    // Limpa o estado quando o componente for desmontado
+    return () => {
+      try {
+        sessionStorage.removeItem(GUEST_FLOW_SESSION_KEY)
+      } catch (error) {
+        console.error('Falha ao limpar o estado da sessão:', error)
+      }
     }
   }, [flowState])
 
@@ -77,6 +87,8 @@ export function useGuestConfirmationFlow() {
     mutationFn: (payload: object) => api.post(`/festa/${eventId}/register-guest-group`, payload),
     onSuccess: () => {
       toast.success('Presença confirmada com sucesso!')
+      // Limpa o estado do fluxo atual
+      setFlowState({ responsible: null, children: null })
       sessionStorage.removeItem(GUEST_FLOW_SESSION_KEY)
       setCurrentStep('SUCCESS')
     },
@@ -162,6 +174,16 @@ export function useGuestConfirmationFlow() {
         reason: c.isAtypical ? 'Criança atípica' : 'Menor de 6 anos',
       })) || []
 
+  const resetFlow = () => {
+    setFlowState({ responsible: null, children: null })
+    try {
+      sessionStorage.removeItem(GUEST_FLOW_SESSION_KEY)
+    } catch (error) {
+      console.error('Falha ao limpar o estado da sessão:', error)
+    }
+    setCurrentStep('RESPONSIBLE')
+  }
+
   return {
     currentStep,
     eventData,
@@ -172,5 +194,6 @@ export function useGuestConfirmationFlow() {
     handleNextFromChildren,
     handleGroupSubmit,
     setCurrentStep,
+    resetFlow,
   }
 }

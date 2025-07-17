@@ -1,11 +1,10 @@
 import { User, Users } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { AddAdultsWalkinForm } from '@/components/guests/AddAdultsWalkinForm'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGuestConfirmationFlow } from '@/hooks/useGuestConfirmationFlow'
-import { unformatPhoneNumber } from '@/lib/phoneUtils'
-import { AddChildrenStep, type AddChildrenStepValues } from '@/pages/guest/steps/AddChildrenStep'
+import { AddChildrenStep } from '@/pages/guest/steps/AddChildrenStep'
 import { CompanionStep, type CompanionStepValues } from '@/pages/guest/steps/CompanionStep'
 import { ConfirmResponsibleStep } from '@/pages/guest/steps/ConfirmResponsibleStep'
 import { FinalConfirmationStep } from '@/pages/guest/steps/FinalConfirmationStep'
@@ -49,7 +48,7 @@ function ChoiceCard({
   )
 }
 
-function GroupWithChildrenFlow({ onSuccess }: { onSuccess: () => void }) {
+function GroupWithChildrenFlow({ onSuccess: _onSuccess }: { onSuccess: () => void }) {
   const {
     currentStep,
     flowState,
@@ -57,50 +56,37 @@ function GroupWithChildrenFlow({ onSuccess }: { onSuccess: () => void }) {
     childrenNeedingCompanion,
     handleNextFromResponsible,
     handleNextFromChildren,
-    submitGuests,
+    handleGroupSubmit,
     setCurrentStep,
+    resetFlow,
   } = useGuestConfirmationFlow()
 
+  useEffect(() => {
+    return () => {
+      resetFlow()
+    }
+  }, [resetFlow])
+
   const handleFamilySubmit = (
-    companionData: CompanionStepValues | null,
+    companionStepData: CompanionStepValues | null,
     responsibleIsAttending?: boolean,
   ) => {
     const { responsible, children } = flowState
     if (!responsible || !children) return
 
-    const allGuests: object[] = children.map((child: AddChildrenStepValues['children'][0]) => ({
-      nome: child.name,
-      tipo_convidado: 'CRIANCA_PAGANTE',
-      dataNascimento: child.dob!.toISOString().split('T')[0],
-      isCriancaAtipica: child.isAtypical,
-      cadastrado_na_hora: true,
-    }))
+    // Se não houver dados do acompanhante e o responsável não estiver comparecendo, não faz nada
+    if (!companionStepData && !responsibleIsAttending) return
 
-    if (companionData?.companionType === 'myself' || responsibleIsAttending) {
-      allGuests.push({
-        nome: responsible.responsibleName,
-        tipo_convidado: 'ADULTO_PAGANTE',
-        telefone: unformatPhoneNumber(responsible.responsiblePhone),
-        cadastrado_na_hora: true,
-      })
-    } else if (companionData?.companionType === 'other' && companionData.otherCompanionName) {
-      allGuests.push({
-        nome: companionData.otherCompanionName,
-        tipo_convidado: companionData.isNanny ? 'BABA' : 'ACOMPANHANTE_ATIPICO',
-        telefone: unformatPhoneNumber(companionData.otherCompanionPhone),
-        cadastrado_na_hora: true,
-      })
+    // Prepara os dados do acompanhante para envio
+    const companionData: CompanionStepValues = {
+      companionType: responsibleIsAttending ? 'myself' : (companionStepData?.companionType || 'other'),
+      isNanny: companionStepData?.isNanny || false,
+      otherCompanionName: companionStepData?.otherCompanionName || '',
+      otherCompanionPhone: companionStepData?.otherCompanionPhone || '',
     }
 
-    const payload = {
-      contatoResponsavel: {
-        nome: responsible.responsibleName,
-        telefone: unformatPhoneNumber(responsible.responsiblePhone),
-      },
-      convidados: allGuests,
-    }
-
-    submitGuests(payload, { onSuccess })
+    // Envia os dados para o hook de confirmação
+    handleGroupSubmit(companionData, responsibleIsAttending)
   }
 
   switch (currentStep) {
@@ -108,6 +94,7 @@ function GroupWithChildrenFlow({ onSuccess }: { onSuccess: () => void }) {
       return (
         <ConfirmResponsibleStep
           onNext={handleNextFromResponsible}
+          onBack={() => {}}
           initialData={flowState.responsible}
         />
       )
@@ -150,7 +137,12 @@ function GroupWithChildrenFlow({ onSuccess }: { onSuccess: () => void }) {
         </Card>
       )
     default:
-      return <ConfirmResponsibleStep onNext={handleNextFromResponsible} />
+return (
+        <ConfirmResponsibleStep 
+          onNext={handleNextFromResponsible} 
+          onBack={() => {}}
+        />
+      )
   }
 }
 

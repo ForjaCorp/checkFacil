@@ -25,7 +25,7 @@ const responsibleStepSchema = z.object({
 
 export type ResponsibleStepValues = z.infer<typeof responsibleStepSchema>
 
-interface ConfirmResponsibleStepProps {
+export interface ConfirmResponsibleStepProps {
   onNext: (data: ResponsibleStepValues) => void
   initialData?: ResponsibleStepValues | null,
   onBack: () => void
