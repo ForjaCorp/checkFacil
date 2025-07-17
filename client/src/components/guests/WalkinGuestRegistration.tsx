@@ -1,5 +1,5 @@
 import { User, Users } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { AddAdultsWalkinForm } from '@/components/guests/AddAdultsWalkinForm'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -48,7 +48,15 @@ function ChoiceCard({
   )
 }
 
-function GroupWithChildrenFlow({ onSuccess: _onSuccess }: { onSuccess: () => void }) {
+interface GroupWithChildrenFlowProps {
+  onSuccess: () => void
+  onBack: () => void
+}
+
+function GroupWithChildrenFlow({ onSuccess: _onSuccess, onBack }: GroupWithChildrenFlowProps) {
+  const onSuccessRef = useRef(_onSuccess)
+  onSuccessRef.current = _onSuccess
+  
   const {
     currentStep,
     flowState,
@@ -58,14 +66,14 @@ function GroupWithChildrenFlow({ onSuccess: _onSuccess }: { onSuccess: () => voi
     handleNextFromChildren,
     handleGroupSubmit,
     setCurrentStep,
-    resetFlow,
   } = useGuestConfirmationFlow()
 
+  // Efeito para chamar onSuccess quando o fluxo for concluído com sucesso
   useEffect(() => {
-    return () => {
-      resetFlow()
+    if (currentStep === 'SUCCESS') {
+      onSuccessRef.current()
     }
-  }, [resetFlow])
+  }, [currentStep])
 
   const handleFamilySubmit = (
     companionStepData: CompanionStepValues | null,
@@ -94,7 +102,7 @@ function GroupWithChildrenFlow({ onSuccess: _onSuccess }: { onSuccess: () => voi
       return (
         <ConfirmResponsibleStep
           onNext={handleNextFromResponsible}
-          onBack={() => {}}
+          onBack={onBack}
           initialData={flowState.responsible}
         />
       )
@@ -137,10 +145,11 @@ function GroupWithChildrenFlow({ onSuccess: _onSuccess }: { onSuccess: () => voi
         </Card>
       )
     default:
-return (
+      return (
         <ConfirmResponsibleStep 
           onNext={handleNextFromResponsible} 
-          onBack={() => {}}
+          onBack={onBack}
+          initialData={flowState.responsible}
         />
       )
   }
@@ -148,25 +157,47 @@ return (
 
 export function WalkinGuestRegistration({ onSuccess }: WalkinGuestRegistrationProps) {
   const [flowType, setFlowType] = useState<'selection' | 'adults' | 'family'>('selection')
+  
+  // Adiciona efeito para lidar com a tecla Escape globalmente
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setFlowType('selection')
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
 
   if (flowType === 'adults') {
-    return <AddAdultsWalkinForm onSuccess={onSuccess} />
+    return <AddAdultsWalkinForm onSuccess={onSuccess} onBack={() => setFlowType('selection')} />
   }
 
   if (flowType === 'family') {
-    return <GroupWithChildrenFlow onSuccess={onSuccess} />
+    return <GroupWithChildrenFlow onSuccess={onSuccess} onBack={() => setFlowType('selection')} />
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+    <div 
+      className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4" 
+      role="region"
+      aria-label="Opções de cadastro de convidados"
+    >
       <ChoiceCard
-        onClick={() => setFlowType('adults')}
+        onClick={() => {
+          setFlowType('adults')
+        }}
         icon={<User className="size-6" />}
         title="Adicionar Adulto(s)"
         description="Para um ou mais convidados que não são responsáveis por crianças."
       />
       <ChoiceCard
-        onClick={() => setFlowType('family')}
+        onClick={() => {
+          setFlowType('family')
+        }}
         icon={<Users className="size-6" />}
         title="Adicionar Grupo com Criança(s)"
         description="Para um ou mais convidados onde pelo menos um é criança."

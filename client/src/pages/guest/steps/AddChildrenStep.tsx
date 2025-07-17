@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { ArrowRight, CalendarIcon, Loader2, PlusCircle, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import * as z from 'zod'
 
@@ -62,7 +63,19 @@ export function AddChildrenStep({ onNext, onBack, initialData }: AddChildrenStep
     name: 'children',
   })
 
-  const isPending = form.formState.isSubmitting
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const isPending = form.formState.isSubmitting || isSubmitting
+
+  const onSubmit = async (data: AddChildrenStepValues) => {
+    try {
+      setIsSubmitting(true)
+      await onNext(data)
+    } catch (error) {
+      console.error('Erro ao processar o formulário:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <Card className="w-full max-w-2xl">
@@ -73,7 +86,7 @@ export function AddChildrenStep({ onNext, onBack, initialData }: AddChildrenStep
       />
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onNext)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
               {fields.map((field, index) => (
                 <div key={field.id} className="rounded-md border p-4 space-y-4 relative">
@@ -170,10 +183,7 @@ export function AddChildrenStep({ onNext, onBack, initialData }: AddChildrenStep
               Adicionar outra criança
             </Button>
 
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-3">
-              <Button type="button" variant="ghost" onClick={onBack}>
-                Voltar
-              </Button>
+            <div className="flex justify-end pt-4">
               <Button type="submit" disabled={isPending}>
                 {isPending ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
