@@ -1,11 +1,10 @@
 import { User, Users } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { AddAdultsWalkinForm } from '@/components/guests/AddAdultsWalkinForm'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useGuestConfirmationFlow } from '@/hooks/useGuestConfirmationFlow'
-import { unformatPhoneNumber } from '@/lib/phoneUtils'
-import { AddChildrenStep, type AddChildrenStepValues } from '@/pages/guest/steps/AddChildrenStep'
+import { AddChildrenStep } from '@/pages/guest/steps/AddChildrenStep'
 import { CompanionStep, type CompanionStepValues } from '@/pages/guest/steps/CompanionStep'
 import { ConfirmResponsibleStep } from '@/pages/guest/steps/ConfirmResponsibleStep'
 import { FinalConfirmationStep } from '@/pages/guest/steps/FinalConfirmationStep'
@@ -49,7 +48,15 @@ function ChoiceCard({
   )
 }
 
-function GroupWithChildrenFlow({ onSuccess }: { onSuccess: () => void }) {
+interface GroupWithChildrenFlowProps {
+  onSuccess: () => void
+  onBack: () => void
+}
+
+function GroupWithChildrenFlow({ onSuccess: _onSuccess, onBack }: GroupWithChildrenFlowProps) {
+  const onSuccessRef = useRef(_onSuccess)
+  onSuccessRef.current = _onSuccess
+  
   const {
     currentStep,
     flowState,
@@ -57,50 +64,37 @@ function GroupWithChildrenFlow({ onSuccess }: { onSuccess: () => void }) {
     childrenNeedingCompanion,
     handleNextFromResponsible,
     handleNextFromChildren,
-    submitGuests,
+    handleGroupSubmit,
     setCurrentStep,
   } = useGuestConfirmationFlow()
 
+  // Efeito para chamar onSuccess quando o fluxo for concluído com sucesso
+  useEffect(() => {
+    if (currentStep === 'SUCCESS') {
+      onSuccessRef.current()
+    }
+  }, [currentStep])
+
   const handleFamilySubmit = (
-    companionData: CompanionStepValues | null,
+    companionStepData: CompanionStepValues | null,
     responsibleIsAttending?: boolean,
   ) => {
     const { responsible, children } = flowState
     if (!responsible || !children) return
 
-    const allGuests: object[] = children.map((child: AddChildrenStepValues['children'][0]) => ({
-      nome: child.name,
-      tipo_convidado: 'CRIANCA_PAGANTE',
-      dataNascimento: child.dob!.toISOString().split('T')[0],
-      isCriancaAtipica: child.isAtypical,
-      cadastrado_na_hora: true,
-    }))
+    // Se não houver dados do acompanhante e o responsável não estiver comparecendo, não faz nada
+    if (!companionStepData && !responsibleIsAttending) return
 
-    if (companionData?.companionType === 'myself' || responsibleIsAttending) {
-      allGuests.push({
-        nome: responsible.responsibleName,
-        tipo_convidado: 'ADULTO_PAGANTE',
-        telefone: unformatPhoneNumber(responsible.responsiblePhone),
-        cadastrado_na_hora: true,
-      })
-    } else if (companionData?.companionType === 'other' && companionData.otherCompanionName) {
-      allGuests.push({
-        nome: companionData.otherCompanionName,
-        tipo_convidado: companionData.isNanny ? 'BABA' : 'ACOMPANHANTE_ATIPICO',
-        telefone: unformatPhoneNumber(companionData.otherCompanionPhone),
-        cadastrado_na_hora: true,
-      })
+    // Prepara os dados do acompanhante para envio
+    const companionData: CompanionStepValues = {
+      companionType: responsibleIsAttending ? 'myself' : (companionStepData?.companionType || 'other'),
+      isNanny: companionStepData?.isNanny || false,
+      otherCompanionName: companionStepData?.otherCompanionName || '',
+      otherCompanionPhone: companionStepData?.otherCompanionPhone || '',
     }
 
-    const payload = {
-      contatoResponsavel: {
-        nome: responsible.responsibleName,
-        telefone: unformatPhoneNumber(responsible.responsiblePhone),
-      },
-      convidados: allGuests,
-    }
-
-    submitGuests(payload, { onSuccess })
+    // Envia os dados para o hook de confirmação
+    handleGroupSubmit(companionData, responsibleIsAttending)
   }
 
   switch (currentStep) {
@@ -108,6 +102,7 @@ function GroupWithChildrenFlow({ onSuccess }: { onSuccess: () => void }) {
       return (
         <ConfirmResponsibleStep
           onNext={handleNextFromResponsible}
+          onBack={onBack}
           initialData={flowState.responsible}
         />
       )
@@ -150,31 +145,59 @@ function GroupWithChildrenFlow({ onSuccess }: { onSuccess: () => void }) {
         </Card>
       )
     default:
-      return <ConfirmResponsibleStep onNext={handleNextFromResponsible} />
+      return (
+        <ConfirmResponsibleStep 
+          onNext={handleNextFromResponsible} 
+          onBack={onBack}
+          initialData={flowState.responsible}
+        />
+      )
   }
 }
 
 export function WalkinGuestRegistration({ onSuccess }: WalkinGuestRegistrationProps) {
   const [flowType, setFlowType] = useState<'selection' | 'adults' | 'family'>('selection')
+  
+  // Adiciona efeito para lidar com a tecla Escape globalmente
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setFlowType('selection')
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
 
   if (flowType === 'adults') {
-    return <AddAdultsWalkinForm onSuccess={onSuccess} />
+    return <AddAdultsWalkinForm onSuccess={onSuccess} onBack={() => setFlowType('selection')} />
   }
 
   if (flowType === 'family') {
-    return <GroupWithChildrenFlow onSuccess={onSuccess} />
+    return <GroupWithChildrenFlow onSuccess={onSuccess} onBack={() => setFlowType('selection')} />
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+    <div 
+      className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4" 
+      role="region"
+      aria-label="Opções de cadastro de convidados"
+    >
       <ChoiceCard
-        onClick={() => setFlowType('adults')}
+        onClick={() => {
+          setFlowType('adults')
+        }}
         icon={<User className="size-6" />}
         title="Adicionar Adulto(s)"
         description="Para um ou mais convidados que não são responsáveis por crianças."
       />
       <ChoiceCard
-        onClick={() => setFlowType('family')}
+        onClick={() => {
+          setFlowType('family')
+        }}
         icon={<Users className="size-6" />}
         title="Adicionar Grupo com Criança(s)"
         description="Para um ou mais convidados onde pelo menos um é criança."

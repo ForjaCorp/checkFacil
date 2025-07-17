@@ -25,7 +25,7 @@ const responsibleStepSchema = z.object({
 
 export type ResponsibleStepValues = z.infer<typeof responsibleStepSchema>
 
-interface ConfirmResponsibleStepProps {
+export interface ConfirmResponsibleStepProps {
   onNext: (data: ResponsibleStepValues) => void
   initialData?: ResponsibleStepValues | null,
   onBack: () => void
@@ -35,12 +35,13 @@ export function ConfirmResponsibleStep({ onNext, initialData, onBack }: ConfirmR
   const form = useForm<ResponsibleStepValues>({
     resolver: zodResolver(responsibleStepSchema),
     defaultValues: initialData || { responsibleName: '', responsiblePhone: '' },
+    mode: 'onChange', // Validação em cada mudança
   })
 
   const isPending = form.formState.isSubmitting
 
   return (
-    <Card className="w-full max-w-lg">
+    <Card className="w-full max-w-lg mx-auto">
       <StepHeader
         title="Contato do Responsável"
         description="Para a segurança das crianças, precisamos de um contato de emergência."
@@ -48,7 +49,12 @@ export function ConfirmResponsibleStep({ onNext, initialData, onBack }: ConfirmR
       />
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onNext)} className="space-y-6">
+          <form 
+            onSubmit={form.handleSubmit((data) => {
+              onNext(data);
+            })}
+            className="space-y-6"
+          >
             <FormField
               control={form.control}
               name="responsibleName"

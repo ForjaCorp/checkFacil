@@ -50,7 +50,7 @@ export function EventCard({ event, variant }: EventCardProps) {
   const isStaff = variant === 'staff'
 
   return (
-    <Card className="flex flex-col transition-shadow duration-300 hover:shadow-lg relative">
+    <Card className="flex flex-col relative">
       {/* Marca d'água da logo Espaço Criar */}
       <img
         src="/espacocriar-logo.png"

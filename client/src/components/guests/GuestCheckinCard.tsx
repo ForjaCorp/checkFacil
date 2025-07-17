@@ -1,25 +1,28 @@
 import { Loader2, UserCheck, UserX } from 'lucide-react'
 
 import { ExtraBadge } from '@/components/guests/ExtraBadge'
+import { GuestCheckinCardSkeleton } from '@/components/guests/skeletons/GuestCheckinCardSkeleton'
 import { badgeVariants, Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
 import type { VariantProps } from 'class-variance-authority'
 
 type BadgeVariant = VariantProps<typeof badgeVariants>['variant']
-interface CheckinGuest {
+export interface CheckinGuest {
   id: number
   name: string
   status: 'Aguardando' | 'Presente' | 'Saiu'
   walkedIn: boolean
+  guestType: string // Mantido para compatibilidade, mas não está mais sendo usado
 }
 
 interface GuestCheckinCardProps {
-  guest: CheckinGuest
+  guest: CheckinGuest | null
   isActionLoading: boolean
   onCheckin: (guestId: number) => void
   onCheckout: (guestId: number) => void
+  isLoading?: boolean
 }
 
 interface StatusInfo {
@@ -33,7 +36,11 @@ export function GuestCheckinCard({
   isActionLoading,
   onCheckin,
   onCheckout,
+  isLoading = false,
 }: GuestCheckinCardProps) {
+  if (isLoading || !guest) {
+    return <GuestCheckinCardSkeleton />
+  }
   const getStatusInfo = (): StatusInfo => {
     switch (guest.status) {
       case 'Presente':
@@ -59,11 +66,9 @@ export function GuestCheckinCard({
             {statusInfo.text}
           </Badge>
         </div>
-        {guest.walkedIn && (
-          <CardDescription>
-            <ExtraBadge />
-          </CardDescription>
-        )}
+        <div className="flex flex-wrap items-center gap-2 mt-2">
+          {guest.walkedIn && <ExtraBadge />}
+        </div>
       </CardHeader>
       <CardFooter className="grid grid-cols-2 gap-2 pt-6 border-t-2 border-dashed">
         <Button

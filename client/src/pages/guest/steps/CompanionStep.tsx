@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowRight, Loader2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
@@ -77,15 +76,15 @@ export function CompanionStep({
   const watchedCompanionType = form.watch('companionType')
 
   return (
-    <Card className="w-full max-w-lg">
-<StepHeader
+    <Card className="w-full max-w-lg mx-auto">
+      <StepHeader
         title="Acompanhante Obrigatório"
         description="Para a segurança das crianças, confirme quem irá acompanhá-las."
         onBack={onBack}
       />
       
       <CardContent>
-<div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-900/50 dark:bg-blue-900/20">
+        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-900/50 dark:bg-blue-900/20">
           <p>
             É necessário um acompanhante para{' '}
             <span className="font-semibold text-primary">
@@ -202,17 +201,10 @@ export function CompanionStep({
                 </FormItem>
               )}
             />
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-3">
-              <Button type="button" variant="ghost" onClick={onBack}>
-                Voltar
-              </Button>
+
+            <div className="flex justify-end pt-4">
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  'Finalizar Confirmação'
-                )}
-                <ArrowRight className="ml-2 h-4 w-4" />
+                {isSubmitting ? 'Salvando...' : 'Confirmar'}
               </Button>
             </div>
           </form>
