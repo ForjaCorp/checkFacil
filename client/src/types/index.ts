@@ -143,7 +143,7 @@ export type UpdateEventPayload = {
   decorador_contato?: string
   tem_material_terceirizado?: boolean
   material_terceirizado_contato?: string
-  local_decoracao?: 'PLAY' | 'CASINHAS' | null
+  local_decoracao?: 'PLAY' | 'CASINHAS' | 'ENTRE_CASINHAS' | 'KIDS' | 'SALAO_DE_FESTAS' | null
   buffet_nome?: string
   buffet_contato?: string
   bebidas_fornecedor_nome?: string

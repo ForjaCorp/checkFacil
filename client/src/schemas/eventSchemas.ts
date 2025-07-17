@@ -6,6 +6,8 @@ const timeStringSchema = z
   .string()
   .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Formato de hora inválido (HH:MM).')
   .min(1, 'Horário é obrigatório')
+  .or(z.literal(''))
+  .transform(val => val || undefined)
 
 export const createDraftFormSchema = z.object({
   organizerName: z.string().min(1, 'Nome do contratante é obrigatório.'),
