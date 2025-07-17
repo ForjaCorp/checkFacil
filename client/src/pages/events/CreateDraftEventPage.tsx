@@ -56,8 +56,8 @@ function CreateDraftEventPage() {
       organizerPhone: '',
       partyName: '',
       partyDate: new Date(),
-      startTime: '14:00',
-      endTime: '18:00',
+      startTime: '14:00', // Valor padrão obrigatório
+      endTime: '17:00',   // Valor padrão obrigatório
       packageType: 'KIDS',
       contractedChildren: 0,
       contractedAdults: 0,

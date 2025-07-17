@@ -23,7 +23,7 @@ import type { UpdateEventPayload } from '@/types'
 // Tipos para os enums para garantir a tipagem correta
 type PackageType = 'KIDS' | 'KIDS_MAIS_PARK' | 'PLAY' | 'PLAY_MAIS_PARK' | 'SUPER_FESTA_COMPLETA'
 type GuestPolicy = 'PERMITIR_ANOTAR' | 'CHAMAR_ANFITRIAO'
-type LocalDecoracaoType = 'PLAY' | 'CASINHAS'
+type LocalDecoracaoType = 'PLAY' | 'CASINHAS' | 'ENTRE_CASINHAS' | 'KIDS' | 'SALAO_DE_FESTAS'
 
 // Interface para os dados da API, garantindo que o `id` e outros campos existam
 interface ApiEventData {
@@ -85,8 +85,8 @@ function EventForm({ eventData, playlists }: { eventData: ApiEventData; playlist
       packageType: eventData.pacote_escolhido,
       contractedAdults: eventData.numero_adultos_contratado || 0,
       contractedChildren: eventData.numero_criancas_contratado || 0,
-      startTime: eventData.horario_inicio ? eventData.horario_inicio.substring(0, 5) : null,
-      endTime: eventData.horario_fim ? eventData.horario_fim.substring(0, 5) : null,
+      startTime: eventData.horario_inicio ? eventData.horario_inicio.substring(0, 5) : '',
+      endTime: eventData.horario_fim ? eventData.horario_fim.substring(0, 5) : '',
       birthdayPersonName: eventData.nome_aniversariante || '',
       birthdayPersonAge: eventData.idade_aniversariante || undefined,
       partyTheme: eventData.tema_festa || '',
