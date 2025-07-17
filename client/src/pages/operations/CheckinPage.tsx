@@ -1,9 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Clock, Calendar, PlusCircle, Search } from 'lucide-react'
-import { useMemo, useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { GuestCheckinCard } from '@/components/guests/GuestCheckinCard'
 import { WalkinGuestRegistration } from '@/components/guests/WalkinGuestRegistration'
@@ -27,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 // Hooks
+import { useCheckinOperations } from '@/hooks/useCheckinOperations'
 import { useDebounce } from '@/hooks/useDebounce'
 import { usePageHeader } from '@/hooks/usePageHeader'
 // Services
@@ -55,15 +54,17 @@ interface CheckinGuest {
 const CheckinPage = () => {
   const queryClient = useQueryClient()
   const { eventId } = useParams<{ eventId: string }>()
-  const [isActionLoading, setIsActionLoading] = useState<number | null>(null)
-  const [isWalkinDialogOpen, setIsWalkinDialogOpen] = useState(false)
-
   const [searchTerm, setSearchTerm] = useState('')
-  const debouncedSearchTerm = useDebounce(searchTerm, 300)
+  const [isWalkinDialogOpen, setIsWalkinDialogOpen] = useState(false)
+  
   type SortOrder = 'status' | 'checkin_time_desc' | 'name_asc'
   const [sortOrder, setSortOrder] = useState<SortOrder>('status')
-  type StatusFilter = 'all' | 'Aguardando' | 'Presente'
+  
+  type StatusFilter = 'all' | 'Aguardando' | 'Presente' | 'Saiu'
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  
+  const { handleCheckin, handleCheckout, isCheckinLoading, isCheckoutLoading } = useCheckinOperations(eventId!)
+  const debouncedSearchTerm = useDebounce(searchTerm, 300)
   const queryKey = ['guests', eventId, debouncedSearchTerm]
 
   const { setTitle } = usePageHeader()
@@ -162,79 +163,7 @@ const CheckinPage = () => {
   const guestsPresentCount = useMemo(() => {
     return sortedGuests.filter((guest) => guest.status === 'Presente').length
   }, [sortedGuests])
-
-  const { mutate: handleCheckin } = useMutation({
-    mutationFn: (guestId: number) => api.patch(`/festa/${eventId}/convidados/${guestId}/checkin`),
-    onMutate: async (guestId: number) => {
-      setIsActionLoading(guestId)
-      await queryClient.cancelQueries({ queryKey })
-      const previousGuests = queryClient.getQueryData<CheckinGuest[]>(queryKey)
-      queryClient.setQueryData<CheckinGuest[]>(queryKey, (oldGuests = []) =>
-        oldGuests.map((guest) =>
-          guest.id === guestId
-            ? { ...guest, status: 'Presente', checkin_at: new Date().toISOString() }
-            : guest,
-        ),
-      )
-      return { previousGuests }
-    },
-    onError: (_error, _guestId, context) => {
-      if (context?.previousGuests) {
-        queryClient.setQueryData(queryKey, context.previousGuests)
-      }
-
-      let errorMessage = 'Não foi possível fazer o check-in. Tente novamente.'
-      if (axios.isAxiosError(_error) && _error.response?.data?.error) {
-        errorMessage = _error.response.data.error
-      } else if (_error instanceof Error) {
-        errorMessage = _error.message
-      }
-
-      toast.error('Falha no Check-in', {
-        description: errorMessage,
-      })
-    },
-
-    onSettled: () => {
-      setIsActionLoading(null)
-      queryClient.invalidateQueries({ queryKey })
-    },
-  })
-
-  const { mutate: handleCheckout } = useMutation({
-    mutationFn: (guestId: number) => api.patch(`/festa/${eventId}/convidados/${guestId}/checkout`),
-    onMutate: async (guestId: number) => {
-      setIsActionLoading(guestId)
-      await queryClient.cancelQueries({ queryKey })
-      const previousGuests = queryClient.getQueryData<CheckinGuest[]>(queryKey)
-      queryClient.setQueryData<CheckinGuest[]>(queryKey, (oldGuests = []) =>
-        oldGuests.map((guest) => (guest.id === guestId ? { ...guest, status: 'Saiu' } : guest)),
-      )
-      return { previousGuests }
-    },
-    onError: (_error, _guestId, context) => {
-      if (context?.previousGuests) {
-        queryClient.setQueryData(queryKey, context.previousGuests)
-      }
-
-      let errorMessage = 'Não foi possível fazer o check-out. Tente novamente.'
-      if (axios.isAxiosError(_error) && _error.response?.data?.error) {
-        errorMessage = _error.response.data.error
-      } else if (_error instanceof Error) {
-        errorMessage = _error.message
-      }
-
-      toast.error('Falha no Check-out', {
-        description: errorMessage,
-      })
-    },
-
-    onSettled: () => {
-      setIsActionLoading(null)
-      queryClient.invalidateQueries({ queryKey })
-    },
-  })
-
+  
   const handleWalkinSuccess = () => {
     setIsWalkinDialogOpen(false)
     queryClient.invalidateQueries({ queryKey })
@@ -349,10 +278,9 @@ const CheckinPage = () => {
             <GuestCheckinCard
               key={`skeleton-${index}`}
               guest={null}
-              isActionLoading={false}
               onCheckin={() => {}}
               onCheckout={() => {}}
-              isLoading={true}
+              isActionLoading={false}
             />
           ))}
         </div>
@@ -363,10 +291,9 @@ const CheckinPage = () => {
               <GuestCheckinCard
                 key={guest.id}
                 guest={guest}
-                isActionLoading={isActionLoading === guest.id}
                 onCheckin={handleCheckin}
                 onCheckout={handleCheckout}
-                isLoading={false}
+                isActionLoading={isCheckinLoading === guest.id || isCheckoutLoading === guest.id}
               />
             ))
           ) : (
