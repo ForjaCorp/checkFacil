@@ -1,5 +1,6 @@
 import { Edit, Loader2, Trash2 } from 'lucide-react'
 
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { ExtraBadge } from '@/components/guests/ExtraBadge'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -15,14 +16,19 @@ interface GuestCardProps {
   isActionLoading?: boolean
 }
 
-export function GuestCard({ guest, onEdit, onDelete, isActionLoading = false }: GuestCardProps) {
+// Inner component that might throw errors
+const GuestCardContent = ({ guest, onEdit, onDelete, isActionLoading = false }: GuestCardProps) => {
+  // This is where an error might occur, for example with invalid guest data
+  const badgeVariant = getGuestTypeBadgeVariant(guest.tipo_convidado)
+  const guestTypeName = getGuestTypeName(guest.tipo_convidado)
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start gap-2">
           <CardTitle className="text-lg">{guest.nome_convidado}</CardTitle>
-          <Badge variant={getGuestTypeBadgeVariant(guest.tipo_convidado)}>
-            {getGuestTypeName(guest.tipo_convidado)}
+          <Badge variant={badgeVariant}>
+            {guestTypeName}
           </Badge>
         </div>
         {guest.cadastrado_na_hora && (
@@ -69,5 +75,13 @@ export function GuestCard({ guest, onEdit, onDelete, isActionLoading = false }: 
         </div>
       </CardFooter>
     </Card>
+  )
+}
+
+export function GuestCard(props: GuestCardProps) {
+  return (
+    <ErrorBoundary>
+      <GuestCardContent {...props} />
+    </ErrorBoundary>
   )
 }
