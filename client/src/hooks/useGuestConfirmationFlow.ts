@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -98,7 +98,7 @@ export function useGuestConfirmationFlow() {
     },
   })
 
-    const handleGroupSubmit = (
+    const handleGroupSubmit = useCallback((
     companionData: CompanionStepValues | null,
     responsibleIsAttending?: boolean,
   ) => {
@@ -141,25 +141,45 @@ export function useGuestConfirmationFlow() {
     };
 
     submitGroup(payload);
-  }
+  }, [flowState, submitGroup])
 
-  const handleNextFromResponsible = (data: ResponsibleStepValues) => {
-    setFlowState({ responsible: data, children: null })
+  const handleNextFromResponsible = useCallback((data: ResponsibleStepValues) => {
+    setFlowState(prev => ({
+      ...prev,
+      responsible: data
+    }))
     setCurrentStep('CHILDREN')
-  }
+  }, [])
 
-  const handleNextFromChildren = (data: AddChildrenStepValues) => {
+  const handleNextFromChildren = useCallback((data: AddChildrenStepValues) => {
     if (!eventData?.data_festa) {
       toast.error('Não foi possível carregar a data da festa. Tente novamente.')
-      return
+      return false
     }
 
-    setFlowState((prev) => ({ ...prev, children: data.children }))
+    // Garante que temos dados válidos
+    if (!data.children || data.children.length === 0) {
+      toast.error('Adicione pelo menos uma criança para continuar.')
+      return false
+    }
+
+    // Atualiza o estado com as crianças
+    setFlowState((prev) => ({
+      ...prev,
+      children: data.children
+    }))
+
+    // Verifica se alguma criança precisa de acompanhante
     const needsCompanion = data.children.some(
-      (child) => child.isAtypical || calculateAgeOnEventDate(child.dob!, eventData.data_festa) < 6,
+      (child) => child.dob && (child.isAtypical || calculateAgeOnEventDate(child.dob, eventData.data_festa) < 6),
     )
-    setCurrentStep(needsCompanion ? 'COMPANION' : 'FINAL_CONFIRMATION')
-  }
+
+    // Avança para o próximo passo
+    const nextStep = needsCompanion ? 'COMPANION' : 'FINAL_CONFIRMATION'
+    setCurrentStep(nextStep)
+    
+    return true
+  }, [eventData])
 
   const childrenNeedingCompanion =
     flowState.children
@@ -174,7 +194,7 @@ export function useGuestConfirmationFlow() {
         reason: c.isAtypical ? 'Criança atípica' : 'Menor de 6 anos',
       })) || []
 
-  const resetFlow = () => {
+  const resetFlow = useCallback(() => {
     setFlowState({ responsible: null, children: null })
     try {
       sessionStorage.removeItem(GUEST_FLOW_SESSION_KEY)
@@ -182,7 +202,7 @@ export function useGuestConfirmationFlow() {
       console.error('Falha ao limpar o estado da sessão:', error)
     }
     setCurrentStep('RESPONSIBLE')
-  }
+  }, [])
 
   return {
     currentStep,
