@@ -1,4 +1,4 @@
-import { Edit, Trash2 } from 'lucide-react'
+import { Edit, Loader2, Trash2 } from 'lucide-react'
 
 import { ExtraBadge } from '@/components/guests/ExtraBadge'
 import { Badge } from '@/components/ui/badge'
@@ -6,28 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { getGuestTypeBadgeVariant, getGuestTypeName } from '@/lib/guestTypes'
 
+import type { AppGuest } from '@/types/guest'
+
 interface GuestCardProps {
-  guest: {
-    id: number
-    nome_convidado: string
-    tipo_convidado: string
-    e_crianca_atipica?: boolean
-    status?: string
-    isCheckedIn?: boolean
-    cadastrado_na_hora?: boolean
-  }
-  onEdit: (guest: {
-    id: number
-    nome_convidado: string
-    tipo_convidado: string
-    e_crianca_atipica?: boolean
-  }) => void
-  onDelete: (guest: {
-    id: number
-    nome_convidado: string
-    tipo_convidado: string
-    e_crianca_atipica?: boolean
-  }) => void
+  guest: AppGuest
+  onEdit: (guest: AppGuest) => void
+  onDelete: (guest: AppGuest) => void
   isActionLoading?: boolean
 }
 
@@ -51,15 +35,20 @@ export function GuestCard({ guest, onEdit, onDelete, isActionLoading = false }: 
         {/* Additional guest information can go here */}
       </CardContent>
       <CardFooter className="border-t-2 border-dashed pt-4">
-        <div className="flex w-full gap-2">
+        <div className="flex w-full gap-2" role="group" aria-label="Ações do convidado">
           <Button
             variant="outline"
             size="sm"
             className="flex-1"
             onClick={() => onEdit(guest)}
             disabled={isActionLoading}
+            aria-label={`Editar ${guest.nome_convidado}`}
           >
-            <Edit className="mr-2 h-4 w-4" />
+            {isActionLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Edit className="mr-2 h-4 w-4" />
+            )}
             Editar
           </Button>
           <Button
@@ -68,8 +57,13 @@ export function GuestCard({ guest, onEdit, onDelete, isActionLoading = false }: 
             className="text-destructive hover:text-destructive"
             onClick={() => onDelete(guest)}
             disabled={isActionLoading}
+            aria-label={`Remover ${guest.nome_convidado}`}
           >
-            <Trash2 className="mr-2 h-4 w-4" />
+            {isActionLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="mr-2 h-4 w-4" />
+            )}
             Remover
           </Button>
         </div>
