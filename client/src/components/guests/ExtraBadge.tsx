@@ -1,17 +1,6 @@
 export function ExtraBadge() {
   return (
-    <span
-      style={{
-        background: '#FFD600',
-        color: '#333',
-        fontWeight: 600,
-        borderRadius: '8px',
-        padding: '2px 8px',
-        fontSize: '0.75rem',
-        marginLeft: '0.5rem',
-        verticalAlign: 'middle',
-      }}
-    >
+    <span className="bg-yellow-400 text-gray-900 font-semibold rounded-lg px-2 py-0.5 text-xs ml-2 align-middle">
       Extra
     </span>
   )
