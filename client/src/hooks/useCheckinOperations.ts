@@ -37,14 +37,13 @@ export function useCheckinOperations(eventId: string) {
       
       return { previousGuests, guestId }
     },
-    onSuccess: (_, guestId, context) => {
-      const guest = context?.previousGuests?.find((g: CheckinGuest) => g.id === guestId)
-      if (guest) {
-        toast.success('Check-in realizado!', {
-          description: `${guest.name} entrou no evento.`,
-          duration: 3000,
-        })
-      }
+    onSuccess: (response, _guestId) => {
+      // Usa o nome retornado pela API ou um valor padrão se não estiver disponível
+      const guestName = response?.data?.nome_convidado || 'Convidado'
+      toast.success('Check-in realizado!', {
+        description: `${guestName} entrou no evento.`,
+        duration: 3000,
+      })
     },
     onError: (error: unknown, _: number, context: { previousGuests?: CheckinGuest[] } | undefined) => {
       if (context?.previousGuests) {
@@ -90,14 +89,13 @@ export function useCheckinOperations(eventId: string) {
       
       return { previousGuests, guestId }
     },
-    onSuccess: (_, guestId, context) => {
-      const guest = context?.previousGuests?.find((g: CheckinGuest) => g.id === guestId)
-      if (guest) {
-        toast.success('Check-out realizado!', {
-          description: `${guest.name} saiu do evento.`,
-          duration: 3000,
-        })
-      }
+    onSuccess: (response, _guestId) => {
+      // Usa o nome retornado pela API ou um valor padrão se não estiver disponível
+      const guestName = response?.data?.nome_convidado || 'Convidado'
+      toast.success('Check-out realizado!', {
+        description: `${guestName} saiu do evento.`,
+        duration: 3000,
+      })
     },
     onError: (error: unknown, _: number, context: { previousGuests?: CheckinGuest[] } | undefined) => {
       if (context?.previousGuests) {
