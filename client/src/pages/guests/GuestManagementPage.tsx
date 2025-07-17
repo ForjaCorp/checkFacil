@@ -144,7 +144,7 @@ function GuestManagementPage() {
     e_crianca_atipica?: boolean
     status?: string
     isCheckedIn?: boolean
-    nascimento_convidado?: Date | null
+    nascimento_convidado?: string | Date | null
     checkin_at?: string | null
     checkout_at?: string | null
   }
