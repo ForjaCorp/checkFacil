@@ -5,8 +5,7 @@ import { brazilianPhoneSchema } from '@/lib/phoneUtils'
 const timeStringSchema = z
   .string()
   .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Formato de hora inválido (HH:MM).')
-  .nullable()
-  .optional()
+  .min(1, 'Horário é obrigatório')
 
 export const createDraftFormSchema = z.object({
   organizerName: z.string().min(1, 'Nome do contratante é obrigatório.'),
@@ -52,7 +51,7 @@ export const completeDetailsSchema = createDraftFormSchema
     decoradorContato: z.string().optional().or(z.literal('')),
     temMaterialTerceirizado: z.boolean().default(false),
     materialTerceirizadoContato: z.string().optional().or(z.literal('')),
-    localDecoracao: z.enum(['PLAY', 'CASINHAS']).optional().or(z.literal('')),
+    localDecoracao: z.enum(['PLAY', 'CASINHAS', 'ENTRE_CASINHAS', 'KIDS', 'SALAO_DE_FESTAS']).optional().or(z.literal('')),
     buffetNome: z.string().optional().or(z.literal('')),
     buffetContato: z.string().optional().or(z.literal('')),
     bebidasFornecedorNome: z.string().optional().or(z.literal('')),

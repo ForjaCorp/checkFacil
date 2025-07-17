@@ -64,8 +64,11 @@ export function FornecedorSection({ form }: FornecedorSectionProps) {
                   <SelectValue placeholder="Selecione o local" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PLAY">PLAY</SelectItem>
-                  <SelectItem value="CASINHAS">CASINHAS</SelectItem>
+                  <SelectItem value="PLAY">Play</SelectItem>
+                  <SelectItem value="CASINHAS">Casinhas</SelectItem>
+                  <SelectItem value="ENTRE_CASINHAS">Entre casinhas</SelectItem>
+                  <SelectItem value="KIDS">Kids</SelectItem>
+                  <SelectItem value="SALAO_DE_FESTAS">Salão de festas</SelectItem>
                 </SelectContent>
               </Select>
             )}

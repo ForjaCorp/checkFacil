@@ -110,7 +110,7 @@ Festa.init(
       allowNull: true
     },
     local_decoracao: {
-      type: DataTypes.ENUM('PLAY', 'CASINHAS'),
+      type: DataTypes.ENUM('PLAY', 'CASINHAS', 'ENTRE_CASINHAS', 'KIDS', 'SALAO_DE_FESTAS'),
       allowNull: true
     },
     buffet_nome: {
