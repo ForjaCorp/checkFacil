@@ -5,21 +5,12 @@ import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 // UI Components
+import { ConfirmationDialog } from '@/components/common/ConfirmationDialog'
 import { SearchAndFilterBar } from '@/components/common/SearchAndFilterBar'
 import { ShareInviteLink } from '@/components/events/ShareInviteLink'
 import { GuestCard } from '@/components/guests/GuestCard'
 import { GuestForm } from '@/components/guests/GuestForm'
 // UI Components
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -287,34 +278,20 @@ function GuestManagementPage() {
         </div>
       )}
 
-      <AlertDialog open={!!guestToDelete} onOpenChange={(open) => !open && setGuestToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso removerá permanentemente o convidado{' '}
-              <span className="font-semibold">{guestToDelete?.nome_convidado}</span>.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDeleteGuest}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Removendo...
-                </>
-              ) : (
-                'Remover Convidado'
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationDialog
+        isOpen={!!guestToDelete}
+        onClose={() => setGuestToDelete(null)}
+        onConfirm={confirmDeleteGuest}
+        title="Remover Convidado"
+        description={
+          guestToDelete
+            ? `Tem certeza que deseja remover ${guestToDelete.nome_convidado}? Esta ação não pode ser desfeita.`
+            : 'Tem certeza que deseja remover este convidado? Esta ação não pode ser desfeita.'
+        }
+        confirmText="Remover Convidado"
+        cancelText="Cancelar"
+        isConfirming={isDeleting}
+      />
     </div>
   )
 }
