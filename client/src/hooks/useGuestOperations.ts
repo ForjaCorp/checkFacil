@@ -37,9 +37,9 @@ export function useGuestOperations(eventId: string) {
 
       return { previousGuests }
     },
-    onSuccess: () => {
-      toast.success('Convidado atualizado com sucesso!', {
-        position: 'top-center',
+    onSuccess: (_, variables) => {
+      const guestName = variables.data.nome_convidado || 'O convidado'
+      toast.success(`${guestName} atualizado com sucesso!`, {
         duration: 3000,
       })
     },
@@ -71,10 +71,9 @@ export function useGuestOperations(eventId: string) {
 
       return { previousGuests, guestToDelete }
     },
-    onSuccess: (_, __, context) => {
-      const guestName = context?.guestToDelete?.nome_convidado || 'O convidado'
-      toast.success(`${guestName} foi removido com sucesso!`, {
-        position: 'top-center',
+    onSuccess: (_, guestId, context) => {
+      const guest = context?.previousGuests?.find((g: BaseGuest) => g.id === guestId) || { nome_convidado: 'O convidado' }
+      toast.success(`${guest.nome_convidado} removido com sucesso!`, {
         duration: 3000,
       })
     },
@@ -82,9 +81,8 @@ export function useGuestOperations(eventId: string) {
       if (context?.previousGuests) {
         queryClient.setQueryData(queryKey, context.previousGuests)
       }
-      const guestName = context?.guestToDelete?.nome_convidado || 'O convidado'
-      toast.error(`Falha ao remover ${guestName.toLowerCase()}. Tente novamente.`, {
-        position: 'top-center',
+      const guestName = context?.guestToDelete?.nome_convidado || 'o convidado'
+      toast.error(`Falha ao remover ${guestName}. Tente novamente.`, {
         duration: 3000,
       })
     },

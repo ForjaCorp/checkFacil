@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { toast } from 'sonner'
 
 // UI Components
 import { ConfirmationDialog } from '@/components/common/ConfirmationDialog'
@@ -119,11 +118,9 @@ function GuestManagementPage() {
       {
         onSuccess: () => {
           setIsEditDialogOpen(false)
-          toast.success('Convidado atualizado com sucesso!')
         },
         onError: (error) => {
           console.error('Erro ao atualizar convidado:', error)
-          toast.error('Erro ao atualizar convidado. Tente novamente.')
         },
       },
     )
