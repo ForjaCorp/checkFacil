@@ -57,7 +57,7 @@ export async function criarFesta(req, res) {
           nomeCliente: clienteOrganizador.nome,
           emailCliente: clienteOrganizador.email,
           telefoneCliente: clienteOrganizador.telefone,
-
+          dataFesta: dadosFesta.data_festa,
           token: tokenDefinicaoSenha
         };
         axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
@@ -76,7 +76,8 @@ export async function criarFesta(req, res) {
         const payloadWebhook = {
           nomeCliente: clienteOrganizador.nome,
           emailCliente: clienteOrganizador.email,
-          telefoneCliente: clienteOrganizador.telefone
+          telefoneCliente: clienteOrganizador.telefone,
+          dataFesta: dadosFesta.data_festa
         };
         axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
           console.error(
