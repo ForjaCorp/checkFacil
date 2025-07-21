@@ -266,7 +266,7 @@ function CreateDraftEventPage() {
                             <SelectItem value="PLAY">Festa Play</SelectItem>
                             <SelectItem value="PLAY_MAIS_PARK">Festa Play + Park</SelectItem>
                             <SelectItem value="KIDS_PARK_PLAY">
-                              KIDS + PARK + PLAY
+                              Festa Kids + Park + Play
                             </SelectItem>
                           </SelectContent>
                         </Select>
