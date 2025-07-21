@@ -54,8 +54,7 @@ Festa.init(
       allowNull: true
     },
 
-    numero_adultos_contratado: { type: DataTypes.INTEGER, allowNull: true },
-    numero_criancas_contratado: { type: DataTypes.INTEGER, allowNull: true },
+    numero_convidados_contratado: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     nome_aniversariante: { type: DataTypes.STRING, allowNull: true },
     idade_aniversariante: { type: DataTypes.INTEGER, allowNull: true },
     tema_festa: { type: DataTypes.STRING, allowNull: true },
