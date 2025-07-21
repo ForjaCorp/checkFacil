@@ -21,7 +21,7 @@ import { FornecedorSection } from './FornecedorSection'
 import type { UpdateEventPayload } from '@/types'
 
 // Tipos para os enums para garantir a tipagem correta
-type PackageType = 'KIDS' | 'KIDS_MAIS_PARK' | 'PLAY' | 'PLAY_MAIS_PARK' | 'SUPER_FESTA_COMPLETA'
+type PackageType = 'KIDS' | 'KIDS_MAIS_PARK' | 'PLAY' | 'PLAY_MAIS_PARK' | 'KIDS_PARK_PLAY'
 type GuestPolicy = 'PERMITIR_ANOTAR' | 'CHAMAR_ANFITRIAO'
 type LocalDecoracaoType = 'PLAY' | 'CASINHAS' | 'ENTRE_CASINHAS' | 'KIDS' | 'SALAO_DE_FESTAS'
 
