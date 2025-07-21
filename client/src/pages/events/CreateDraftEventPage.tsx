@@ -59,8 +59,7 @@ function CreateDraftEventPage() {
       startTime: '14:00', // Valor padrão obrigatório
       endTime: '17:00',   // Valor padrão obrigatório
       packageType: 'KIDS',
-      contractedChildren: 0,
-      contractedAdults: 0,
+      contractedGuests: 0,
     },
   })
 
@@ -79,15 +78,18 @@ function CreateDraftEventPage() {
   })
 
   function onSubmit(values: CreateDraftFormValues) {
-    const payload = {
+    // Ensure time fields are always defined
+    const startTime = values.startTime || '14:00' // Default value if undefined
+    const endTime = values.endTime || '17:00' // Default value if undefined
+    
+    const payload: CreateEventPayload = {
       dadosFesta: {
         nome_festa: values.partyName,
         data_festa: format(values.partyDate, 'yyyy-MM-dd'),
-        horario_inicio: values.startTime,
-        horario_fim: values.endTime,
+        horario_inicio: startTime,
+        horario_fim: endTime,
         pacote_escolhido: values.packageType,
-        numero_criancas_contratado: values.contractedChildren,
-        numero_adultos_contratado: values.contractedAdults,
+        numero_convidados_contratado: values.contractedGuests,
       },
       dadosCliente: {
         nome: values.organizerName,
@@ -272,48 +274,26 @@ function CreateDraftEventPage() {
                       </FormItem>
                     )}
                   />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                    <FormField
-                      control={form.control}
-                      name="contractedAdults"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nº de Adultos</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="Ex: 50"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(e.target.value === '' ? null : +e.target.value)
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="contractedChildren"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nº de Crianças</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="Ex: 30"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(e.target.value === '' ? null : +e.target.value)
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="contractedGuests"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Número Total de Convidados</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Ex: 80"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(e.target.value === '' ? 0 : +e.target.value)
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </div>
 

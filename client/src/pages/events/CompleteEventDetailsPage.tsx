@@ -33,8 +33,7 @@ interface ApiEventData {
   nome_festa: string
   data_festa: string
   pacote_escolhido: PackageType
-  numero_adultos_contratado: number
-  numero_criancas_contratado: number
+  numero_convidados_contratado: number
   horario_inicio: string
   horario_fim: string
   nome_aniversariante: string
@@ -83,8 +82,7 @@ function EventForm({ eventData, playlists }: { eventData: ApiEventData; playlist
       partyName: eventData.nome_festa,
       partyDate: new Date(eventData.data_festa.replace(/-/g, '/')),
       packageType: eventData.pacote_escolhido,
-      contractedAdults: eventData.numero_adultos_contratado || 0,
-      contractedChildren: eventData.numero_criancas_contratado || 0,
+      contractedGuests: eventData.numero_convidados_contratado || 0,
       startTime: eventData.horario_inicio ? eventData.horario_inicio.substring(0, 5) : '',
       endTime: eventData.horario_fim ? eventData.horario_fim.substring(0, 5) : '',
       birthdayPersonName: eventData.nome_aniversariante || '',
