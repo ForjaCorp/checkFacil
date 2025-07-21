@@ -126,7 +126,7 @@ export function ContractedDetailsSection({ form, clientPhone }: ContractedDetail
                   <SelectItem value="KIDS_MAIS_PARK">Festa Kids + Park</SelectItem>
                   <SelectItem value="PLAY">Festa Play</SelectItem>
                   <SelectItem value="PLAY_MAIS_PARK">Festa Play + Park</SelectItem>
-                  <SelectItem value="KIDS_PARK_PLAY">KIDS + PARK + PLAY</SelectItem>
+                  <SelectItem value="KIDS_PARK_PLAY">Festa Kids + Park + Play</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
