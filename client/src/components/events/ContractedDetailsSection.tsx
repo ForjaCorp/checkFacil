@@ -132,46 +132,25 @@ export function ContractedDetailsSection({ form }: ContractedDetailsSectionProps
             </FormItem>
           )}
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <FormField
-            control={form.control}
-            name="contractedAdults"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nº de Adultos Contratados</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Ex: 50"
-                    {...field}
-                    value={field.value ?? ''}
-                    disabled
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="contractedChildren"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nº de Crianças Contratadas</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Ex: 30"
-                    {...field}
-                    value={field.value ?? ''}
-                    disabled
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="contractedGuests"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nº Total de Convidados Contratados</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="Ex: 80"
+                  {...field}
+                  value={field.value ?? ''}
+                  disabled
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
     </div>
   )
