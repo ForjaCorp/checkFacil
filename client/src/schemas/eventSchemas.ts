@@ -24,8 +24,7 @@ export const createDraftFormSchema = z.object({
     ['KIDS', 'KIDS_MAIS_PARK', 'PLAY', 'PLAY_MAIS_PARK', 'SUPER_FESTA_COMPLETA'],
     { required_error: 'Você precisa selecionar um tipo de pacote.' },
   ),
-  contractedChildren: z.coerce.number().int().positive({ message: 'Deve ser um número positivo.' }),
-  contractedAdults: z.coerce.number().int().positive({ message: 'Deve ser um número positivo.' }),
+  contractedGuests: z.coerce.number().int().positive({ message: 'Deve ser um número positivo.' }),
 })
 
 export const completeDetailsSchema = createDraftFormSchema

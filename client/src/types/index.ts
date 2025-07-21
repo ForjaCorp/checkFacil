@@ -113,8 +113,7 @@ export interface CreateEventPayload {
     horario_inicio: string
     horario_fim: string
     pacote_escolhido: string
-    numero_criancas_contratado: number
-    numero_adultos_contratado: number
+    numero_convidados_contratado: number
   }
   dadosCliente: {
     nome: string
