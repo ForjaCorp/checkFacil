@@ -90,8 +90,19 @@ export async function criarFesta(req, res) {
       }
     }
 
+    // Remove old guest count fields if they exist
+    const { numero_criancas_contratado, numero_adultos_contratado, ...dadosFestaAtualizados } = dadosFesta;
+    
+    // Ensure we have the new field, or calculate it from the old fields if they exist
+    if (dadosFestaAtualizados.numero_convidados_contratado === undefined) {
+      const totalGuests = (numero_criancas_contratado || 0) + (numero_adultos_contratado || 0);
+      if (totalGuests > 0) {
+        dadosFestaAtualizados.numero_convidados_contratado = totalGuests;
+      }
+    }
+
     const novaFesta = await models.Festa.create({
-      ...dadosFesta,
+      ...dadosFestaAtualizados,
       id_organizador: clienteOrganizador.id
     });
 
@@ -211,7 +222,19 @@ export async function atualizarFesta(req, res) {
         .json({ error: 'Acesso negado. Você não tem permissão para atualizar esta festa.' });
     }
 
-    await festa.update(dadosAtualizados);
+    // Remove old guest count fields if they exist in the update
+    const { numero_criancas_contratado, numero_adultos_contratado, ...dadosAtualizadosLimpos } = dadosAtualizados;
+    
+    // If new guest count is not provided but old fields are, calculate it
+    if (dadosAtualizadosLimpos.numero_convidados_contratado === undefined && 
+        (numero_criancas_contratado !== undefined || numero_adultos_contratado !== undefined)) {
+      const totalGuests = (numero_criancas_contratado || 0) + (numero_adultos_contratado || 0);
+      if (totalGuests > 0) {
+        dadosAtualizadosLimpos.numero_convidados_contratado = totalGuests;
+      }
+    }
+    
+    await festa.update(dadosAtualizadosLimpos);
 
     return res.status(200).json(festa);
   } catch (error) {

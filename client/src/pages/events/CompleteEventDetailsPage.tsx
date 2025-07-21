@@ -21,7 +21,7 @@ import { FornecedorSection } from './FornecedorSection'
 import type { UpdateEventPayload } from '@/types'
 
 // Tipos para os enums para garantir a tipagem correta
-type PackageType = 'KIDS' | 'KIDS_MAIS_PARK' | 'PLAY' | 'PLAY_MAIS_PARK' | 'SUPER_FESTA_COMPLETA'
+type PackageType = 'KIDS' | 'KIDS_MAIS_PARK' | 'PLAY' | 'PLAY_MAIS_PARK' | 'KIDS_PARK_PLAY'
 type GuestPolicy = 'PERMITIR_ANOTAR' | 'CHAMAR_ANFITRIAO'
 type LocalDecoracaoType = 'PLAY' | 'CASINHAS' | 'ENTRE_CASINHAS' | 'KIDS' | 'SALAO_DE_FESTAS'
 
@@ -30,11 +30,13 @@ interface ApiEventData {
   id: number
   status: string
   organizador?: { nome: string; email: string; telefone: string }
+  nome: string
+  email: string
+  telefone: string
   nome_festa: string
   data_festa: string
   pacote_escolhido: PackageType
-  numero_adultos_contratado: number
-  numero_criancas_contratado: number
+  numero_convidados_contratado: number
   horario_inicio: string
   horario_fim: string
   nome_aniversariante: string
@@ -83,8 +85,7 @@ function EventForm({ eventData, playlists }: { eventData: ApiEventData; playlist
       partyName: eventData.nome_festa,
       partyDate: new Date(eventData.data_festa.replace(/-/g, '/')),
       packageType: eventData.pacote_escolhido,
-      contractedAdults: eventData.numero_adultos_contratado || 0,
-      contractedChildren: eventData.numero_criancas_contratado || 0,
+      contractedGuests: eventData.numero_convidados_contratado || 0,
       startTime: eventData.horario_inicio ? eventData.horario_inicio.substring(0, 5) : '',
       endTime: eventData.horario_fim ? eventData.horario_fim.substring(0, 5) : '',
       birthdayPersonName: eventData.nome_aniversariante || '',
@@ -185,7 +186,10 @@ function EventForm({ eventData, playlists }: { eventData: ApiEventData; playlist
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <ContractedDetailsSection form={form} />
+            <ContractedDetailsSection 
+              form={form} 
+              clientPhone={eventData.organizador?.telefone || 'Telefone não disponível'} 
+            />
             <PersonalizePartySection form={form} playlists={playlists} />
             <FornecedorSection form={form} />
             <div className="space-y-4 rounded-md border p-4">

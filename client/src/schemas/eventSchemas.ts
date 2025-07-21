@@ -21,11 +21,15 @@ export const createDraftFormSchema = z.object({
   startTime: timeStringSchema,
   endTime: timeStringSchema,
   packageType: z.enum(
-    ['KIDS', 'KIDS_MAIS_PARK', 'PLAY', 'PLAY_MAIS_PARK', 'SUPER_FESTA_COMPLETA'],
+    ['KIDS', 'KIDS_MAIS_PARK', 'PLAY', 'PLAY_MAIS_PARK', 'KIDS_PARK_PLAY'],
     { required_error: 'Você precisa selecionar um tipo de pacote.' },
   ),
-  contractedChildren: z.coerce.number().int().positive({ message: 'Deve ser um número positivo.' }),
-  contractedAdults: z.coerce.number().int().positive({ message: 'Deve ser um número positivo.' }),
+  contractedGuests: z.coerce.number({
+    required_error: 'Por favor, informe o número total de convidados.',
+    invalid_type_error: 'O número de convidados deve ser um número.'
+  }).int('O número de convidados deve ser um número inteiro.')
+  .positive('O número de convidados deve ser maior que zero.')
+  .min(1, 'O número de convidados deve ser maior que zero.'),
 })
 
 export const completeDetailsSchema = createDraftFormSchema

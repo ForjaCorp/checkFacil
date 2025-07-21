@@ -6,7 +6,7 @@ export const TIPOS_PACOTE_FESTA = {
   KIDS_MAIS_PARK: 'KIDS_MAIS_PARK',
   PLAY: 'PLAY',
   PLAY_MAIS_PARK: 'PLAY_MAIS_PARK',
-  SUPER_FESTA_COMPLETA: 'SUPER_FESTA_COMPLETA'
+  KIDS_PARK_PLAY: 'KIDS_PARK_PLAY'
 };
 
 class Festa extends Model {
@@ -49,13 +49,12 @@ Festa.init(
         TIPOS_PACOTE_FESTA.KIDS_MAIS_PARK,
         TIPOS_PACOTE_FESTA.PLAY,
         TIPOS_PACOTE_FESTA.PLAY_MAIS_PARK,
-        TIPOS_PACOTE_FESTA.SUPER_FESTA_COMPLETA
+        TIPOS_PACOTE_FESTA.KIDS_PARK_PLAY
       ),
       allowNull: true
     },
 
-    numero_adultos_contratado: { type: DataTypes.INTEGER, allowNull: true },
-    numero_criancas_contratado: { type: DataTypes.INTEGER, allowNull: true },
+    numero_convidados_contratado: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     nome_aniversariante: { type: DataTypes.STRING, allowNull: true },
     idade_aniversariante: { type: DataTypes.INTEGER, allowNull: true },
     tema_festa: { type: DataTypes.STRING, allowNull: true },

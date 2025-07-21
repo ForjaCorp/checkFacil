@@ -21,9 +21,10 @@ import type { UseFormReturn } from 'react-hook-form'
 
 interface ContractedDetailsSectionProps {
   form: UseFormReturn<CompleteDetailsFormValues>
+  clientPhone: string
 }
 
-export function ContractedDetailsSection({ form }: ContractedDetailsSectionProps) {
+export function ContractedDetailsSection({ form, clientPhone }: ContractedDetailsSectionProps) {
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4 border-b pb-2">Detalhes Contratados</h3>
@@ -125,53 +126,38 @@ export function ContractedDetailsSection({ form }: ContractedDetailsSectionProps
                   <SelectItem value="KIDS_MAIS_PARK">Festa Kids + Park</SelectItem>
                   <SelectItem value="PLAY">Festa Play</SelectItem>
                   <SelectItem value="PLAY_MAIS_PARK">Festa Play + Park</SelectItem>
-                  <SelectItem value="SUPER_FESTA_COMPLETA">Super Festa Completa</SelectItem>
+                  <SelectItem value="KIDS_PARK_PLAY">KIDS + PARK + PLAY</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <FormField
-            control={form.control}
-            name="contractedAdults"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nº de Adultos Contratados</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Ex: 50"
-                    {...field}
-                    value={field.value ?? ''}
-                    disabled
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="contractedChildren"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nº de Crianças Contratadas</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Ex: 30"
-                    {...field}
-                    value={field.value ?? ''}
-                    disabled
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="contractedGuests"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nº Total de Convidados Contratados</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="Ex: 80"
+                  {...field}
+                  value={field.value ?? ''}
+                  disabled
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormItem>
+          <FormLabel>Telefone do Cliente</FormLabel>
+          <FormControl>
+            <Input value={clientPhone || 'Não informado'} disabled />
+          </FormControl>
+        </FormItem>
       </div>
     </div>
   )
