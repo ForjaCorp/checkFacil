@@ -30,6 +30,9 @@ interface ApiEventData {
   id: number
   status: string
   organizador?: { nome: string; email: string; telefone: string }
+  nome: string
+  email: string
+  telefone: string
   nome_festa: string
   data_festa: string
   pacote_escolhido: PackageType
@@ -183,7 +186,10 @@ function EventForm({ eventData, playlists }: { eventData: ApiEventData; playlist
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <ContractedDetailsSection form={form} />
+            <ContractedDetailsSection 
+              form={form} 
+              clientPhone={eventData.organizador?.telefone || 'Telefone não disponível'} 
+            />
             <PersonalizePartySection form={form} playlists={playlists} />
             <FornecedorSection form={form} />
             <div className="space-y-4 rounded-md border p-4">

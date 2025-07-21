@@ -21,9 +21,10 @@ import type { UseFormReturn } from 'react-hook-form'
 
 interface ContractedDetailsSectionProps {
   form: UseFormReturn<CompleteDetailsFormValues>
+  clientPhone: string
 }
 
-export function ContractedDetailsSection({ form }: ContractedDetailsSectionProps) {
+export function ContractedDetailsSection({ form, clientPhone }: ContractedDetailsSectionProps) {
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4 border-b pb-2">Detalhes Contratados</h3>
@@ -151,6 +152,12 @@ export function ContractedDetailsSection({ form }: ContractedDetailsSectionProps
             </FormItem>
           )}
         />
+        <FormItem>
+          <FormLabel>Telefone do Cliente</FormLabel>
+          <FormControl>
+            <Input value={clientPhone || 'Não informado'} disabled />
+          </FormControl>
+        </FormItem>
       </div>
     </div>
   )
