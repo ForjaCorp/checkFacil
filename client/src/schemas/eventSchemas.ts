@@ -21,7 +21,7 @@ export const createDraftFormSchema = z.object({
   startTime: timeStringSchema,
   endTime: timeStringSchema,
   packageType: z.enum(
-    ['KIDS', 'KIDS_MAIS_PARK', 'PLAY', 'PLAY_MAIS_PARK', 'SUPER_FESTA_COMPLETA'],
+    ['KIDS', 'KIDS_MAIS_PARK', 'PLAY', 'PLAY_MAIS_PARK', 'KIDS_PARK_PLAY'],
     { required_error: 'Você precisa selecionar um tipo de pacote.' },
   ),
   contractedGuests: z.coerce.number({
