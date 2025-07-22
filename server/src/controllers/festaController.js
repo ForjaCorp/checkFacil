@@ -91,8 +91,9 @@ export async function criarFesta(req, res) {
     }
 
     // Remove old guest count fields if they exist
-    const { numero_criancas_contratado, numero_adultos_contratado, ...dadosFestaAtualizados } = dadosFesta;
-    
+    const { numero_criancas_contratado, numero_adultos_contratado, ...dadosFestaAtualizados } =
+      dadosFesta;
+
     // Ensure we have the new field, or calculate it from the old fields if they exist
     if (dadosFestaAtualizados.numero_convidados_contratado === undefined) {
       const totalGuests = (numero_criancas_contratado || 0) + (numero_adultos_contratado || 0);
@@ -223,17 +224,20 @@ export async function atualizarFesta(req, res) {
     }
 
     // Remove old guest count fields if they exist in the update
-    const { numero_criancas_contratado, numero_adultos_contratado, ...dadosAtualizadosLimpos } = dadosAtualizados;
-    
+    const { numero_criancas_contratado, numero_adultos_contratado, ...dadosAtualizadosLimpos } =
+      dadosAtualizados;
+
     // If new guest count is not provided but old fields are, calculate it
-    if (dadosAtualizadosLimpos.numero_convidados_contratado === undefined && 
-        (numero_criancas_contratado !== undefined || numero_adultos_contratado !== undefined)) {
+    if (
+      dadosAtualizadosLimpos.numero_convidados_contratado === undefined &&
+      (numero_criancas_contratado !== undefined || numero_adultos_contratado !== undefined)
+    ) {
       const totalGuests = (numero_criancas_contratado || 0) + (numero_adultos_contratado || 0);
       if (totalGuests > 0) {
         dadosAtualizadosLimpos.numero_convidados_contratado = totalGuests;
       }
     }
-    
+
     await festa.update(dadosAtualizadosLimpos);
 
     return res.status(200).json(festa);
@@ -335,32 +339,31 @@ export async function registrarGrupoConvidados(req, res) {
     const criancasSalvas = [];
 
     for (const convidado of convidados) {
-      if (!convidado.nome_convidado || !convidado.tipo_convidado) { 
+      if (!convidado.nome_convidado || !convidado.tipo_convidado) {
         await transaction.rollback();
         return res.status(400).json({
-            error: 'Cada convidado deve ter nome_convidado e tipo_convidado.' // Mensagem atualizada
+          error: 'Cada convidado deve ter nome_convidado e tipo_convidado.' // Mensagem atualizada
         });
-    }
+      }
 
-    // 2. CORRIGIR OS CAMPOS NA CRIAÇÃO DO REGISTRO
-    const novoConvidado = await models.ConvidadoFesta.create(
+      // 2. CORRIGIR OS CAMPOS NA CRIAÇÃO DO REGISTRO
+      const novoConvidado = await models.ConvidadoFesta.create(
         {
-            id_festa: idFesta,
-            nome_convidado: convidado.nome_convidado,                
-            tipo_convidado: convidado.tipo_convidado,
-            nascimento_convidado: convidado.nascimento_convidado || null, 
-            idade_convidado: convidado.nascimento_convidado
-                ? calcularIdade(convidado.nascimento_convidado)
-                : null,
-            e_crianca_atipica: convidado.e_crianca_atipica || false,   
-            nome_responsavel_contato: contatoResponsavel.nome,
-            telefone_responsavel_contato: contatoResponsavel.telefone,
-            cadastrado_na_hora: convidado.cadastrado_na_hora || null,
-            acompanhado_por_id: convidado.acompanhado_por_id || null
+          id_festa: idFesta,
+          nome_convidado: convidado.nome_convidado,
+          tipo_convidado: convidado.tipo_convidado,
+          nascimento_convidado: convidado.nascimento_convidado || null,
+          idade_convidado: convidado.nascimento_convidado
+            ? calcularIdade(convidado.nascimento_convidado)
+            : null,
+          e_crianca_atipica: convidado.e_crianca_atipica || false,
+          nome_responsavel_contato: contatoResponsavel.nome,
+          telefone_responsavel_contato: contatoResponsavel.telefone,
+          cadastrado_na_hora: convidado.cadastrado_na_hora || null,
+          acompanhado_por_id: convidado.acompanhado_por_id || null
         },
         { transaction }
-    );
-
+      );
 
       if (convidado.tipo_convidado.startsWith('CRIANCA') || convidado.e_crianca_atipica) {
         criancasSalvas.push(novoConvidado);
