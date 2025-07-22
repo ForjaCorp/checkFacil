@@ -646,7 +646,7 @@ export async function checkinConvidado(req, res) {
       const payloadWebhook = {
         nomeCrianca: convidado.nome_convidado,
         nomeResponsavel: convidado.nome_responsavel,
-        telefoneResponsavel: convidado.telefone_responsavel,
+        telefoneResponsavel: convidado.telefone_responsavel_contato,
         horarioCheckin: convidado.checkin_at,
         mensagem: `Check-in realizado para este convidado`
       };
@@ -706,7 +706,7 @@ export async function checkoutConvidado(req, res) {
       const payloadWebhook = {
         nomeCrianca: convidado.nome_convidado,
         nomeResponsavel: convidado.nome_responsavel,
-        telefoneResponsavel: convidado.telefone_responsavel,
+        telefoneResponsavel: convidado.telefone_responsavel_contato,
         horarioCheckin: convidado.checkin_at,
         horarioCheckout: convidado.checkout_at,
 
