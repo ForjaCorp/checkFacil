@@ -324,7 +324,7 @@ export async function adicionarConvidado(req, res) {
 
 export async function registrarGrupoConvidados(req, res) {
   const { idFesta } = req.params;
-  const { contatoResponsavel, convidados } = req.body;
+  const { contatoResponsavel, convidados, cadastrado_na_hora = false } = req.body;
 
   const transaction = await sequelize.transaction();
 
@@ -359,7 +359,7 @@ export async function registrarGrupoConvidados(req, res) {
           e_crianca_atipica: convidado.e_crianca_atipica || false,
           nome_responsavel_contato: contatoResponsavel.nome,
           telefone_responsavel_contato: contatoResponsavel.telefone,
-          cadastrado_na_hora: convidado.cadastrado_na_hora || null,
+          cadastrado_na_hora: cadastrado_na_hora,
           acompanhado_por_id: convidado.acompanhado_por_id || null
         },
         { transaction }
@@ -394,7 +394,7 @@ export async function registrarGrupoConvidados(req, res) {
 
 export async function registrarAdultos(req, res) {
   const { idFesta } = req.params;
-  const { adultos } = req.body;
+  const { adultos, cadastrado_na_hora = false } = req.body;
 
   if (!Array.isArray(adultos) || adultos.length === 0) {
     return res.status(400).json({ error: 'A lista de adultos é obrigatória.' });
@@ -433,7 +433,7 @@ export async function registrarAdultos(req, res) {
           telefone_convidado: adulto.telefone, // O frontend já envia desformatado
           tipo_convidado: 'ADULTO_PAGANTE',
           confirmou_presenca: 'SIM',
-          cadastrado_na_hora: true
+          cadastrado_na_hora: cadastrado_na_hora
         },
         { transaction }
       );

@@ -93,8 +93,8 @@ function GroupWithChildrenFlow({ onSuccess: _onSuccess, onBack }: GroupWithChild
       otherCompanionPhone: companionStepData?.otherCompanionPhone || '',
     }
 
-    // Envia os dados para o hook de confirmação
-    handleGroupSubmit(companionData, responsibleIsAttending)
+    // Envia os dados para o hook de confirmação com isWalkin=true para marcar como convidado extra
+    handleGroupSubmit(companionData, responsibleIsAttending, true)
   }
 
   switch (currentStep) {
