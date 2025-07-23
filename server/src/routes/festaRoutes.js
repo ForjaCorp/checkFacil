@@ -33,9 +33,6 @@ router.delete('/:idFesta', verificarTokenJWT, festaController.deletarFesta);
 
 // --- ROTAS PARA CONVIDADOS DE UMA FESTA ---
 
-// POST /festa/:idFesta/convidados -> Adiciona um convidado.
-router.post('/:idFesta/convidados', verificarTokenJWT, festaController.adicionarConvidado);
-
 // GET /festa/:idFesta/convidados -> Lista todos os convidados.
 router.get('/:idFesta/convidados', verificarTokenJWT, festaController.listarConvidadosDaFesta);
 

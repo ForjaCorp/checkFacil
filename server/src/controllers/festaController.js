@@ -281,47 +281,6 @@ export async function deletarFesta(req, res) {
   }
 }
 
-export async function adicionarConvidado(req, res) {
-  try {
-    const { idFesta } = req.params;
-    const dadosConvidado = req.body;
-    const { usuarioId, usuarioTipo } = req;
-
-    const festa = await models.Festa.findByPk(idFesta);
-    if (!festa) {
-      return res.status(404).json({ error: 'Festa não encontrada com o ID fornecido.' });
-    }
-
-    if (
-      usuarioTipo !== models.Usuario.TIPOS_USUARIO.ADM_ESPACO &&
-      festa.id_organizador !== usuarioId
-    ) {
-      return res.status(403).json({
-        error: 'Acesso negado. Você não tem permissão para adicionar convidados a esta festa.'
-      });
-    }
-
-    if (!dadosConvidado.nome_convidado || !dadosConvidado.tipo_convidado) {
-      return res.status(400).json({ error: 'Nome e tipo do convidado são obrigatórios.' });
-    }
-
-    // Cria o novo convidado, associando-o à festa
-    const novoConvidado = await models.ConvidadoFesta.create({
-      ...dadosConvidado,
-      id_festa: idFesta
-    });
-
-    return res.status(201).json(novoConvidado);
-  } catch (error) {
-    console.error('Erro ao adicionar convidado:', error);
-    if (error.name === 'SequelizeValidationError') {
-      const erros = error.errors.map((e) => e.message);
-      return res.status(400).json({ error: 'Dados inválidos para o convidado.', detalhes: erros });
-    }
-    return res.status(500).json({ error: 'Falha ao adicionar convidado.' });
-  }
-}
-
 export async function registrarGrupoConvidados(req, res) {
   const { idFesta } = req.params;
   const { contatoResponsavel, convidados, cadastrado_na_hora = false } = req.body;
@@ -346,7 +305,8 @@ export async function registrarGrupoConvidados(req, res) {
         });
       }
 
-      // 2. CORRIGIR OS CAMPOS NA CRIAÇÃO DO REGISTRO
+      // Para responsáveis (adultos), duplicar o telefone em ambos os campos
+      const isAdulto = !convidado.tipo_convidado.startsWith('CRIANCA') && !convidado.e_crianca_atipica;
       const novoConvidado = await models.ConvidadoFesta.create(
         {
           id_festa: idFesta,
@@ -357,6 +317,9 @@ export async function registrarGrupoConvidados(req, res) {
             ? calcularIdade(convidado.nascimento_convidado)
             : null,
           e_crianca_atipica: convidado.e_crianca_atipica || false,
+          // Para adultos, usa o próprio telefone em ambos os campos
+          telefone_convidado: isAdulto ? contatoResponsavel.telefone : null,
+          // Para crianças, mantém o comportamento original do responsável
           nome_responsavel_contato: contatoResponsavel.nome,
           telefone_responsavel_contato: contatoResponsavel.telefone,
           cadastrado_na_hora: cadastrado_na_hora,
@@ -431,6 +394,7 @@ export async function registrarAdultos(req, res) {
           id_festa: idFesta,
           nome_convidado: adulto.nome,
           telefone_convidado: adulto.telefone, // O frontend já envia desformatado
+          telefone_responsavel_contato: adulto.telefone, // Duplicando o telefone no campo de contato do responsável
           tipo_convidado: 'ADULTO_PAGANTE',
           confirmou_presenca: 'SIM',
           cadastrado_na_hora: cadastrado_na_hora
