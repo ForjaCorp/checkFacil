@@ -101,6 +101,7 @@ export function useGuestConfirmationFlow() {
     const handleGroupSubmit = useCallback((
     companionData: CompanionStepValues | null,
     responsibleIsAttending?: boolean,
+    isWalkin: boolean = false,
   ) => {
     const { responsible, children } = flowState;
     if (!responsible || !children) {
@@ -138,6 +139,7 @@ export function useGuestConfirmationFlow() {
         telefone: unformatPhoneNumber(responsible.responsiblePhone),
       },
       convidados: allGuests,
+      cadastrado_na_hora: isWalkin,
     };
 
     submitGroup(payload);

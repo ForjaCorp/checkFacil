@@ -2,8 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CalendarIcon, Loader2 } from 'lucide-react'
+import { useEffect } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 
+import { PhoneInput } from '@/components/forms/PhoneInput'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -32,10 +34,33 @@ interface GuestFormProps {
 export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps) {
   const form = useForm<EditGuestFormValues>({
     resolver: zodResolver(editGuestSchema),
-    defaultValues: initialValues,
+    defaultValues: {
+      ...initialValues,
+      // Garantir que os campos opcionais tenham valores padrão
+      telefone_convidado: initialValues.telefone_convidado || '',
+      telefone_responsavel: initialValues.telefone_responsavel || '',
+      nome_responsavel: initialValues.nome_responsavel || '',
+      e_crianca_atipica: initialValues.e_crianca_atipica || false,
+      tipo_convidado: initialValues.tipo_convidado || 'adulto',
+    },
   })
 
-  const isChild = initialValues.tipo_convidado?.includes('CRIANCA')
+  // Atualiza os valores do formulário quando initialValues mudar
+  useEffect(() => {
+    if (initialValues) {
+      form.reset({
+        ...initialValues,
+        telefone_convidado: initialValues.telefone_convidado || '',
+        telefone_responsavel: initialValues.telefone_responsavel || '',
+        nome_responsavel: initialValues.nome_responsavel || '',
+        e_crianca_atipica: initialValues.e_crianca_atipica || false,
+        tipo_convidado: initialValues.tipo_convidado || 'adulto',
+      })
+    }
+  }, [initialValues, form])
+
+  const isChild = initialValues.tipo_convidado?.includes('CRIANCA') || false
+  const isAdult = !isChild
 
   return (
     <Form {...form}>
@@ -63,8 +88,66 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
           )}
         />
 
-        {isChild && (
+        {isAdult ? (
+          <FormField
+            control={form.control}
+            name="telefone_convidado"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Telefone</FormLabel>
+                <FormControl>
+                  <PhoneInput
+                    placeholder="+55 (XX) 9XXXX-XXXX"
+                    {...field}
+                    value={field.value || ''}
+                    onChange={(e) => {
+                      const numbers = e.target.value.replace(/\D/g, '')
+                      field.onChange(numbers)
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : (
           <>
+            <FormField
+              control={form.control}
+              name="nome_responsavel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome do Responsável</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nome do responsável" {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="telefone_responsavel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Telefone do Responsável</FormLabel>
+                  <FormControl>
+                    <PhoneInput
+                      placeholder="+55 (XX) 9XXXX-XXXX"
+                      {...field}
+                      value={field.value || ''}
+                      onChange={(e) => {
+                        const numbers = e.target.value.replace(/\D/g, '')
+                        field.onChange(numbers)
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="nascimento_convidado"
@@ -81,8 +164,8 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
                             !field.value && 'text-muted-foreground',
                           )}
                         >
-                          {field.value instanceof Date ? (
-                            format(field.value, 'PPP', { locale: ptBR })
+                          {field.value ? (
+                            format(new Date(field.value), 'PPP', { locale: ptBR })
                           ) : (
                             <span>Escolha a data</span>
                           )}
@@ -93,8 +176,8 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value ?? undefined}
-                        onSelect={field.onChange}
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => field.onChange(date || null)}
                         captionLayout="dropdown"
                         disabled={(date) => date > new Date()}
                       />
@@ -104,6 +187,7 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="e_crianca_atipica"

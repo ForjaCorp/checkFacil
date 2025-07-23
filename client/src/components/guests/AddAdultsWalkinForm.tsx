@@ -55,7 +55,10 @@ export function AddAdultsWalkinForm({ onSuccess, onBack }: AddAdultsWalkinFormPr
   })
 
   const { mutate: confirmAttendance, isPending } = useMutation({
-    mutationFn: (data: AdultGuestFormValues) => api.post(`/festa/${eventId}/register-adults`, data),
+    mutationFn: (data: AdultGuestFormValues) => api.post(`/festa/${eventId}/register-adults`, {
+      adultos: data.adultos,
+      cadastrado_na_hora: true // Mark as walk-in guest
+    }),
     onSuccess: () => {
       toast.success('Convidado(s) adicionado(s) com sucesso!')
       onSuccess()
