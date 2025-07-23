@@ -17,6 +17,14 @@ export interface BaseGuest {
   checkin_at?: string | null
   checkout_at?: string | null
   cadastrado_na_hora?: boolean
+  // Campos de telefone e responsável
+  telefone_convidado?: string | null
+  telefone_responsavel_contato?: string | null
+  telefone_responsavel?: string | null
+  telefone_acompanhante?: string | null
+  nome_responsavel_contato?: string | null
+  nome_responsavel?: string | null
+  nome_acompanhante?: string | null
 }
 
 export interface GuestFilterOptions {

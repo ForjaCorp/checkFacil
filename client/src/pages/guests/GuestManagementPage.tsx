@@ -82,12 +82,20 @@ function GuestManagementPage() {
   const handleEditGuestSubmit = (formData: EditGuestFormValues) => {
     if (!editingGuest) return
 
-    // Prepara os dados para envio
-    const submitData: EditGuestFormValues = {
-      nome_convidado: formData.nome_convidado,
+    const isChild = formData.tipo_convidado?.includes('CRIANCA') || false
+    const submitData: Partial<EditGuestFormValues> = {
+      nome_convidado: formData.nome_convidado || '', // Ensure required field is not undefined
+      tipo_convidado: formData.tipo_convidado,
       e_crianca_atipica: formData.e_crianca_atipica ?? false,
-      // Inicializa como null, será sobrescrito se houver data
       nascimento_convidado: null,
+    }
+
+    // Add fields based on guest type
+    if (isChild) {
+      submitData.nome_responsavel = formData.nome_responsavel || null
+      submitData.telefone_responsavel = formData.telefone_responsavel?.replace(/\D/g, '') || null
+    } else {
+      submitData.telefone_convidado = formData.telefone_convidado?.replace(/\D/g, '') || null
     }
 
     // Se existir data de nascimento, converte para Date
@@ -102,11 +110,20 @@ function GuestManagementPage() {
       }
     }
 
-    // Cria um objeto com os campos que realmente serão enviados
-    const dataToSend = {
+    // Create an object with the fields that will actually be sent
+    const dataToSend: EditGuestFormValues = {
       ...submitData,
-      // Garante que e_crianca_atipica seja sempre booleano
+      // Ensure required fields are present
+      nome_convidado: submitData.nome_convidado || '',
+      // Ensure e_crianca_atipica is always boolean
       e_crianca_atipica: Boolean(submitData.e_crianca_atipica),
+      // Ensure all optional fields are present
+      telefone_convidado: submitData.telefone_convidado || null,
+      telefone_responsavel: submitData.telefone_responsavel || null,
+      telefone_acompanhante: null,
+      nome_responsavel: submitData.nome_responsavel || null,
+      nome_acompanhante: null,
+      tipo_convidado: submitData.tipo_convidado || 'ADULTO_PAGANTE'
     }
 
     // Usa o mutate para enviar os dados
@@ -137,21 +154,30 @@ function GuestManagementPage() {
   type GuestCardGuest = {
     id: number
     nome_convidado: string
-    tipo_convidado: string // Usa string para compatibilidade com o GuestCard
+    tipo_convidado: string
     e_crianca_atipica?: boolean
     status?: string
     isCheckedIn?: boolean
     nascimento_convidado?: string | Date | null
+    // Campos de telefone
+    telefone_convidado?: string | null
+    telefone_responsavel_contato?: string | null
+    // Campos de compatibilidade
+    telefone_responsavel?: string | null
+    nome_responsavel_contato?: string | null
+    nome_responsavel?: string | null
     checkin_at?: string | null
     checkout_at?: string | null
   }
 
   const handleEditClick = (guest: GuestCardGuest) => {
+    const isChild = guest.tipo_convidado === 'crianca'
+    
     // Converte o guest para AppGuest, garantindo a tipagem correta
     const guestData: AppGuest = {
       id: guest.id,
       nome_convidado: guest.nome_convidado,
-      tipo_convidado: guest.tipo_convidado as GuestType, // Fazemos a conversão aqui
+      tipo_convidado: guest.tipo_convidado as GuestType,
       e_crianca_atipica: guest.e_crianca_atipica ?? false,
       status: 'Aguardando',
       isCheckedIn: false,
@@ -159,7 +185,21 @@ function GuestManagementPage() {
       checkin_at: null,
       checkout_at: null,
       cadastrado_na_hora: false,
-    }
+      // Mapeia os campos de telefone apropriados para o tipo de convidado
+      ...(isChild
+        ? {
+            // Para crianças: usa campos do responsável
+            nome_responsavel_contato: guest.nome_responsavel_contato || guest.nome_responsavel || null,
+            telefone_responsavel_contato: guest.telefone_responsavel_contato || guest.telefone_responsavel || null,
+          }
+        : {
+            // Para adultos: usa telefone do convidado
+            telefone_convidado: guest.telefone_convidado || null,
+          }),
+      // Mantém campos de compatibilidade
+      nome_responsavel: guest.nome_responsavel_contato || guest.nome_responsavel || null,
+      telefone_responsavel: guest.telefone_responsavel_contato || guest.telefone_responsavel || null,
+    } as AppGuest
 
     // Se existir data de nascimento, garante que seja um Date válido
     if (guest.nascimento_convidado) {
@@ -227,10 +267,20 @@ function GuestManagementPage() {
               onSubmit={handleEditGuestSubmit}
               isLoading={isEditing}
               initialValues={{
-                nome_convidado: editingGuest.nome_convidado,
-                tipo_convidado: editingGuest.tipo_convidado,
-                nascimento_convidado: editingGuest.nascimento_convidado,
+                nome_convidado: editingGuest.nome_convidado || '',
+                tipo_convidado: editingGuest.tipo_convidado || '',
+                nascimento_convidado: editingGuest.nascimento_convidado || null,
                 e_crianca_atipica: editingGuest.e_crianca_atipica ?? false,
+                // Usa o campo de telefone do convidado (para adultos)
+                telefone_convidado: editingGuest.telefone_convidado || '',
+                // Usa o campo de telefone do responsável (para crianças)
+                telefone_responsavel: editingGuest.telefone_responsavel || '',
+                // Usa o campo de telefone do acompanhante (opcional para crianças)
+                telefone_acompanhante: editingGuest.telefone_acompanhante || '',
+                // Usa o campo de nome do responsável (para crianças)
+                nome_responsavel: editingGuest.nome_responsavel || '',
+                // Usa o campo de nome do acompanhante (opcional para crianças)
+                nome_acompanhante: editingGuest.nome_acompanhante || '',
               }}
             />
           )}
