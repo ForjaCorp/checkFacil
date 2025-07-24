@@ -35,12 +35,14 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.2.0",
+    "nodemon": "^3.1.10",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.12",
     "turbo": "^2.5.4",
     "typescript": "~5.8.3"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "multer": "^2.0.1"
   }
 }

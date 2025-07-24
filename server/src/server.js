@@ -18,7 +18,7 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-//teste
+
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use(express.static(path.join(__dirname, '../../client/dist')));
@@ -27,9 +27,20 @@ app.use('/api/auth', authRoutes);
 app.use('/api/festa', festaRoutes);
 app.use('/api/playlists', playlistRoutes);
 
-app.get('/*splat', (_req, res) => {
-  res.sendFile(path.join(__dirname, '../../client/dist', 'index.html'));
-});
+if (process.env.NODE_ENV === 'production') {
+  
+  const clientBuildPath = path.join(__dirname, '../../client/dist');
+  
+ 
+  app.use(express.static(clientBuildPath));
+
+ 
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+  });
+}
+
+
 
 async function LigarServidor() {
   try {
