@@ -2,6 +2,7 @@ import models, { sequelize } from '../models/index.js';
 import { Op } from 'sequelize';
 import { randomBytes } from 'crypto';
 import axios from 'axios';
+import excel from 'exceljs';
 
 function calcularIdade(dataNascimento) {
   if (!dataNascimento) return null;
@@ -829,5 +830,73 @@ export async function uploadImagemConvite(req, res) {
   } catch (error) {
     console.error('Erro no upload do convite:', error);
     return res.status(500).json({ error: 'Erro ao processar imagem do convite.' });
+  }
+}
+
+
+
+export async function downloadConvidados(req, res) {
+  try {
+    // O nome do parâmetro na sua rota é 'id', então usamos req.params.id
+    const { id } = req.params;
+
+    // Acessando os modelos através do objeto 'models'
+    const festa = await models.Festa.findByPk(id, {
+      include: {
+        model: models.ConvidadoFesta,
+        as: 'convidados',
+      },
+    });
+
+    if (!festa) {
+      return res.status(404).json({ error: 'Festa não encontrada' });
+    }
+
+    const workbook = new excel.Workbook();
+    
+    // CORREÇÃO: Garante que o nome da aba não exceda 31 caracteres
+    const worksheetName = `Convidados de ${festa.nome_aniversariante || festa.nome_festa}`.substring(0, 31);
+    const worksheet = workbook.addWorksheet(worksheetName);
+
+    worksheet.columns = [
+      { header: 'Nome do Convidado', key: 'nome', width: 40 },
+      { header: 'Status', key: 'status', width: 20 },
+      { header: 'Tipo', key: 'tipo', width: 20 },
+      { header: 'Check-in', key: 'checkin', width: 15 },
+      { header: 'Data do Check-in', key: 'dataCheckin', width: 25 },
+    ];
+
+    // O campo de check-in no seu modelo parece ser 'checkin_at'
+    festa.convidados.forEach((convidado) => {
+      worksheet.addRow({
+        nome: convidado.nome_convidado,
+        status: convidado.status_confirmacao,
+        tipo: convidado.tipo_convidado,
+        checkin: convidado.checkin_at ? 'Sim' : 'Não',
+        dataCheckin: convidado.checkin_at,
+      });
+    });
+
+    worksheet.getRow(1).font = { bold: true };
+
+    // Lida com nome do aniversariante nulo para criar um nome de arquivo seguro
+    const fileNameBase = festa.nome_aniversariante || festa.nome_festa || 'festa_sem_nome';
+    const safeFileName = fileNameBase.replace(/\s+/g, '_');
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="convidados_${safeFileName}_${festa.id}.xlsx"`
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (error) {
+    console.error('Erro ao gerar a planilha de convidados:', error);
+    res.status(500).json({ error: 'Erro interno ao gerar a planilha.' });
   }
 }

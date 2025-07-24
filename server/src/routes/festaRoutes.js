@@ -43,6 +43,12 @@ router.get(
   festaController.buscarConvidadosPorNome
 );
 
+router.get(
+  '/:id/convidados/download',
+  verificarTokenJWT,
+  festaController.downloadConvidados
+);
+
 // GET /festa/:idFesta/convidados/:idConvidado -> Busca um convidado específico.
 router.get(
   '/:idFesta/convidados/:idConvidado',
@@ -84,5 +90,7 @@ router.post(
   uploadConvite.single('arquivo'),
   uploadImagemConvite
 );
+
+
 
 export default router;
