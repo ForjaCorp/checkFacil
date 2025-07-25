@@ -1,7 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Clock, Calendar, PlusCircle, Search } from 'lucide-react'
+import { Clock, Calendar, PlusCircle, Search, Download } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { GuestCheckinCard } from '@/components/guests/GuestCheckinCard'
 import { WalkinGuestRegistration } from '@/components/guests/WalkinGuestRegistration'
@@ -40,6 +41,9 @@ interface ApiGuestResponse {
   checkin_at?: string | null
   checkout_at?: string | null
   cadastrado_na_hora?: boolean
+  tipo_convidado: GuestType
+  telefone_convidado?: string | null
+  telefone_responsavel_contato?: string | null
 }
 
 interface CheckinGuest {
@@ -49,6 +53,7 @@ interface CheckinGuest {
   walkedIn: boolean
   checkin_at: string | null
   guestType: GuestType
+  phoneNumber: string | null
 }
 
 const CheckinPage = () => {
@@ -56,16 +61,17 @@ const CheckinPage = () => {
   const { eventId } = useParams<{ eventId: string }>()
   const [searchTerm, setSearchTerm] = useState('')
   const [isWalkinDialogOpen, setIsWalkinDialogOpen] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
   
   type SortOrder = 'status' | 'checkin_time_desc' | 'name_asc'
-  const [sortOrder, setSortOrder] = useState<SortOrder>('status')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('name_asc')
   
   type StatusFilter = 'all' | 'Aguardando' | 'Presente' | 'Saiu'
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   
   const { handleCheckin, handleCheckout, isCheckinLoading, isCheckoutLoading } = useCheckinOperations(eventId!)
   const debouncedSearchTerm = useDebounce(searchTerm, 300)
-  const queryKey = ['guests', eventId, debouncedSearchTerm]
+  const queryKey = ['guests', eventId]
 
   const { setTitle } = usePageHeader()
   const { data: eventData, isLoading: isEventLoading } = useQuery({
@@ -85,9 +91,7 @@ const CheckinPage = () => {
     return () => setTitle(null)
   }, [eventData, setTitle])
 
-  const mapGuestData = (
-    guestFromApi: ApiGuestResponse & { tipo_convidado: GuestType },
-  ): CheckinGuest => {
+  const mapGuestData = (guestFromApi: ApiGuestResponse): CheckinGuest => {
     let status: CheckinGuest['status'] = 'Aguardando'
     if (guestFromApi.checkout_at) {
       status = 'Saiu'
@@ -101,6 +105,7 @@ const CheckinPage = () => {
       walkedIn: guestFromApi.cadastrado_na_hora || false,
       checkin_at: guestFromApi.checkin_at || null,
       guestType: guestFromApi.tipo_convidado,
+      phoneNumber: guestFromApi.telefone_convidado || guestFromApi.telefone_responsavel_contato || null,
     }
   }
 
@@ -108,42 +113,34 @@ const CheckinPage = () => {
     queryKey: queryKey,
     queryFn: async () => {
       if (!eventId) return []
-
-      let response
-      if (debouncedSearchTerm) {
-        response = await api.get(`/festa/${eventId}/convidados/buscar`, {
-          params: { nome: debouncedSearchTerm },
-        })
-      } else {
-        response = await api.get(`/festa/${eventId}/convidados`)
-      }
+      const response = await api.get(`/festa/${eventId}/convidados`)
       return response.data.map(mapGuestData) as CheckinGuest[]
     },
     enabled: !!eventId,
   })
 
-  const sortedGuests = useMemo(() => {
+  const filteredAndSortedGuests = useMemo(() => {
     const statusOrder: Record<CheckinGuest['status'], number> = {
       Aguardando: 1,
       Presente: 2,
       Saiu: 3,
     }
 
-    const filteredGuests = guests.filter((guest) => {
+    const filteredBySearch = guests.filter((guest) =>
+      guest.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+    );
+
+    const filteredByStatus = filteredBySearch.filter((guest) => {
       if (statusFilter === 'all') return true
       return guest.status === statusFilter
     })
 
-    return [...filteredGuests].sort((a, b) => {
+    return [...filteredByStatus].sort((a, b) => {
       switch (sortOrder) {
         case 'checkin_time_desc': {
           if (a.checkin_at && !b.checkin_at) return -1
           if (!a.checkin_at && b.checkin_at) return 1
-
-          if (!a.checkin_at && !b.checkin_at) {
-            return a.name.localeCompare(b.name)
-          }
-
+          if (!a.checkin_at && !b.checkin_at) return a.name.localeCompare(b.name)
           const timeA = new Date(a.checkin_at!).getTime()
           const timeB = new Date(b.checkin_at!).getTime()
           return timeB - timeA
@@ -158,16 +155,52 @@ const CheckinPage = () => {
         }
       }
     })
-  }, [guests, sortOrder, statusFilter])
+  }, [guests, sortOrder, statusFilter, debouncedSearchTerm])
 
   const guestsPresentCount = useMemo(() => {
-    return sortedGuests.filter((guest) => guest.status === 'Presente').length
-  }, [sortedGuests])
+    return guests.filter((guest) => guest.status === 'Presente').length
+  }, [guests])
   
   const handleWalkinSuccess = () => {
     setIsWalkinDialogOpen(false)
     queryClient.invalidateQueries({ queryKey })
   }
+
+  const handleDownload = async () => {
+    if (!eventId) return;
+    setIsDownloading(true);
+    toast.info('A preparar a sua folha de cálculo...');
+    try {
+      const response = await api.get(`/festa/${eventId}/convidados/download`, {
+        responseType: 'blob',
+      });
+
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `convidados_festa_${eventId}.xlsx`;
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+        if (filenameMatch && filenameMatch.length > 1) {
+          filename = filenameMatch[1];
+        }
+      }
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success('O download da folha de cálculo foi iniciado!');
+    } catch (err) {
+      console.error('Erro ao baixar a folha de cálculo:', err);
+      toast.error('Não foi possível baixar a folha de cálculo. Tente novamente.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <div className="container mx-auto space-y-6">
@@ -181,7 +214,7 @@ const CheckinPage = () => {
           <h2 className="text-xl font-semibold">Resumo do Evento</h2>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             {isEventLoading ? (
-              <span>Carregando detalhes...</span>
+              <span>A carregar detalhes...</span>
             ) : (
               <>
                 <span className="flex items-center gap-2">
@@ -201,7 +234,7 @@ const CheckinPage = () => {
             <Badge variant="default" className="bg-green-600 text-white">
               Presentes: {guestsPresentCount}
             </Badge>
-            <Badge variant="secondary">Total: {sortedGuests.length}</Badge>
+            <Badge variant="secondary">Total: {guests.length}</Badge>
           </div>
         </div>
 
@@ -215,7 +248,7 @@ const CheckinPage = () => {
             >
               Todos
             </Button>
-            <Button
+             <Button
               size="sm"
               variant={statusFilter === 'Aguardando' ? 'default' : 'outline'}
               onClick={() => setStatusFilter('Aguardando')}
@@ -246,14 +279,14 @@ const CheckinPage = () => {
                 <SelectValue placeholder="Ordenar por..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="status">Ordenar por Status (Padrão)</SelectItem>
-                <SelectItem value="name_asc">Ordenar por Ordem Alfabética</SelectItem>
+                <SelectItem value="name_asc">Ordenar por Ordem Alfabética (Padrão)</SelectItem>
+                <SelectItem value="status">Ordenar por Status</SelectItem>
                 <SelectItem value="checkin_time_desc">Ordenar por Recém-chegados</SelectItem>
               </SelectContent>
             </Select>
             <Dialog open={isWalkinDialogOpen} onOpenChange={setIsWalkinDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="h-9 flex-1 min-w-[240px]">
+                <Button className="h-11 flex-1 min-w-[240px]">
                   <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Convidado
                 </Button>
               </DialogTrigger>
@@ -267,6 +300,16 @@ const CheckinPage = () => {
                 <WalkinGuestRegistration onSuccess={handleWalkinSuccess} />
               </DialogContent>
             </Dialog>
+            <Button onClick={handleDownload} disabled={isDownloading} variant="outline" className="h-11 flex-1 min-w-[240px]">
+              {isDownloading ? (
+                'A baixar...'
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" />
+                  Baixar Planilha
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </div>
@@ -286,8 +329,8 @@ const CheckinPage = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sortedGuests.length > 0 ? (
-            sortedGuests.map((guest) => (
+          {filteredAndSortedGuests.length > 0 ? (
+            filteredAndSortedGuests.map((guest) => (
               <GuestCheckinCard
                 key={guest.id}
                 guest={guest}
