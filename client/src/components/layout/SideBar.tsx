@@ -7,20 +7,14 @@ import { Button } from '@/components/ui/button'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useAuth } from '@/contexts/authContextCore'
 
-/**
- * Renders the sidebar component.
- *
- * @returns The sidebar component.
- *
- * This component will only be visible on large screens and above. It will
- * contain a link to the dashboard, and a link to create a new event if the user
- * is a staff member. It will also contain a link to the user's profile and a
- * logout button.
- */
 export function SideBar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const isStaff = user?.userType === 'Adm_espaco'
+
+  // 🔥 apenas para criar festa
+  const podeCriar =
+    user?.email === 'barradeespacoe@gmail.com' ||
+    user?.email === 'adm.espacocriaraju@gmail.com'
 
   const handleLogout = () => {
     logout()
@@ -45,27 +39,28 @@ export function SideBar() {
           <div className="flex-1 overflow-auto py-4">
             <nav className="grid gap-2 px-2 text-sm font-medium lg:px-4">
               <SideBarLink
-                to={isStaff ? '/staff/dashboard' : '/organizer/dashboard'}
+                to={podeCriar ? '/staff/dashboard' : '/organizer/dashboard'}
                 icon={<LayoutGrid className="h-5 w-5" />}
                 label="Eventos"
                 tooltip="Ver Eventos"
               />
 
-              {isStaff && (
-                <>
-                  <SideBarLink
-                    to="/staff/events/createEventDraft"
-                    icon={<PlusCircle className="h-5 w-5" />}
-                    label="Criar Festa"
-                    tooltip="Criar Nova Festa"
-                  />
-                  <SideBarLink
-                    to="/staff/playlists"
-                    icon={<Music2 className="h-5 w-5" />}
-                    label="Playlists"
-                    tooltip="Gerenciar Playlists"
-                  />
-                </>
+              {/* ✅ Playlist sempre visível */}
+              <SideBarLink
+                to="/staff/playlists"
+                icon={<Music2 className="h-5 w-5" />}
+                label="Playlists"
+                tooltip="Gerenciar Playlists"
+              />
+
+              {/* ✅ Criar Festa só para os permitidos */}
+              {podeCriar && (
+                <SideBarLink
+                  to="/staff/events/createEventDraft"
+                  icon={<PlusCircle className="h-5 w-5" />}
+                  label="Criar Festa"
+                  tooltip="Criar Nova Festa"
+                />
               )}
             </nav>
           </div>

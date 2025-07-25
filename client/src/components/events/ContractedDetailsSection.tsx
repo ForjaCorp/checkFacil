@@ -4,9 +4,19 @@ import { CalendarIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -19,16 +29,33 @@ import { cn } from '@/lib/utils'
 import type { CompleteDetailsFormValues } from '@/schemas/eventSchemas'
 import type { UseFormReturn } from 'react-hook-form'
 
+// ✅ Hook correto
+import { useAuth } from '@/contexts/authContextCore'
+
 interface ContractedDetailsSectionProps {
   form: UseFormReturn<CompleteDetailsFormValues>
   clientPhone: string
 }
 
-export function ContractedDetailsSection({ form, clientPhone }: ContractedDetailsSectionProps) {
+export function ContractedDetailsSection({
+  form,
+  clientPhone,
+}: ContractedDetailsSectionProps) {
+  // ✅ usa o hook certo
+  const { user } = useAuth()
+
+  // ✅ verifica se pode editar
+  const podeEditar =
+    user?.email === 'barradeespacoe@gmail.com' ||
+    user?.email === 'adm.espacocriaraju@gmail.com'
+
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-4 border-b pb-2">Detalhes Contratados</h3>
+      <h3 className="text-lg font-semibold mb-4 border-b pb-2">
+        Detalhes Contratados
+      </h3>
       <div className="space-y-6 rounded-md border p-4 bg-muted/50">
+        {/* Nome da Festa */}
         <FormField
           control={form.control}
           name="partyName"
@@ -36,12 +63,18 @@ export function ContractedDetailsSection({ form, clientPhone }: ContractedDetail
             <FormItem>
               <FormLabel>Nome da Festa</FormLabel>
               <FormControl>
-                <Input placeholder="Ex: Aniversário do(a) Joãozinho" {...field} disabled />
+                <Input
+                  placeholder="Ex: Aniversário do(a) Joãozinho"
+                  {...field}
+                  disabled={!podeEditar}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* Data da Festa */}
         <FormField
           control={form.control}
           name="partyDate"
@@ -55,9 +88,9 @@ export function ContractedDetailsSection({ form, clientPhone }: ContractedDetail
                       variant={'outline'}
                       className={cn(
                         'w-full pl-3 text-left font-normal',
-                        !field.value && 'text-muted-foreground',
+                        !field.value && 'text-muted-foreground'
                       )}
-                      disabled
+                      disabled={!podeEditar}
                     >
                       {field.value ? (
                         format(field.value, 'PPP', { locale: ptBR })
@@ -73,7 +106,7 @@ export function ContractedDetailsSection({ form, clientPhone }: ContractedDetail
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled
+                    disabled={!podeEditar}
                   />
                 </PopoverContent>
               </Popover>
@@ -81,7 +114,9 @@ export function ContractedDetailsSection({ form, clientPhone }: ContractedDetail
             </FormItem>
           )}
         />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          {/* Horário de Início */}
           <FormField
             control={form.control}
             name="startTime"
@@ -89,12 +124,19 @@ export function ContractedDetailsSection({ form, clientPhone }: ContractedDetail
               <FormItem>
                 <FormLabel>Horário de Início</FormLabel>
                 <FormControl>
-                  <Input type="time" {...field} value={field.value ?? ''} disabled />
+                  <Input
+                    type="time"
+                    {...field}
+                    value={field.value ?? ''}
+                    disabled={!podeEditar}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          {/* Horário de Término */}
           <FormField
             control={form.control}
             name="endTime"
@@ -102,20 +144,31 @@ export function ContractedDetailsSection({ form, clientPhone }: ContractedDetail
               <FormItem>
                 <FormLabel>Horário de Término</FormLabel>
                 <FormControl>
-                  <Input type="time" {...field} value={field.value ?? ''} disabled />
+                  <Input
+                    type="time"
+                    {...field}
+                    value={field.value ?? ''}
+                    disabled={!podeEditar}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+
+        {/* Pacote da Festa */}
         <FormField
           control={form.control}
           name="packageType"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Pacote da Festa</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value ?? undefined} disabled>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value ?? undefined}
+                disabled={!podeEditar}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione um pacote" />
@@ -123,16 +176,24 @@ export function ContractedDetailsSection({ form, clientPhone }: ContractedDetail
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="KIDS">Festa Kids</SelectItem>
-                  <SelectItem value="KIDS_MAIS_PARK">Festa Kids + Park</SelectItem>
+                  <SelectItem value="KIDS_MAIS_PARK">
+                    Festa Kids + Park
+                  </SelectItem>
                   <SelectItem value="PLAY">Festa Play</SelectItem>
-                  <SelectItem value="PLAY_MAIS_PARK">Festa Play + Park</SelectItem>
-                  <SelectItem value="KIDS_PARK_PLAY">Festa Kids + Park + Play</SelectItem>
+                  <SelectItem value="PLAY_MAIS_PARK">
+                    Festa Play + Park
+                  </SelectItem>
+                  <SelectItem value="KIDS_PARK_PLAY">
+                    Festa Kids + Park + Play
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* Nº Total de Convidados */}
         <FormField
           control={form.control}
           name="contractedGuests"
@@ -145,19 +206,32 @@ export function ContractedDetailsSection({ form, clientPhone }: ContractedDetail
                   placeholder="Ex: 80"
                   {...field}
                   value={field.value ?? ''}
-                  disabled
+                  disabled={!podeEditar}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <FormItem>
-          <FormLabel>Telefone do Cliente</FormLabel>
-          <FormControl>
-            <Input value={clientPhone || 'Não informado'} disabled />
-          </FormControl>
-        </FormItem>
+
+        {/* Telefone do Cliente – agora também editável para e‑mails permitidos */}
+        <FormField
+          control={form.control}
+          name="clientPhone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Telefone do Cliente</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? clientPhone ?? ''}
+                  disabled={!podeEditar}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
     </div>
   )

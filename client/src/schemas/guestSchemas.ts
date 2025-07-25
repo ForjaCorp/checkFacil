@@ -25,21 +25,20 @@ export const editGuestSchema = z
     nome_convidado: z.string().min(3, { message: 'Nome do convidado é obrigatório.' }),
     tipo_convidado: z.string().optional(),
     
-    // CORREÇÃO: Usamos o novo schema opcional para todos os telefones.
+    
     telefone_convidado: optionalPhoneSchema,
     telefone_responsavel: optionalPhoneSchema,
-    telefone_acompanhante: optionalPhoneSchema, // Este campo agora é corretamente opcional.
+    telefone_acompanhante: optionalPhoneSchema, 
 
     nome_responsavel: z.string().optional().nullable(),
     nome_acompanhante: z.string().optional().nullable(),
     nascimento_convidado: z.union([z.string(), z.date()]).optional().nullable(),
     e_crianca_atipica: z.boolean().default(false),
   })
-  // A lógica a seguir (`.refine`) está correta. Ela garante que os campos,
-  // que por padrão são opcionais, se tornem obrigatórios dependendo do tipo de convidado.
+ 
   .refine(
     (data) => {
-      // Para adultos e similares, telefone_convidado é obrigatório
+     
       const isAdultType =
         data.tipo_convidado === 'ADULTO_PAGANTE' ||
         data.tipo_convidado === 'BABA' ||
@@ -47,7 +46,7 @@ export const editGuestSchema = z
         data.tipo_convidado === 'ACOMPANHANTE_ATIPICO'
 
       if (isAdultType) {
-        // Verifica se há um valor e se ele não está vazio
+        
         return !!data.telefone_convidado
       }
       return true

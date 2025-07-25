@@ -860,20 +860,26 @@ export async function downloadConvidados(req, res) {
 
     worksheet.columns = [
       { header: 'Nome do Convidado', key: 'nome', width: 40 },
-      { header: 'Status', key: 'status', width: 20 },
+      { header: 'Telefone Responsavel', key: 'TelefoneResponsavel', width: 15 },
+      { header: 'Aniversario Convidado', key: 'AniversarioCon', width: 15 },
       { header: 'Tipo', key: 'tipo', width: 20 },
       { header: 'Check-in', key: 'checkin', width: 15 },
       { header: 'Data do Check-in', key: 'dataCheckin', width: 25 },
+      { header: 'Check-Out', key: 'checkout', width: 15 },
+      { header: 'Data do Check-Out', key: 'dataCheckOut', width: 25 },
     ];
 
     // O campo de check-in no seu modelo parece ser 'checkin_at'
     festa.convidados.forEach((convidado) => {
       worksheet.addRow({
         nome: convidado.nome_convidado,
-        status: convidado.status_confirmacao,
+        TelefoneResponsavel: convidado.telefone_responsavel_contato,
+        AniversarioCon: convidado.nascimento_convidado,
         tipo: convidado.tipo_convidado,
         checkin: convidado.checkin_at ? 'Sim' : 'Não',
         dataCheckin: convidado.checkin_at,
+        checkin: convidado.checkout_at ? 'Sim' : 'Não',
+        dataCheckin: convidado.checkout_at,
       });
     });
 
