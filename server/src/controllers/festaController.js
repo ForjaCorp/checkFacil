@@ -878,8 +878,8 @@ export async function downloadConvidados(req, res) {
         tipo: convidado.tipo_convidado,
         checkin: convidado.checkin_at ? 'Sim' : 'Não',
         dataCheckin: convidado.checkin_at,
-        checkin: convidado.checkout_at ? 'Sim' : 'Não',
-        dataCheckin: convidado.checkout_at,
+        checkout: convidado.checkout_at ? 'Sim' : 'Não',
+        dataCheckout: convidado.checkout_at,
       });
     });
 
@@ -887,8 +887,14 @@ export async function downloadConvidados(req, res) {
 
     // Lida com nome do aniversariante nulo para criar um nome de arquivo seguro
     const fileNameBase = festa.nome_aniversariante || festa.nome_festa || 'festa_sem_nome';
-    const safeFileName = fileNameBase.replace(/\s+/g, '_');
-
+    const safeFileName = fileNameBase
+    .trim()                          // Remove espaços no início/fim
+    .toLowerCase()                   // Deixa tudo minúsculo (opcional, mas recomendado)
+    .normalize('NFD')               // Remove acentos
+    .replace(/[\u0300-\u036f]/g, '') 
+    .replace(/\s+/g, '_')           // Substitui espaços por underline
+    .replace(/[^\w\-]/g, '')        // Remove caracteres não permitidos (como !, /, %, etc.)
+  
     res.setHeader(
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
