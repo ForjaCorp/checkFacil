@@ -27,18 +27,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/festa', festaRoutes);
 app.use('/api/playlists', playlistRoutes);
 
-if (process.env.NODE_ENV === 'production') {
-  
-  const clientBuildPath = path.join(__dirname, '../../client/dist');
-  
- 
-  app.use(express.static(clientBuildPath));
+app.get('/*splat', (_req, res) => {
 
- 
-  app.get('*', (_req, res) => {
-    res.sendFile(path.join(clientBuildPath, 'index.html'));
-  });
-}
+ res.sendFile(path.join(__dirname, '../../client/dist', 'index.html'));
+
+});
 
 
 
