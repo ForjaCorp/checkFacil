@@ -72,7 +72,7 @@ export async function criarFesta(req, res) {
       }
     } else {
       const webhookUrl =
-        'https://webhook.4growthbr.space/webhook/450d7592-a575-4062-9228-ad5f3236bb1d';
+        'https://webhook.4growthbr.space/webhook/642999e9-678f-4a15-ac9d-cbcb01f34bba';
       try {
         const payloadWebhook = {
           nomeCliente: clienteOrganizador.nome,
@@ -613,7 +613,7 @@ export async function checkinConvidado(req, res) {
     try {
       const payloadWebhook = {
         nomeCrianca: convidado.nome_convidado,
-        nomeResponsavel: convidado.nome_responsavel,
+        nomeResponsavel: convidado.nome_responsavel_contato,
         telefoneResponsavel: convidado.telefone_responsavel_contato,
         horarioCheckin: convidado.checkin_at,
         mensagem: `Check-in realizado para este convidado`

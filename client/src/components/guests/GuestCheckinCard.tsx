@@ -1,4 +1,4 @@
-import { Loader2, UserCheck, UserX } from 'lucide-react'
+import { Loader2, UserCheck, UserX, MessageSquare } from 'lucide-react'
 
 import { ExtraBadge } from '@/components/guests/ExtraBadge'
 import { GuestCheckinCardSkeleton } from '@/components/guests/skeletons/GuestCheckinCardSkeleton'
@@ -14,7 +14,9 @@ export interface CheckinGuest {
   name: string
   status: 'Aguardando' | 'Presente' | 'Saiu'
   walkedIn: boolean
-  guestType: string // Mantido para compatibilidade, mas não está mais sendo usado
+  guestType: string
+  // 1. Adicionado o campo para receber o número de telefone
+  phoneNumber: string | null 
 }
 
 interface GuestCheckinCardProps {
@@ -61,7 +63,21 @@ export function GuestCheckinCard({
     <Card>
       <CardHeader>
         <div className="flex justify-between items-start gap-2">
-          <CardTitle className="text-lg">{guest.name}</CardTitle>
+          {/* 2. Adicionado o botão do WhatsApp ao lado do nome */}
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-lg">{guest.name}</CardTitle>
+            {guest.phoneNumber && (
+              <a
+                href={`https://wa.me/${guest.phoneNumber.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Enviar mensagem no WhatsApp"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MessageSquare className="h-5 w-5 text-green-500 hover:text-green-600 cursor-pointer" />
+              </a>
+            )}
+          </div>
           <Badge variant={statusInfo.variant} className={statusInfo.className}>
             {statusInfo.text}
           </Badge>

@@ -31,40 +31,45 @@ interface GuestFormProps {
   initialValues: Partial<EditGuestFormValues & { tipo_convidado: GuestType }>
 }
 
+const getGuestTypeFriendlyName = (type: string) => {
+  const names: { [key: string]: string } = {
+    ADULTO_PAGANTE: 'Adulto',
+    CRIANCA_PAGANTE: 'Criança',
+    CRIANCA_ATE_1_ANO: 'Criança (até 1 ano)',
+    BABA: 'Babá',
+    ANFITRIAO_FAMILIA_DIRETA: 'Anfitrião/Família',
+    ACOMPANHANTE_ATIPICO: 'Acompanhante',
+  }
+  return names[type] || type
+}
+
 export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps) {
   const form = useForm<EditGuestFormValues>({
     resolver: zodResolver(editGuestSchema),
-    defaultValues: {
-      ...initialValues,
-      // Garantir que os campos opcionais tenham valores padrão
-      telefone_convidado: initialValues.telefone_convidado || '',
-      telefone_responsavel: initialValues.telefone_responsavel || '',
-      nome_responsavel: initialValues.nome_responsavel || '',
-      e_crianca_atipica: initialValues.e_crianca_atipica || false,
-      tipo_convidado: initialValues.tipo_convidado || 'adulto',
-    },
+    defaultValues: initialValues,
   })
 
-  // Atualiza os valores do formulário quando initialValues mudar
   useEffect(() => {
     if (initialValues) {
-      form.reset({
-        ...initialValues,
-        telefone_convidado: initialValues.telefone_convidado || '',
-        telefone_responsavel: initialValues.telefone_responsavel || '',
-        nome_responsavel: initialValues.nome_responsavel || '',
-        e_crianca_atipica: initialValues.e_crianca_atipica || false,
-        tipo_convidado: initialValues.tipo_convidado || 'adulto',
-      })
+      form.reset(initialValues)
     }
-  }, [initialValues, form])
+  }, [initialValues, form.reset])
 
-  const isChild = initialValues.tipo_convidado?.includes('CRIANCA') || false
+  // ✨ NOSSO "DEDO-DURO" ESTÁ AQUI!
+  // Esta função será chamada se a validação falhar.
+  const onFormError = (errors: any) => {
+    console.error("ERROS DE VALIDAÇÃO DO FORMULÁRIO:", errors);
+    alert("O formulário contém erros. Verifique o console (F12) para ver os detalhes.");
+  };
+
+  const guestType = form.watch('tipo_convidado')
+  const isChild = guestType?.includes('CRIANCA') || false
   const isAdult = !isChild
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      {/* Aqui usamos a função onError para capturar falhas */}
+      <form onSubmit={form.handleSubmit(onSubmit, onFormError)} className="space-y-6">
         <div>
           <Label>Tipo de Convidado</Label>
           <p className="text-sm text-muted-foreground pt-2 font-medium">
@@ -96,15 +101,7 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
               <FormItem>
                 <FormLabel>Telefone</FormLabel>
                 <FormControl>
-                  <PhoneInput
-                    placeholder="+55 (XX) 9XXXX-XXXX"
-                    {...field}
-                    value={field.value || ''}
-                    onChange={(e) => {
-                      const numbers = e.target.value.replace(/\D/g, '')
-                      field.onChange(numbers)
-                    }}
-                  />
+                  <PhoneInput placeholder="+55 (XX) 9XXXX-XXXX" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -119,7 +116,7 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
                 <FormItem>
                   <FormLabel>Nome do Responsável</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nome do responsável" {...field} value={field.value || ''} />
+                    <Input placeholder="Nome do responsável" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -133,15 +130,7 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
                 <FormItem>
                   <FormLabel>Telefone do Responsável</FormLabel>
                   <FormControl>
-                    <PhoneInput
-                      placeholder="+55 (XX) 9XXXX-XXXX"
-                      {...field}
-                      value={field.value || ''}
-                      onChange={(e) => {
-                        const numbers = e.target.value.replace(/\D/g, '')
-                        field.onChange(numbers)
-                      }}
-                    />
+                    <PhoneInput placeholder="+55 (XX) 9XXXX-XXXX" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -209,16 +198,4 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
       </form>
     </Form>
   )
-}
-
-const getGuestTypeFriendlyName = (type: string) => {
-  const names: { [key: string]: string } = {
-    ADULTO_PAGANTE: 'Adulto',
-    CRIANCA_PAGANTE: 'Criança',
-    CRIANCA_ATE_1_ANO: 'Criança (até 1 ano)',
-    BABA: 'Babá',
-    ANFITRIAO_FAMILIA_DIRETA: 'Anfitrião/Família',
-    ACOMPANHANTE_ATIPICO: 'Acompanhante',
-  }
-  return names[type] || type
 }
