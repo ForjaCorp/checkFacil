@@ -26,18 +26,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+
 // Hooks
-import { useGuestOperations } from '@/hooks/useGuestOperations'; // <-- CORREÇÃO APLICADA AQUI
+import { useGuestOperations } from '@/hooks/useGuestOperations';
 import { usePageHeader } from '@/hooks/usePageHeader';
+
 // Schemas
 import { type EditGuestFormValues } from '@/schemas/guestSchemas';
+
 // Services
 import api from '@/services/api';
 
 // Types & Constants
 import type { AppGuest, GuestType, GuestFilterOptions } from '@/types/guest';
 
-// Opções de filtro para o dropdown
 const GUEST_TYPE_OPTIONS: GuestFilterOptions[] = [
   { value: 'all', label: 'Todos os tipos' },
   { value: 'ADULTO_PAGANTE', label: 'Adulto' },
@@ -48,7 +50,6 @@ const GUEST_TYPE_OPTIONS: GuestFilterOptions[] = [
   { value: 'ACOMPANHANTE_ATIPICO', label: 'Acompanhante' },
 ];
 
-// Mapeamento de tipos de convidado para exibição
 const GUEST_TYPE_LABELS: Record<GuestType, string> = {
   ADULTO_PAGANTE: 'Adulto',
   CRIANCA_PAGANTE: 'Criança',
@@ -115,9 +116,11 @@ function GuestManagementPage() {
 
     if (isChild) {
       dataToSend.nome_responsavel_contato = formData.nome_responsavel || null;
-      dataToSend.telefone_responsavel_contato = formData.telefone_responsavel?.replace(/\D/g, '') || null;
+      dataToSend.telefone_responsavel_contato =
+        formData.telefone_responsavel?.replace(/\D/g, '') || null;
     } else {
-      dataToSend.telefone_convidado = formData.telefone_convidado?.replace(/\D/g, '') || null;
+      dataToSend.telefone_convidado =
+        formData.telefone_convidado?.replace(/\D/g, '') || null;
     }
 
     if (formData.nascimento_convidado) {
@@ -202,11 +205,17 @@ function GuestManagementPage() {
   const filteredAndSortedGuests = useMemo(() => {
     return guests
       .filter((guest) => {
-        const matchesSearch = guest.nome_convidado.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesType = guestTypeFilter === 'all' || guest.tipo_convidado === guestTypeFilter;
+        const nome = guest?.nome_convidado || '';
+        const matchesSearch = nome.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesType =
+          guestTypeFilter === 'all' || guest?.tipo_convidado === guestTypeFilter;
         return matchesSearch && matchesType;
       })
-      .sort((a, b) => a.nome_convidado.localeCompare(b.nome_convidado));
+      .sort((a, b) => {
+        const nomeA = a?.nome_convidado || '';
+        const nomeB = b?.nome_convidado || '';
+        return nomeA.localeCompare(nomeB);
+      });
   }, [guests, searchTerm, guestTypeFilter]);
 
   return (
@@ -227,12 +236,19 @@ function GuestManagementPage() {
               onSearchChange={setSearchTerm}
               filterOptions={GUEST_TYPE_OPTIONS}
               selectedFilter={guestTypeFilter}
-              onFilterChange={(value) => setGuestTypeFilter(value as 'all' | GuestType)}
+              onFilterChange={(value) =>
+                setGuestTypeFilter(value as 'all' | GuestType)
+              }
               searchPlaceholder="Buscar convidado..."
               filterPlaceholder="Tipo de convidado"
             />
           </div>
-          <Button onClick={handleDownload} disabled={isDownloading} variant="outline" className="w-full md:w-auto">
+          <Button
+            onClick={handleDownload}
+            disabled={isDownloading}
+            variant="outline"
+            className="w-full md:w-auto"
+          >
             {isDownloading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
@@ -289,7 +305,8 @@ function GuestManagementPage() {
             <TableBody>
               {filteredAndSortedGuests.length > 0 ? (
                 filteredAndSortedGuests.map((guest) => {
-                  const phoneNumber = guest.telefone_convidado || guest.telefone_responsavel;
+                  const phoneNumber =
+                    guest.telefone_convidado || guest.telefone_responsavel;
                   return (
                     <TableRow key={guest.id}>
                       <TableCell className="font-medium">
@@ -297,18 +314,23 @@ function GuestManagementPage() {
                           <span className="flex items-center gap-2">
                             {guest.nome_convidado}
                             {guest.cadastrado_na_hora && (
-                              <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+                              <Badge
+                                variant="outline"
+                                className="border-yellow-500 text-yellow-600"
+                              >
                                 Extra
                               </Badge>
                             )}
                           </span>
                           <span className="sm:hidden text-sm text-muted-foreground">
-                            {GUEST_TYPE_LABELS[guest.tipo_convidado] || guest.tipo_convidado}
+                            {GUEST_TYPE_LABELS[guest.tipo_convidado] ||
+                              guest.tipo_convidado}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {GUEST_TYPE_LABELS[guest.tipo_convidado] || guest.tipo_convidado}
+                        {GUEST_TYPE_LABELS[guest.tipo_convidado] ||
+                          guest.tipo_convidado}
                       </TableCell>
                       <TableCell className="text-right">
                         {phoneNumber && (
@@ -323,10 +345,18 @@ function GuestManagementPage() {
                             </Button>
                           </a>
                         )}
-                        <Button variant="ghost" size="icon" onClick={() => handleEditClick(guest)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditClick(guest)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(guest)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteClick(guest)}
+                        >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
                       </TableCell>
@@ -354,8 +384,8 @@ function GuestManagementPage() {
         title="Remover Convidado"
         description={
           guestToDelete
-            ? `Tem a certeza de que deseja remover ${guestToDelete.nome_convidado}? Esta ação não pode ser desfeita.`
-            : 'Tem a certeza de que deseja remover este convidado? Esta ação não pode ser desfeita.'
+            ? `Tem certeza de que deseja remover ${guestToDelete.nome_convidado}? Esta ação não pode ser desfeita.`
+            : 'Tem certeza de que deseja remover este convidado? Esta ação não pode ser desfeita.'
         }
         confirmText="Remover Convidado"
         cancelText="Cancelar"

@@ -26,6 +26,13 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { SearchAndFilterBar } from '@/components/common/SearchAndFilterBar'
 import { WalkinGuestRegistration } from '@/components/guests/WalkinGuestRegistration'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 // Hooks
 import { useCheckinOperations } from '@/hooks/useCheckinOperations'
@@ -76,10 +83,16 @@ export default function CheckinPage() {
   const [isWalkinDialogOpen, setIsWalkinDialogOpen] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
 
-  // estados para observação
+  // estados observação
   const [isObservationDialogOpen, setIsObservationDialogOpen] = useState(false)
   const [selectedGuestId, setSelectedGuestId] = useState<number | null>(null)
   const [observationText, setObservationText] = useState('')
+
+  // estados disparo
+  const [isDisparoDialogOpen, setIsDisparoDialogOpen] = useState(false)
+  const [disparoMensagem, setDisparoMensagem] = useState('')
+  const [filtroDisparo, setFiltroDisparo] = useState<'Todos' | 'Presente' | 'Aguardando' | 'Saiu'>('Presente')
+  const [isSending, setIsSending] = useState(false)
 
   const { handleCheckin, handleCheckout, isCheckinLoading, isCheckoutLoading } = useCheckinOperations(eventId)
   const debouncedSearchTerm = useDebounce(searchTerm, 300)
@@ -124,9 +137,11 @@ export default function CheckinPage() {
     enabled: !!eventId,
   })
 
+  // 🔧 proteção contra undefined no name
   const filteredGuests = useMemo(() => {
     return guests.filter((guest) => {
-      const matchesSearch = guest.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+      const nome = guest?.name || ''
+      const matchesSearch = nome.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
       const matchesStatus = statusFilter === 'all' || guest.status === statusFilter
       return matchesSearch && matchesStatus
     })
@@ -170,7 +185,6 @@ export default function CheckinPage() {
     }
   }
 
-  // abrir modal de observação
   const handleOpenObservation = (guestId: number) => {
     setSelectedGuestId(guestId)
     setObservationText('')
@@ -192,14 +206,35 @@ export default function CheckinPage() {
     }
   }
 
+  const handleDispararMensagem = async () => {
+    if (!eventId) return
+    if (!disparoMensagem.trim()) {
+      toast.error('Digite uma mensagem antes de enviar.')
+      return
+    }
+    setIsSending(true)
+    try {
+      await api.post(`/festa/${eventId}/disparar-mensagem`, { mensagem: disparoMensagem, filtro: filtroDisparo })
+      toast.success('Mensagem disparada!')
+      setIsDisparoDialogOpen(false)
+      setDisparoMensagem('')
+    } catch (err) {
+      console.error('Erro ao disparar mensagem:', err)
+      toast.error('Falha ao disparar mensagens.')
+    } finally {
+      setIsSending(false)
+    }
+  }
+
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
+      {/* Cabeçalho */}
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Lista de Check-in</h1>
             <p className="text-muted-foreground">{eventData?.nome_festa || ''}</p>
-            <div className="mt-1 flex gap-2">
+            <div className="mt-1 flex flex-wrap gap-2">
               <Badge variant="default" className="bg-green-600 text-white">
                 Presentes: {guestsPresentCount}
               </Badge>
@@ -220,32 +255,40 @@ export default function CheckinPage() {
               filterPlaceholder="Status"
             />
           </div>
-          <Dialog open={isWalkinDialogOpen} onOpenChange={setIsWalkinDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="w-full md:w-auto">
-                + Adicionar Convidado
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Cadastrar Convidado Extra</DialogTitle>
-                <DialogDescription>Preencha os dados do responsável e dos convidados.</DialogDescription>
-              </DialogHeader>
-              <WalkinGuestRegistration onSuccess={handleWalkinSuccess} />
-            </DialogContent>
-          </Dialog>
-          <Button
-            onClick={handleDownload}
-            disabled={isDownloading}
-            variant="outline"
-            className="w-full md:w-auto"
-          >
-            {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-            Baixar Planilha
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <Dialog open={isWalkinDialogOpen} onOpenChange={setIsWalkinDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full sm:w-auto">+ Adicionar Convidado</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Cadastrar Convidado Extra</DialogTitle>
+                  <DialogDescription>Preencha os dados do responsável e dos convidados.</DialogDescription>
+                </DialogHeader>
+                <WalkinGuestRegistration onSuccess={handleWalkinSuccess} />
+              </DialogContent>
+            </Dialog>
+            <Button
+              onClick={handleDownload}
+              disabled={isDownloading}
+              variant="outline"
+              className="w-full sm:w-auto"
+            >
+              {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+              Baixar Planilha
+            </Button>
+            <Button
+              onClick={() => setIsDisparoDialogOpen(true)}
+              variant="secondary"
+              className="w-full sm:w-auto"
+            >
+              📲 Disparar mensagem
+            </Button>
+          </div>
         </div>
       </div>
 
+      {/* tabela */}
       <div className="border rounded-lg overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
@@ -280,7 +323,6 @@ export default function CheckinPage() {
                     <TableCell className="hidden sm:table-cell">{guest.phoneNumber || '-'}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        {/* Botão lápis */}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -288,7 +330,6 @@ export default function CheckinPage() {
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-
                         <Button
                           size="sm"
                           onClick={() => handleCheckin(guest.id)}
@@ -322,14 +363,12 @@ export default function CheckinPage() {
         )}
       </div>
 
-      {/* Modal para editar observação */}
+      {/* modal observação */}
       <Dialog open={isObservationDialogOpen} onOpenChange={setIsObservationDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Adicionar Observação</DialogTitle>
-            <DialogDescription>
-              Adicione ou edite observações sobre este convidado.
-            </DialogDescription>
+            <DialogDescription>Adicione ou edite observações sobre este convidado.</DialogDescription>
           </DialogHeader>
           <Textarea
             value={observationText}
@@ -342,6 +381,45 @@ export default function CheckinPage() {
               Cancelar
             </Button>
             <Button onClick={handleSaveObservation}>Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* modal disparo */}
+      <Dialog open={isDisparoDialogOpen} onOpenChange={setIsDisparoDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Disparar mensagem</DialogTitle>
+            <DialogDescription>Esta mensagem será enviada via WhatsApp.</DialogDescription>
+          </DialogHeader>
+
+          {/* Select filtro */}
+          <Select value={filtroDisparo} onValueChange={(val) => setFiltroDisparo(val as any)}>
+            <SelectTrigger className="mt-2">
+              <SelectValue placeholder="Selecione o status para envio" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Todos">Todos</SelectItem>
+              <SelectItem value="Presente">Presente</SelectItem>
+              <SelectItem value="Aguardando">Aguardando</SelectItem>
+              <SelectItem value="Saiu">Saiu</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Textarea
+            value={disparoMensagem}
+            onChange={(e) => setDisparoMensagem(e.target.value)}
+            placeholder="Digite a mensagem que será enviada..."
+            className="mt-2"
+          />
+          <div className="mt-4 flex flex-col sm:flex-row justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsDisparoDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleDispararMensagem} disabled={isSending}>
+              {isSending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSending ? 'Enviando...' : 'Enviar'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
