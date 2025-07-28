@@ -141,6 +141,15 @@ function EventForm({ eventData, playlists }: { eventData: ApiEventData; playlist
 
   const onSubmit: SubmitHandler<CompleteDetailsFormValues> = (values) => {
     const updatePayload: UpdateEventPayload = {
+      nome_festa: values.partyName,
+      data_festa: values.partyDate instanceof Date
+        ? values.partyDate.toISOString().slice(0, 10)
+        : values.partyDate,
+      horario_inicio: values.startTime || null,
+      horario_fim: values.endTime || null,
+      pacote_escolhido: values.packageType,
+      numero_convidados_contratado: values.contractedGuests,
+      telefone: values.clientPhone,
       descricao: values.description,
       nome_aniversariante: values.birthdayPersonName,
       idade_aniversariante: values.birthdayPersonAge,
@@ -152,8 +161,6 @@ function EventForm({ eventData, playlists }: { eventData: ApiEventData; playlist
       link_playlist_spotify: values.spotifyPlaylistLink || null,
       observacoes_festa: values.partyObservations,
       status: 'PRONTA',
-      horario_inicio: values.startTime || null,
-      horario_fim: values.endTime || null,
       decorador_nome: values.decoradorNome || '',
       decorador_contato: values.decoradorContato || '',
       tem_material_terceirizado: values.temMaterialTerceirizado || false,
