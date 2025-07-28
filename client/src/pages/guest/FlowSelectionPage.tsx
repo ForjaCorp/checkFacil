@@ -86,7 +86,7 @@ export default function FlowSelectionPage() {
               <img
                 src={event.link_convite}
                 alt={`Convite para ${event.nome_festa}`}
-                className="rounded-lg shadow-lg aspect-[3/4] h-auto w-full max-w-sm object-cover"
+                className="rounded-lg shadow-lg aspect-[2/3] h-auto w-full max-w-sm object-cover"
               />
             </div>
           )}
