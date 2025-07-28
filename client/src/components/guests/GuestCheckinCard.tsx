@@ -1,4 +1,4 @@
-import { Loader2, UserCheck, UserX, MessageSquare } from 'lucide-react'
+import { Loader2, UserCheck, UserX, MessageSquare, Edit } from 'lucide-react'
 
 import { ExtraBadge } from '@/components/guests/ExtraBadge'
 import { GuestCheckinCardSkeleton } from '@/components/guests/skeletons/GuestCheckinCardSkeleton'
@@ -9,14 +9,14 @@ import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import type { VariantProps } from 'class-variance-authority'
 
 type BadgeVariant = VariantProps<typeof badgeVariants>['variant']
+
 export interface CheckinGuest {
   id: number
   name: string
   status: 'Aguardando' | 'Presente' | 'Saiu'
   walkedIn: boolean
   guestType: string
-  // 1. Adicionado o campo para receber o número de telefone
-  phoneNumber: string | null 
+  phoneNumber: string | null
 }
 
 interface GuestCheckinCardProps {
@@ -25,6 +25,7 @@ interface GuestCheckinCardProps {
   onCheckin: (guestId: number) => void
   onCheckout: (guestId: number) => void
   isLoading?: boolean
+  onEditObservation?: (guestId: number) => void // ⭐ nova prop para abrir modal
 }
 
 interface StatusInfo {
@@ -38,11 +39,13 @@ export function GuestCheckinCard({
   isActionLoading,
   onCheckin,
   onCheckout,
+  onEditObservation, // ⭐ recebendo prop
   isLoading = false,
 }: GuestCheckinCardProps) {
   if (isLoading || !guest) {
     return <GuestCheckinCardSkeleton />
   }
+
   const getStatusInfo = (): StatusInfo => {
     switch (guest.status) {
       case 'Presente':
@@ -57,13 +60,13 @@ export function GuestCheckinCard({
         return { text: 'Aguardando', variant: 'secondary' }
     }
   }
+
   const statusInfo = getStatusInfo()
 
   return (
     <Card>
       <CardHeader>
         <div className="flex justify-between items-start gap-2">
-          {/* 2. Adicionado o botão do WhatsApp ao lado do nome */}
           <div className="flex items-center gap-2">
             <CardTitle className="text-lg">{guest.name}</CardTitle>
             {guest.phoneNumber && (
@@ -78,14 +81,30 @@ export function GuestCheckinCard({
               </a>
             )}
           </div>
-          <Badge variant={statusInfo.variant} className={statusInfo.className}>
-            {statusInfo.text}
-          </Badge>
+
+          {/* ⭐ Badge de status e botão de lápis */}
+          <div className="flex items-center gap-2">
+            <Badge variant={statusInfo.variant} className={statusInfo.className}>
+              {statusInfo.text}
+            </Badge>
+            {onEditObservation && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onEditObservation(guest.id)}
+                title="Adicionar observação"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
+
         <div className="flex flex-wrap items-center gap-2 mt-2">
           {guest.walkedIn && <ExtraBadge />}
         </div>
       </CardHeader>
+
       <CardFooter className="grid grid-cols-2 gap-2 pt-6 border-t-2 border-dashed">
         <Button
           variant="outline"
@@ -99,6 +118,7 @@ export function GuestCheckinCard({
           )}
           Check-in
         </Button>
+
         <Button
           variant="destructive"
           onClick={() => onCheckout(guest.id)}

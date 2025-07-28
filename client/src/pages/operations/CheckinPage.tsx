@@ -1,48 +1,48 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, Download, Loader2, LogOut } from 'lucide-react'
+import { Loader2, Download, Check, LogOut, Edit } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
-import { SearchAndFilterBar } from '@/components/common/SearchAndFilterBar'
-import { WalkinGuestRegistration } from '@/components/guests/WalkinGuestRegistration'
-import { Badge } from '@/components/ui/badge'
+// UI Components
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
+import { SearchAndFilterBar } from '@/components/common/SearchAndFilterBar'
+import { WalkinGuestRegistration } from '@/components/guests/WalkinGuestRegistration'
 
+// Hooks
 import { useCheckinOperations } from '@/hooks/useCheckinOperations'
 import { useDebounce } from '@/hooks/useDebounce'
 import { usePageHeader } from '@/hooks/usePageHeader'
 
+// Services
 import api from '@/services/api'
 
+// Types
 import type { GuestType } from '@/types'
-
-// -------------------------------
-// Tipos e constantes
-// -------------------------------
-type StatusFilter = 'all' | 'Aguardando' | 'Presente' | 'Saiu'
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'Todos os status' },
   { value: 'Aguardando', label: 'Aguardando' },
   { value: 'Presente', label: 'Presente' },
-  { value: 'Saiu', label: 'Saiu' }
+  { value: 'Saiu', label: 'Saiu' },
 ]
 
 interface ApiGuestResponse {
@@ -66,22 +66,23 @@ interface CheckinGuest {
   phoneNumber: string | null
 }
 
-// -------------------------------
-// Componente principal
-// -------------------------------
 export default function CheckinPage() {
   const queryClient = useQueryClient()
   const { setTitle } = usePageHeader()
   const { eventId = '' } = useParams<{ eventId: string }>()
 
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'Aguardando' | 'Presente' | 'Saiu'>('all')
   const [isWalkinDialogOpen, setIsWalkinDialogOpen] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
 
-  const debouncedSearchTerm = useDebounce(searchTerm, 300)
+  // estados para observação
+  const [isObservationDialogOpen, setIsObservationDialogOpen] = useState(false)
+  const [selectedGuestId, setSelectedGuestId] = useState<number | null>(null)
+  const [observationText, setObservationText] = useState('')
 
   const { handleCheckin, handleCheckout, isCheckinLoading, isCheckoutLoading } = useCheckinOperations(eventId)
+  const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
   const { data: eventData } = useQuery({
     queryKey: ['eventDetails', eventId],
@@ -90,8 +91,13 @@ export default function CheckinPage() {
       const response = await api.get(`/festa/${eventId}`)
       return response.data
     },
-    enabled: !!eventId
+    enabled: !!eventId,
   })
+
+  useEffect(() => {
+    setTitle(`Check-in: ${eventData?.nome_festa || ''}`)
+    return () => setTitle(null)
+  }, [eventData, setTitle])
 
   const mapGuestData = (g: ApiGuestResponse): CheckinGuest => {
     let status: CheckinGuest['status'] = 'Aguardando'
@@ -104,7 +110,7 @@ export default function CheckinPage() {
       walkedIn: g.cadastrado_na_hora || false,
       checkin_at: g.checkin_at || null,
       guestType: g.tipo_convidado,
-      phoneNumber: g.telefone_convidado || g.telefone_responsavel_contato || null
+      phoneNumber: g.telefone_convidado || g.telefone_responsavel_contato || null,
     }
   }
 
@@ -115,13 +121,8 @@ export default function CheckinPage() {
       const response = await api.get(`/festa/${eventId}/convidados`)
       return response.data.map(mapGuestData) as CheckinGuest[]
     },
-    enabled: !!eventId
+    enabled: !!eventId,
   })
-
-  useEffect(() => {
-    setTitle(`Check-in: ${eventData?.nome_festa || ''}`)
-    return () => setTitle(null)
-  }, [eventData, setTitle])
 
   const filteredGuests = useMemo(() => {
     return guests.filter((guest) => {
@@ -131,10 +132,7 @@ export default function CheckinPage() {
     })
   }, [guests, debouncedSearchTerm, statusFilter])
 
-  const guestsPresentCount = useMemo(
-    () => guests.filter((g) => g.status === 'Presente').length,
-    [guests]
-  )
+  const guestsPresentCount = guests.filter((g) => g.status === 'Presente').length
 
   const handleWalkinSuccess = () => {
     setIsWalkinDialogOpen(false)
@@ -144,19 +142,17 @@ export default function CheckinPage() {
   const handleDownload = async () => {
     if (!eventId) return
     setIsDownloading(true)
-    toast.info('A preparar a sua folha de cálculo...')
+    toast.info('A preparar a sua planilha...')
     try {
       const response = await api.get(`/festa/${eventId}/convidados/download`, {
-        responseType: 'blob'
+        responseType: 'blob',
       })
-
       const contentDisposition = response.headers['content-disposition']
       let filename = `convidados_festa_${eventId}.xlsx`
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="?(.+)"?/)
         if (match && match.length > 1) filename = match[1]
       }
-
       const url = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement('a')
       link.href = url
@@ -165,13 +161,34 @@ export default function CheckinPage() {
       link.click()
       link.remove()
       window.URL.revokeObjectURL(url)
-
       toast.success('O download da folha de cálculo foi iniciado!')
     } catch (err) {
       console.error(err)
       toast.error('Não foi possível baixar a folha de cálculo.')
     } finally {
       setIsDownloading(false)
+    }
+  }
+
+  // abrir modal de observação
+  const handleOpenObservation = (guestId: number) => {
+    setSelectedGuestId(guestId)
+    setObservationText('')
+    setIsObservationDialogOpen(true)
+  }
+
+  const handleSaveObservation = async () => {
+    if (!selectedGuestId || !eventId) return
+    try {
+      await api.patch(`/festa/${eventId}/convidados/${selectedGuestId}`, {
+        observacao_convidado: observationText,
+      })
+      toast.success('Observação salva!')
+      setIsObservationDialogOpen(false)
+      queryClient.invalidateQueries({ queryKey: ['guests', eventId] })
+    } catch (err) {
+      console.error('Erro ao salvar observação:', err)
+      toast.error('Falha ao salvar observação.')
     }
   }
 
@@ -198,21 +215,21 @@ export default function CheckinPage() {
               onSearchChange={setSearchTerm}
               filterOptions={STATUS_OPTIONS}
               selectedFilter={statusFilter}
-              onFilterChange={(v) => setStatusFilter(v as StatusFilter)}
+              onFilterChange={(v) => setStatusFilter(v as any)}
               searchPlaceholder="Buscar convidado..."
               filterPlaceholder="Status"
             />
           </div>
           <Dialog open={isWalkinDialogOpen} onOpenChange={setIsWalkinDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="w-full md:w-auto">+ Adicionar Convidado</Button>
+              <Button className="w-full md:w-auto">
+                + Adicionar Convidado
+              </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Cadastrar Convidado Extra</DialogTitle>
-                <DialogDescription>
-                  Preencha os dados do responsável e dos convidados.
-                </DialogDescription>
+                <DialogDescription>Preencha os dados do responsável e dos convidados.</DialogDescription>
               </DialogHeader>
               <WalkinGuestRegistration onSuccess={handleWalkinSuccess} />
             </DialogContent>
@@ -223,11 +240,7 @@ export default function CheckinPage() {
             variant="outline"
             className="w-full md:w-auto"
           >
-            {isDownloading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="mr-2 h-4 w-4" />
-            )}
+            {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
             Baixar Planilha
           </Button>
         </div>
@@ -243,8 +256,8 @@ export default function CheckinPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead className="hidden sm:table-cell">Status</TableHead>
+                <TableHead>Nome do Convidado</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="hidden sm:table-cell">Telefone</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -257,30 +270,29 @@ export default function CheckinPage() {
                       <div className="flex items-center gap-2">
                         {guest.name}
                         {guest.walkedIn && (
-                          <Badge
-                            variant="outline"
-                            className="border-yellow-500 text-yellow-600"
-                          >
+                          <Badge variant="outline" className="border-yellow-500 text-yellow-600">
                             Extra
                           </Badge>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {guest.status}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {guest.phoneNumber || '-'}
-                    </TableCell>
+                    <TableCell>{guest.status}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{guest.phoneNumber || '-'}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        {/* Botão lápis */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenObservation(guest.id)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+
                         <Button
                           size="sm"
                           onClick={() => handleCheckin(guest.id)}
-                          disabled={
-                            guest.status !== 'Aguardando' ||
-                            isCheckinLoading === guest.id
-                          }
+                          disabled={guest.status !== 'Aguardando' || isCheckinLoading === guest.id}
                         >
                           <Check className="h-4 w-4 mr-1" />
                           Check-in
@@ -289,10 +301,7 @@ export default function CheckinPage() {
                           size="sm"
                           variant="destructive"
                           onClick={() => handleCheckout(guest.id)}
-                          disabled={
-                            guest.status !== 'Presente' ||
-                            isCheckoutLoading === guest.id
-                          }
+                          disabled={guest.status !== 'Presente' || isCheckoutLoading === guest.id}
                         >
                           <LogOut className="h-4 w-4 mr-1" />
                           Check-out
@@ -312,6 +321,30 @@ export default function CheckinPage() {
           </Table>
         )}
       </div>
+
+      {/* Modal para editar observação */}
+      <Dialog open={isObservationDialogOpen} onOpenChange={setIsObservationDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Observação</DialogTitle>
+            <DialogDescription>
+              Adicione ou edite observações sobre este convidado.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={observationText}
+            onChange={(e) => setObservationText(e.target.value)}
+            placeholder="Digite a observação aqui..."
+            className="mt-2"
+          />
+          <div className="mt-4 flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsObservationDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveObservation}>Salvar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
