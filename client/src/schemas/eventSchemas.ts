@@ -72,4 +72,6 @@ export const completeDetailsSchema = createDraftFormSchema
   })
 
 export type CreateDraftFormValues = z.infer<typeof createDraftFormSchema>
-export type CompleteDetailsFormValues = z.infer<typeof completeDetailsSchema>
+export type CompleteDetailsFormValues = z.infer<typeof completeDetailsSchema> & {
+  clientPhone: string; // Adicione esta linha
+}

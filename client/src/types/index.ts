@@ -124,6 +124,11 @@ export interface CreateEventPayload {
 
 // Tipo para o payload de atualização de evento
 export type UpdateEventPayload = {
+  nome_festa: string
+  data_festa: string
+  pacote_escolhido: string
+  numero_convidados_contratado: number
+  telefone: string
   horario_inicio: string | null | undefined
   horario_fim: string | null | undefined
   descricao?: string
