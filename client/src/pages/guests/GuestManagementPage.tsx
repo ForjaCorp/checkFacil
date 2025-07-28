@@ -55,7 +55,7 @@ const GUEST_TYPE_LABELS: Record<GuestType, string> = {
   CRIANCA_ATE_1_ANO: 'Bebê (até 1 ano)',
   BABA: 'Babá',
   ANFITRIAO_FAMILIA_DIRETA: 'Família do Anfitrião',
-  ACOMPANHANTE_ATIPICO: 'Acompanhante Atípico',
+  ACOMPANHANTE_ATIPICO: 'Acompanhante',
 };
 
 function GuestManagementPage() {

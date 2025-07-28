@@ -8,14 +8,20 @@ import { toast } from 'sonner'
 import * as z from 'zod'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription
+} from '@/components/ui/card'
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
+  FormMessage
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useAuth, type AuthenticatedUser } from '@/contexts/authContextCore'
@@ -29,8 +35,9 @@ const loginFormSchema = z.object({
   password: z
     .string()
     .min(1, { message: 'A senha é obrigatória.' })
-    .min(6, { message: 'A senha deve ter pelo menos 6 caracteres.' }),
+    .min(6, { message: 'A senha deve ter pelo menos 6 caracteres.' })
 })
+
 type LoginFormValues = z.infer<typeof loginFormSchema>
 
 function LoginPage() {
@@ -41,7 +48,7 @@ function LoginPage() {
     mutationFn: (credentials: LoginFormValues) =>
       api.post('/auth/login', {
         email: credentials.email,
-        senha: credentials.password,
+        senha: credentials.password
       }),
     onSuccess: (data) => {
       const { usuario, token } = data.data
@@ -49,14 +56,14 @@ function LoginPage() {
         id: usuario.id.toString(),
         email: usuario.email,
         name: usuario.nome,
-        userType: usuario.tipoUsuario,
+        userType: usuario.tipoUsuario
       }
       auth.login(authenticatedUserData, token)
     },
     onError: (error) => {
       console.error('Falha no login:', error)
       toast.error('Falha no login', { description: 'Email ou senha inválidos.' })
-    },
+    }
   })
 
   useEffect(() => {
@@ -71,8 +78,8 @@ function LoginPage() {
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
       email: '',
-      password: '',
-    },
+      password: ''
+    }
   })
 
   function onSubmit(values: LoginFormValues) {
@@ -91,7 +98,9 @@ function LoginPage() {
             <img src="/espacocriar-logo.png" alt="Logo" className="h-24 w-24" />
           </div>
           <CardTitle className="text-2xl">Acesse sua Conta</CardTitle>
-          <CardDescription>Use seu email e senha para entrar no painel.</CardDescription>
+          <CardDescription>
+            Use seu email e senha para entrar no painel.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -130,6 +139,16 @@ function LoginPage() {
               <Button type="submit" className="w-full !mt-6" disabled={isPending}>
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isPending ? 'Entrando...' : 'Entrar'}
+              </Button>
+
+              {/* ✅ Botão de Esqueceu Senha */}
+              <Button
+                type="button"
+                variant="link"
+                className="w-full mt-2"
+                onClick={() => navigate('/forgot-password')}
+              >
+                Esqueceu sua senha?
               </Button>
             </form>
           </Form>

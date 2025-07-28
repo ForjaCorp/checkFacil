@@ -8,11 +8,13 @@ import { AppLayout } from '@/router/AppLayout'
 import { ProtectedRoute } from '@/router/ProtectedRoute'
 import { PublicLayout } from '@/router/PublicLayout'
 
+// Suas páginas
 const FlowSelectionPage = lazy(() => import('@/pages/guest/FlowSelectionPage'))
 const ConfirmAdultPage = lazy(() => import('@/pages/guest/ConfirmAdultPage'))
 const ConfirmChildrenFlowPage = lazy(() => import('@/pages/guest/ConfirmChildrenFlowPage'))
 const LoginPage = lazy(() => import('@/pages/LoginPage'))
 const SetPasswordPage = lazy(() => import('@/pages/SetPasswordPage'))
+const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage')) // ✅ NOVO
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'))
 const CreateDraftEventPage = lazy(() => import('@/pages/events/CreateDraftEventPage'))
 const CompleteEventDetailsPage = lazy(() => import('@/pages/events/CompleteEventDetailsPage'))
@@ -21,26 +23,6 @@ const CheckinPage = lazy(() => import('@/pages/operations/CheckinPage'))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
 const PlaylistManagementPage = lazy(() => import('@/pages/staff/PlaylistManagementPage'))
 
-/**
- * Main App component.
- *
- * When the auth context is still loading, shows a SplashScreen.
- * Otherwise, shows a Routes component with a ProtectedRoute as the main route.
- * The ProtectedRoute requires the user to be logged in as either an Adm_espaco or Adm_festa.
- * The route list includes the following routes:
- * - /login: login page
- * - /organizer/choosePassword/:token: set password page
- * - /: redirect to /staff/dashboard
- * - /staff/dashboard: dashboard page
- * - /staff/events/createEventDraft: create event draft page
- * - /staff/event/:eventId/checkin: checkin page
- * - /organizer/dashboard: dashboard page
- * - /organizer/event/:eventId/details: complete event details page
- * - /event/:eventId/guests: guest management page
- * - /profile: profile page
- *
- * Additionally, includes a Toaster component for displaying notifications.
- */
 function App() {
   const { isLoading } = useAuth()
 
@@ -53,6 +35,7 @@ function App() {
       <Suspense fallback={<SplashScreen />}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} /> {/* ✅ NOVO */}
           <Route path="/organizer/choosePassword/:token" element={<SetPasswordPage />} />
 
           <Route element={<PublicLayout />}>
@@ -63,9 +46,13 @@ function App() {
               element={<ConfirmChildrenFlowPage />}
             />
           </Route>
+
           <Route
             element={
-              <ProtectedRoute element={<AppLayout />} allowedRoles={['Adm_espaco', 'Adm_festa']} />
+              <ProtectedRoute
+                element={<AppLayout />}
+                allowedRoles={['Adm_espaco', 'Adm_festa']}
+              />
             }
           >
             <Route path="/" element={<Navigate to="/staff/dashboard" replace />} />

@@ -30,6 +30,9 @@ router.post('/register/admFesta', validarRegistro, authController.registrarAdmFe
 
 router.post('/login', validarLogin, authController.login);
 
+// ✅ AQUI ENTRA A NOVA ROTA
+router.post('/forgot-password', authController.solicitarRedefinicaoSenha);
+
 router.get('/me', verificarTokenJWT, authController.validarSessao);
 
 router.post('/definir-senha', authController.definirSenha);
