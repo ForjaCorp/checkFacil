@@ -1,6 +1,8 @@
 import models from '../models/index.js';
 import jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
+import axios from 'axios'
+import crypto from 'crypto'
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -203,5 +205,49 @@ export async function definirSenha(req, res) {
   } catch (error) {
     console.error('Erro ao definir a senha:', error);
     return res.status(500).json({ error: 'Falha ao definir a senha.' });
+  }
+}
+
+
+export async function solicitarRedefinicaoSenha(req, res) {
+  const { email } = req.body
+
+  try {
+    const usuario = await models.Usuario.findOne({ where: { email } })
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuário não encontrado com este e-mail.' })
+    }
+
+    if (!usuario.telefone) {
+      return res.status(400).json({ error: 'Usuário não possui telefone cadastrado.' })
+    }
+
+    // Gerar token e expiração
+    const token = crypto.randomBytes(20).toString('hex')
+    const expiracao = new Date(Date.now() + 3600000) // 1 hora
+
+    usuario.redefineSenhaToken = token
+    usuario.redefineSenhaExpiracao = expiracao
+    await usuario.save()
+
+    // Montar link
+    const resetLink = `https://espacocriar.4growthbr.space/organizer/choosePassword/${token}`
+
+    // Montar mensagem
+    const mensagem = `Olá, recebemos sua solicitação de redefinição de senha. Clique no link abaixo para redefinir:\n\n${resetLink}\n\nSe não foi você, ignore esta mensagem.`
+
+    // Chamar o webhook do n8n
+   await axios.post(
+  'https://workflows.4growthbr.space/webhook/8a71a943-80d8-465c-998e-61aeab9847ec',
+  {
+    telefone: usuario.telefone,
+    mensagem: mensagem
+  }
+)
+
+    return res.status(200).json({ mensagem: 'Link de redefinição enviado via WhatsApp!' })
+  } catch (error) {
+    console.error('Erro ao solicitar redefinição de senha:', error)
+    return res.status(500).json({ error: 'Falha ao solicitar redefinição de senha.' })
   }
 }
