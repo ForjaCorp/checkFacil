@@ -49,6 +49,14 @@ router.get(
   festaController.downloadConvidados
 );
 
+// POST /festa/:idFesta/disparar-mensagem -> Dispara mensagens no WhatsApp para convidados presentes.
+router.post(
+  '/:idFesta/disparar-mensagem',
+  verificarTokenJWT,
+  festaController.dispararMensagem
+);
+
+
 // GET /festa/:idFesta/convidados/:idConvidado -> Busca um convidado específico.
 router.get(
   '/:idFesta/convidados/:idConvidado',

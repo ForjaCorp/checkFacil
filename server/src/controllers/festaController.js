@@ -912,3 +912,51 @@ export async function downloadConvidados(req, res) {
     res.status(500).json({ error: 'Erro interno ao gerar a planilha.' });
   }
 }
+
+export async function dispararMensagem(req, res) {
+  const { idFesta } = req.params;
+  const { mensagem, statusAlvo } = req.body; 
+
+  try {
+    // Monta condição base
+    const whereCondition = { id_festa: idFesta };
+
+    // Filtra conforme o statusAlvo
+    if (statusAlvo === 'Presente') {
+      whereCondition.checkin_at = { [Op.ne]: null };
+      whereCondition.checkout_at = null;
+    } else if (statusAlvo === 'Saiu') {
+      whereCondition.checkout_at = { [Op.ne]: null };
+    } else if (statusAlvo === 'Aguardando') {
+      whereCondition.checkin_at = null;
+      whereCondition.checkout_at = null;
+    }
+    
+
+    const convidados = await models.ConvidadoFesta.findAll({ where: whereCondition });
+
+    
+    for (const convidado of convidados) {
+      if (convidado.telefone_responsavel_contato) {
+        const telefone = convidado.telefone_responsavel_contato;
+
+        await axios.post(
+          'https://webhook.4growthbr.space/webhook/f87a6169-3a30-452a-8fb5-2cefed7142ba',
+          {
+            telefone,
+            mensagem,
+            nome_responsavel: convidado.nome_responsavel_contato || null,
+            nome_convidado: convidado.nome_convidado,
+          }
+        );
+      }
+    }
+
+    return res.status(200).json({ mensagem: 'Disparo concluído!', quantidade: convidados.length });
+  } catch (error) {
+    console.error('Erro ao disparar mensagem:', error);
+    return res.status(500).json({ error: 'Falha ao disparar mensagens.' });
+  }
+}
+
+
