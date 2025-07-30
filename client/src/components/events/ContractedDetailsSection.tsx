@@ -47,7 +47,7 @@ export function ContractedDetailsSection({
   // ✅ verifica se pode editar
   const podeEditar =
     user?.email === 'barradeespacoe@gmail.com' ||
-    user?.email === 'adm.espacocriaraju@gmail.com'
+    user?.email === 'adm2.espacocriaraju@gmail.com'
 
   return (
     <div>
