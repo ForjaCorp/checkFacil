@@ -14,7 +14,7 @@ export function SideBar() {
   // 🔥 apenas para criar festa
   const podeCriar =
     user?.email === 'barradeespacoe@gmail.com' ||
-    user?.email === 'adm.espacocriaraju@gmail.com'
+    user?.email === 'adm2.espacocriaraju@gmail.com'
 
   const handleLogout = () => {
     logout()
