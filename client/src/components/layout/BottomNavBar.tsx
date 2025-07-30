@@ -10,7 +10,7 @@ export function BottomNavBar() {
   // 🔥 apenas para criar festa
   const podeCriar =
     user?.email === 'barradeespacoe@gmail.com' ||
-    user?.email === 'adm.espacocriaraju@gmail.com'
+    user?.email === 'adm2.espacocriaraju@gmail.com'
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 h-16 bg-primary border-t border-border shadow-t-md z-50 lg:hidden">
