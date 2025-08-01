@@ -84,7 +84,7 @@ export async function criarFesta(req, res) {
           nomeCliente: clienteOrganizador.nome,
           emailCliente: clienteOrganizador.email,
           telefoneCliente: clienteOrganizador.telefone,
-          dataFesta: dadosFesta.data_festa
+          dataFesta: dadosFesta.data_festa,
            dataFesta: dadosFesta.data_festa,
           horaInicio: dadosFesta.hora_inicio,
           horaFim: dadosFesta.hora_fim,
