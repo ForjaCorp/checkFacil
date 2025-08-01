@@ -59,6 +59,12 @@ export async function criarFesta(req, res) {
           emailCliente: clienteOrganizador.email,
           telefoneCliente: clienteOrganizador.telefone,
           dataFesta: dadosFesta.data_festa,
+          horaInicio: dadosFesta.hora_inicio,
+          horaFim: dadosFesta.hora_fim,
+          localFesta: dadosFesta.local_festa,
+          descricao: dadosFesta.descricao,
+          pacote_escolhido: dadosFesta.pacote_escolhido,
+          numeroConvidados: dadosFesta.numero_convidados_contratado,
           token: tokenDefinicaoSenha
         };
         axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
@@ -79,6 +85,13 @@ export async function criarFesta(req, res) {
           emailCliente: clienteOrganizador.email,
           telefoneCliente: clienteOrganizador.telefone,
           dataFesta: dadosFesta.data_festa
+           dataFesta: dadosFesta.data_festa,
+          horaInicio: dadosFesta.hora_inicio,
+          horaFim: dadosFesta.hora_fim,
+          localFesta: dadosFesta.local_festa,
+          descricao: dadosFesta.descricao,
+          pacote_escolhido: dadosFesta.pacote_escolhido,
+          numeroConvidados: dadosFesta.numero_convidados_contratado,
         };
         axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
           console.error(
@@ -832,7 +845,6 @@ export async function uploadImagemConvite(req, res) {
     return res.status(500).json({ error: 'Erro ao processar imagem do convite.' });
   }
 }
-
 
 
 export async function downloadConvidados(req, res) {
