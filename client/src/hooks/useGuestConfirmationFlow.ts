@@ -98,33 +98,12 @@ export function useGuestConfirmationFlow() {
     },
   })
 
-  const handleGroupSubmit = useCallback((
+    const handleGroupSubmit = useCallback((
     companionData: CompanionStepValues | null,
     responsibleIsAttending?: boolean,
     isWalkin: boolean = false,
   ) => {
     const { responsible, children } = flowState;
-
-    // Permite cadastro só de crianças (sem responsável)
-    if ((!responsible || !responsibleIsAttending) && children && children.length > 0) {
-      const allGuests: object[] = children.map((child) => ({
-        nome_convidado: child.name,
-        tipo_convidado: 'CRIANCA_PAGANTE',
-        nascimento_convidado: new Date(child.dob!).toISOString().split('T')[0],
-        e_crianca_atipica: child.isAtypical,
-        confirmou_presenca: 'SIM',
-      }));
-
-      const payload = {
-        convidados: allGuests,
-        cadastrado_na_hora: isWalkin,
-      };
-
-      submitGroup(payload);
-      return;
-    }
-
-    // Fluxo normal (com responsável)
     if (!responsible || !children) {
       toast.error('Erro: dados de confirmação de presença inválidos');
       return;
@@ -133,7 +112,7 @@ export function useGuestConfirmationFlow() {
     const allGuests: object[] = children.map((child) => ({
       nome_convidado: child.name,
       tipo_convidado: 'CRIANCA_PAGANTE',
-      nascimento_convidado: new Date(child.dob!).toISOString().split('T')[0],
+      nascimento_convidado: new Date(child.dob!).toISOString().split('T')[0], 
       e_crianca_atipica: child.isAtypical,
       confirmou_presenca: 'SIM',
     }));

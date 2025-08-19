@@ -57,7 +57,7 @@ router.post(
 );
 
 
-// GET /festa/:idFesta/convidados/:idConvidado -> Busca um convidado específico por ID.
+// GET /festa/:idFesta/convidados/:idConvidado -> Busca um convidado específico.
 router.get(
   '/:idFesta/convidados/:idConvidado',
   verificarTokenJWT,
@@ -90,13 +90,6 @@ router.patch(
   '/:idFesta/convidados/:idConvidado/checkout',
   verificarTokenJWT,
   festaController.checkoutConvidado
-);
-
-// POST /festa/:idFesta/convidados/:idConvidado/checkin-grupo -> Realiza o check-in em grupo.
-router.post(
-  '/:idFesta/convidados/:idConvidado/checkin-grupo',
-  verificarTokenJWT,
-  festaController.checkinGrupo
 );
 
 router.post(
