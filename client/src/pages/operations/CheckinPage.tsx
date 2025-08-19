@@ -1,3 +1,4 @@
+import React from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Download, Check, LogOut, Edit } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -59,7 +60,8 @@ interface ApiGuestResponse {
   tipo_convidado: GuestType
   telefone_convidado?: string | null
   telefone_responsavel_contato?: string | null
-  observacao_convidado?: string | null // <-- ADICIONE ESTA LINHA
+  observacao_convidado?: string | null
+  acompanhado_por_id?: number | null // <-- ADICIONE ESTA LINHA
 }
 
 interface CheckinGuest {
@@ -70,7 +72,10 @@ interface CheckinGuest {
   checkin_at: string | null
   guestType: GuestType
   phoneNumber: string | null
-  observacao?: string | null // <-- ADICIONE ESTA LINHA
+  observacao?: string | null
+  acompanhado_por_id?: number | null // <-- ADICIONE ESTA LINHA
+  dependentes?: CheckinGuest[] // <-- Para facilitar agrupamento
+  isOrphan?: boolean // <-- Permite identificar dependentes sem responsável
 }
 
 export default function CheckinPage() {
@@ -143,7 +148,8 @@ export default function CheckinPage() {
       checkin_at: g.checkin_at || null,
       guestType: g.tipo_convidado,
       phoneNumber: g.telefone_convidado || g.telefone_responsavel_contato || null,
-      observacao: g.observacao_convidado || '', // <-- ADICIONE ESTA LINHA
+      observacao: g.observacao_convidado || '',
+      acompanhado_por_id: g.acompanhado_por_id || null,
     }
   }
 
@@ -166,6 +172,33 @@ export default function CheckinPage() {
       return matchesSearch && matchesStatus
     })
   }, [guests, debouncedSearchTerm, statusFilter])
+
+  // Agrupa responsáveis e dependentes, mas só com os filtrados
+  const groupGuests = (guests: CheckinGuest[]) => {
+    const responsaveis = guests.filter(g => !g.acompanhado_por_id)
+    const dependentes = guests.filter(g => g.acompanhado_por_id)
+    const dependentesPorResponsavel: Record<number, CheckinGuest[]> = {}
+    dependentes.forEach(dep => {
+      if (!dependentesPorResponsavel[dep.acompanhado_por_id!]) {
+        dependentesPorResponsavel[dep.acompanhado_por_id!] = []
+      }
+      dependentesPorResponsavel[dep.acompanhado_por_id!].push(dep)
+    })
+    // Se não houver responsáveis (ex: filtro só mostra crianças), mostre só os dependentes
+    if (responsaveis.length === 0 && dependentes.length > 0) {
+      return dependentes.map(dep => ({
+        ...dep,
+        dependentes: [],
+        isOrphan: true, // flag para renderização
+      }))
+    }
+    return responsaveis.map(responsavel => ({
+      ...responsavel,
+      dependentes: dependentesPorResponsavel[responsavel.id] || [],
+    }))
+  }
+
+  const groupedGuests = useMemo(() => groupGuests(filteredGuests), [filteredGuests])
 
   const guestsPresentCount = guests.filter((g) => g.status === 'Presente').length
 
@@ -337,61 +370,150 @@ export default function CheckinPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredGuests.length > 0 ? (
-                filteredGuests.map((guest) => (
-                  <TableRow key={guest.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex flex-col gap-1">
+              {groupedGuests.length > 0 ? (
+                groupedGuests.map((responsavel) =>
+                  responsavel.isOrphan ? (
+                    // Criança sem responsável: linha normal, sem "(Responsável)"
+                    <TableRow key={responsavel.id}>
+                      <TableCell>
                         <div className="flex items-center gap-2">
-                          {guest.name}
-                          {guest.walkedIn && (
-                            <Badge variant="outline" className="border-yellow-500 text-yellow-600">
-                              Extra
-                            </Badge>
-                          )}
+                          {responsavel.name}
+                          <span className="ml-2 text-xs text-muted-foreground">(Criança)</span>
                         </div>
-                        <div className="sm:hidden text-sm text-muted-foreground">
-                          <span>Status: {guest.status}</span>
-                          <br />
-                          <span>Telefone: {guest.phoneNumber || '-'}</span>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">{responsavel.status}</TableCell>
+                      <TableCell className="hidden sm:table-cell">{responsavel.phoneNumber || '-'}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-3 sm:gap-4 flex-nowrap overflow-hidden">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="w-8 h-8"
+                            onClick={() => handleOpenObservation(responsavel.id)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            className="w-8 h-8"
+                            onClick={() => handleCheckin(responsavel.id)}
+                            disabled={responsavel.status !== 'Aguardando'}
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            className="w-8 h-8"
+                            variant="destructive"
+                            onClick={() => handleCheckout(responsavel.id)}
+                            disabled={responsavel.status !== 'Presente'}
+                          >
+                            <LogOut className="h-4 w-4" />
+                          </Button>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">{guest.status}</TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {guest.phoneNumber || '-'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-3 sm:gap-4 flex-nowrap overflow-hidden">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="w-8 h-8"
-                          onClick={() => handleOpenObservation(guest.id)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          className="w-8 h-8"
-                          onClick={() => handleCheckin(guest.id)}
-                          disabled={guest.status !== 'Aguardando' || isCheckinLoading === guest.id}
-                        >
-                          <Check className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          className="w-8 h-8"
-                          variant="destructive"
-                          onClick={() => handleCheckout(guest.id)}
-                          disabled={guest.status !== 'Presente' || isCheckoutLoading === guest.id}
-                        >
-                          <LogOut className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    <React.Fragment key={responsavel.id}>
+                      <TableRow>
+                        <TableCell className="font-medium">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              {responsavel.name}
+                              {responsavel.walkedIn && (
+                                <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+                                  Extra
+                                </Badge>
+                              )}
+                              <span className="ml-2 text-xs text-muted-foreground">(Responsável)</span>
+                            </div>
+                            <div className="sm:hidden text-sm text-muted-foreground">
+                              <span>Status: {responsavel.status}</span>
+                              <br />
+                              <span>Telefone: {responsavel.phoneNumber || '-'}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">{responsavel.status}</TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          {responsavel.phoneNumber || '-'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-3 sm:gap-4 flex-nowrap overflow-hidden">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="w-8 h-8"
+                              onClick={() => handleOpenObservation(responsavel.id)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              className="w-8 h-8"
+                              onClick={() => handleCheckin(responsavel.id)}
+                              disabled={responsavel.status !== 'Aguardando'}
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              className="w-8 h-8"
+                              variant="destructive"
+                              onClick={() => handleCheckout(responsavel.id)}
+                              disabled={responsavel.status !== 'Presente'}
+                            >
+                              <LogOut className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {/* Dependentes */}
+                      {responsavel.dependentes && responsavel.dependentes.map((dep) => (
+                        <TableRow key={dep.id} className="bg-muted/50">
+                          <TableCell className="pl-12">
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground">↳</span>
+                              {dep.name}
+                              <span className="ml-2 text-xs text-muted-foreground">(Criança)</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">{dep.status}</TableCell>
+                          <TableCell className="hidden sm:table-cell">{dep.phoneNumber || '-'}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-3 sm:gap-4 flex-nowrap overflow-hidden">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="w-8 h-8"
+                                onClick={() => handleOpenObservation(dep.id)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                className="w-8 h-8"
+                                disabled
+                                title="Check-in pelo responsável"
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                className="w-8 h-8"
+                                variant="destructive"
+                                onClick={() => handleCheckout(dep.id)}
+                                disabled={dep.status !== 'Presente'}
+                              >
+                                <LogOut className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </React.Fragment>
+                  )
+                )
               ) : (
                 <TableRow>
                   <TableCell colSpan={4} className="h-24 text-center">

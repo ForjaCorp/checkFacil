@@ -971,4 +971,52 @@ export async function dispararMensagem(req, res) {
   }
 }
 
+export async function checkinGrupo(req, res) {
+  try {
+    const { idFesta, idConvidado } = req.params;
+    const { _usuarioId, usuarioTipo } = req;
+
+    if (usuarioTipo !== models.Usuario.TIPOS_USUARIO.ADM_ESPACO) {
+      return res
+        .status(403)
+        .json({ error: 'Acesso negado. Apenas o staff do espaço pode realizar o check-in.' });
+    }
+
+    // Busca o responsável
+    const responsavel = await models.ConvidadoFesta.findOne({
+      where: { id: idConvidado, id_festa: idFesta }
+    });
+    if (!responsavel) {
+      return res.status(404).json({ error: 'Responsável não encontrado nesta festa.' });
+    }
+
+    // Busca todos os dependentes (filhos)
+    const dependentes = await models.ConvidadoFesta.findAll({
+      where: { id_festa: idFesta, acompanhado_por_id: idConvidado }
+    });
+
+    // Lista de convidados a fazer check-in (responsável + dependentes)
+    const convidadosParaCheckin = [responsavel, ...dependentes];
+
+    const checkinResults = [];
+    for (const convidado of convidadosParaCheckin) {
+      if (!convidado.checkin_at) {
+        convidado.checkin_at = new Date();
+        await convidado.save();
+        checkinResults.push({ id: convidado.id, nome: convidado.nome_convidado, status: 'checkin_ok' });
+      } else {
+        checkinResults.push({ id: convidado.id, nome: convidado.nome_convidado, status: 'ja_checkin' });
+      }
+    }
+
+    return res.status(200).json({
+      mensagem: 'Check-in em grupo realizado!',
+      resultados: checkinResults
+    });
+  } catch (error) {
+    console.error('Erro ao realizar check-in em grupo:', error);
+    return res.status(500).json({ error: 'Falha ao realizar check-in em grupo.' });
+  }
+}
+
 
