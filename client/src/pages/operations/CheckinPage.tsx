@@ -59,6 +59,7 @@ interface ApiGuestResponse {
   tipo_convidado: GuestType
   telefone_convidado?: string | null
   telefone_responsavel_contato?: string | null
+  observacao_convidado?: string | null // <-- ADICIONE ESTA LINHA
 }
 
 interface CheckinGuest {
@@ -69,6 +70,7 @@ interface CheckinGuest {
   checkin_at: string | null
   guestType: GuestType
   phoneNumber: string | null
+  observacao?: string | null // <-- ADICIONE ESTA LINHA
 }
 
 export default function CheckinPage() {
@@ -141,6 +143,7 @@ export default function CheckinPage() {
       checkin_at: g.checkin_at || null,
       guestType: g.tipo_convidado,
       phoneNumber: g.telefone_convidado || g.telefone_responsavel_contato || null,
+      observacao: g.observacao_convidado || '', // <-- ADICIONE ESTA LINHA
     }
   }
 
@@ -204,7 +207,9 @@ export default function CheckinPage() {
 
   const handleOpenObservation = (guestId: number) => {
     setSelectedGuestId(guestId)
-    setObservationText('')
+    // Buscar observação do convidado selecionado
+    const guest = guests.find((g) => g.id === guestId)
+    setObservationText(guest?.observacao || '')
     setIsObservationDialogOpen(true)
   }
 
@@ -247,18 +252,18 @@ export default function CheckinPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-6">
+    <div className="container mx-auto p-4 md:p-6 space-y-6 text-base"> {/* <-- Adicione text-base aqui */}
       {/* Cabeçalho */}
       <div className="flex flex-col gap-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Lista de Check-in</h1>
-            <p className="text-muted-foreground">{eventData?.nome_festa || ''}</p>
+            <p className="text-muted-foreground text-lg">{eventData?.nome_festa || ''}</p> {/* <-- text-lg */}
             <div className="mt-1 flex flex-wrap gap-2">
-              <Badge variant="default" className="bg-green-600 text-white">
+              <Badge variant="default" className="bg-green-600 text-white text-base">
                 Presentes: {guestsPresentCount}
               </Badge>
-              <Badge variant="secondary">Total: {guests.length}</Badge>
+              <Badge variant="secondary" className="text-base">Total: {guests.length}</Badge>
             </div>
           </div>
         </div>
@@ -315,7 +320,7 @@ export default function CheckinPage() {
       </div>
 
       {/* Tabela */}
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded-lg overflow-hidden text-base"> {/* <-- text-base */}
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
             <Loader2 className="mr-2 h-6 w-6 animate-spin" />
@@ -357,7 +362,7 @@ export default function CheckinPage() {
                       {guest.phoneNumber || '-'}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1 sm:gap-2 flex-nowrap overflow-hidden">
+                      <div className="flex justify-end gap-3 sm:gap-4 flex-nowrap overflow-hidden">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -432,6 +437,29 @@ export default function CheckinPage() {
             <Button onClick={handleDispararMensagem} disabled={isSending}>
               {isSending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSending ? 'Enviando...' : 'Enviar'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Observação do Convidado */}
+      <Dialog open={isObservationDialogOpen} onOpenChange={setIsObservationDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Observação do convidado</DialogTitle>
+          </DialogHeader>
+          <Textarea
+            value={observationText}
+            onChange={(e) => setObservationText(e.target.value)}
+            placeholder="Digite uma observação para este convidado..."
+            className="mt-2"
+          />
+          <div className="mt-4 flex flex-col sm:flex-row justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsObservationDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveObservation}>
+              Salvar
             </Button>
           </div>
         </DialogContent>
