@@ -4,6 +4,7 @@ import { randomBytes } from 'crypto';
 import axios from 'axios';
 import excel from 'exceljs';
 
+
 function calcularIdade(dataNascimento) {
   if (!dataNascimento) return null;
   const hoje = new Date();
@@ -15,6 +16,9 @@ function calcularIdade(dataNascimento) {
   }
   return idade;
 }
+
+// --- Funções de Festa (criar, buscar, atualizar, deletar) ---
+// Nenhuma alteração necessária aqui, mantidas como no original.
 
 export async function criarFesta(req, res) {
   const { dadosFesta, dadosCliente } = req.body;
@@ -37,18 +41,15 @@ export async function criarFesta(req, res) {
         email: dadosCliente.email,
         telefone: dadosCliente.telefone,
         tipoUsuario: models.Usuario.TIPOS_USUARIO.ADM_FESTA,
-
         senha: randomBytes(16).toString('hex')
       });
 
       const tokenDefinicaoSenha = randomBytes(20).toString('hex');
-
       const expiracao = new Date();
       expiracao.setHours(expiracao.getHours() + 24); // Token válido por 24h
 
       clienteOrganizador.redefineSenhaToken = tokenDefinicaoSenha;
       clienteOrganizador.redefineSenhaExpiracao = expiracao;
-
       await clienteOrganizador.save();
 
       const webhookUrl =
@@ -59,8 +60,8 @@ export async function criarFesta(req, res) {
           emailCliente: clienteOrganizador.email,
           telefoneCliente: clienteOrganizador.telefone,
           dataFesta: dadosFesta.data_festa,
-          horaInicio: dadosFesta.hora_inicio,
-          horaFim: dadosFesta.hora_fim,
+          horaInicio: dadosFesta.horario_inicio,
+          horaFim: dadosFesta.horario_fim,
           localFesta: dadosFesta.local_festa,
           descricao: dadosFesta.descricao,
           pacote_escolhido: dadosFesta.pacote_escolhido,
@@ -85,9 +86,8 @@ export async function criarFesta(req, res) {
           emailCliente: clienteOrganizador.email,
           telefoneCliente: clienteOrganizador.telefone,
           dataFesta: dadosFesta.data_festa,
-           dataFesta: dadosFesta.data_festa,
-          horaInicio: dadosFesta.hora_inicio,
-          horaFim: dadosFesta.hora_fim,
+          horaInicio: dadosFesta.horario_inicio,
+          horaFim: dadosFesta.horario_fim,
           localFesta: dadosFesta.local_festa,
           descricao: dadosFesta.descricao,
           pacote_escolhido: dadosFesta.pacote_escolhido,
@@ -104,11 +104,9 @@ export async function criarFesta(req, res) {
       }
     }
 
-    // Remove old guest count fields if they exist
     const { numero_criancas_contratado, numero_adultos_contratado, ...dadosFestaAtualizados } =
       dadosFesta;
 
-    // Ensure we have the new field, or calculate it from the old fields if they exist
     if (dadosFestaAtualizados.numero_convidados_contratado === undefined) {
       const totalGuests = (numero_criancas_contratado || 0) + (numero_adultos_contratado || 0);
       if (totalGuests > 0) {
@@ -160,19 +158,16 @@ export async function buscarFestas(req, res) {
       whereClause.id_organizador = usuarioId;
     }
 
-    // Filtro de Status
     if (status) {
       whereClause.status = status;
     }
 
-    // Filtro de Data
     if (data) {
       whereClause.data_festa = data;
     } else if (data_inicio && data_fim) {
       whereClause.data_festa = { [Op.between]: [data_inicio, data_fim] };
     }
 
-    // Busca Textual
     if (search) {
       whereClause[Op.or] = [
         { nome_festa: { [Op.like]: `%${search}%` } },
@@ -181,12 +176,10 @@ export async function buscarFestas(req, res) {
       ];
     }
 
-    // Paginação
     const parsedLimit = parseInt(limit, 10);
     const parsedPage = parseInt(page, 10);
     const offset = (parsedPage - 1) * parsedLimit;
 
-    // findAndCountAll para obter os dados e a contagem total para a paginação
     const { count, rows: festas } = await models.Festa.findAndCountAll({
       where: whereClause,
       limit: parsedLimit,
@@ -201,7 +194,6 @@ export async function buscarFestas(req, res) {
       order: [['data_festa', 'DESC']]
     });
 
-    //resposta com os dados e as informações de paginação
     const totalPages = Math.ceil(count / parsedLimit);
     const response = {
       totalItems: count,
@@ -237,11 +229,9 @@ export async function atualizarFesta(req, res) {
         .json({ error: 'Acesso negado. Você não tem permissão para atualizar esta festa.' });
     }
 
-    // Remove old guest count fields if they exist in the update
     const { numero_criancas_contratado, numero_adultos_contratado, ...dadosAtualizadosLimpos } =
       dadosAtualizados;
 
-    // If new guest count is not provided but old fields are, calculate it
     if (
       dadosAtualizadosLimpos.numero_convidados_contratado === undefined &&
       (numero_criancas_contratado !== undefined || numero_adultos_contratado !== undefined)
@@ -295,6 +285,11 @@ export async function deletarFesta(req, res) {
   }
 }
 
+// --- Funções de Convidados ---
+
+// ========================================================================
+// AQUI COMEÇA A FUNÇÃO CORRIGIDA
+// ========================================================================
 export async function registrarGrupoConvidados(req, res) {
   const { idFesta } = req.params;
   const { contatoResponsavel, convidados, cadastrado_na_hora = false } = req.body;
@@ -308,54 +303,69 @@ export async function registrarGrupoConvidados(req, res) {
       return res.status(404).json({ error: 'Festa não encontrada.' });
     }
 
-    const acompanhantesSalvos = [];
-    const criancasSalvas = [];
-
-    for (const convidado of convidados) {
-      if (!convidado.nome_convidado || !convidado.tipo_convidado) {
-        await transaction.rollback();
-        return res.status(400).json({
-          error: 'Cada convidado deve ter nome_convidado e tipo_convidado.' // Mensagem atualizada
-        });
-      }
-
-      // Para responsáveis (adultos), duplicar o telefone em ambos os campos
-      const isAdulto = !convidado.tipo_convidado.startsWith('CRIANCA') && !convidado.e_crianca_atipica;
-      const novoConvidado = await models.ConvidadoFesta.create(
+    let responsavelId = null;
+    const convidadosSalvos = [];
+    
+    // PASSO 1: Encontrar e criar o responsável PRIMEIRO
+    const responsavelData = convidados.find(c => !c.tipo_convidado.startsWith('CRIANCA'));
+    
+    if (responsavelData) {
+      const novoResponsavel = await models.ConvidadoFesta.create(
         {
           id_festa: idFesta,
-          nome_convidado: convidado.nome_convidado,
-          tipo_convidado: convidado.tipo_convidado,
-          nascimento_convidado: convidado.nascimento_convidado || null,
-          idade_convidado: convidado.nascimento_convidado
-            ? calcularIdade(convidado.nascimento_convidado)
+          nome_convidado: responsavelData.nome_convidado,
+          tipo_convidado: responsavelData.tipo_convidado,
+          nascimento_convidado: responsavelData.nascimento_convidado || null,
+          idade_convidado: responsavelData.nascimento_convidado
+            ? calcularIdade(responsavelData.nascimento_convidado)
             : null,
-          e_crianca_atipica: convidado.e_crianca_atipica || false,
-          // Para adultos, usa o próprio telefone em ambos os campos
-          telefone_convidado: isAdulto ? contatoResponsavel.telefone : null,
-          // Para crianças, mantém o comportamento original do responsável
+          e_crianca_atipica: responsavelData.e_crianca_atipica || false,
+          telefone_convidado: contatoResponsavel.telefone,
           nome_responsavel_contato: contatoResponsavel.nome,
           telefone_responsavel_contato: contatoResponsavel.telefone,
           cadastrado_na_hora: cadastrado_na_hora,
-          acompanhado_por_id: convidado.acompanhado_por_id || null
+          acompanhado_por_id: null
         },
         { transaction }
       );
+      
+      responsavelId = novoResponsavel.id; 
+      convidadosSalvos.push(novoResponsavel);
+    }
 
-      if (convidado.tipo_convidado.startsWith('CRIANCA') || convidado.e_crianca_atipica) {
-        criancasSalvas.push(novoConvidado);
-      } else {
-        acompanhantesSalvos.push(novoConvidado);
-      }
+    // PASSO 2: Agora, criar as crianças e VINCULAR ao responsável
+    const criancasData = convidados.filter(c => c.tipo_convidado.startsWith('CRIANCA'));
+
+    for (const crianca of criancasData) {
+      const novaCrianca = await models.ConvidadoFesta.create(
+        {
+          id_festa: idFesta,
+          nome_convidado: crianca.nome_convidado,
+          tipo_convidado: crianca.tipo_convidado,
+          nascimento_convidado: crianca.nascimento_convidado || null,
+          idade_convidado: crianca.nascimento_convidado
+            ? calcularIdade(crianca.nascimento_convidado)
+            : null,
+          e_crianca_atipica: crianca.e_crianca_atipica || false,
+          telefone_convidado: null,
+          nome_responsavel_contato: contatoResponsavel.nome,
+          telefone_responsavel_contato: contatoResponsavel.telefone,
+          cadastrado_na_hora: cadastrado_na_hora,
+          acompanhado_por_id: responsavelId 
+        },
+        { transaction }
+      );
+      
+      convidadosSalvos.push(novaCrianca);
     }
 
     await transaction.commit();
 
     return res.status(201).json({
       mensagem: 'Grupo de convidados cadastrado com sucesso.',
-      acompanhantes: acompanhantesSalvos,
-      criancas: criancasSalvas
+      convidados: convidadosSalvos
     });
+
   } catch (error) {
     console.error('Erro ao registrar grupo:', error);
     await transaction.rollback();
@@ -366,6 +376,138 @@ export async function registrarGrupoConvidados(req, res) {
     }
 
     return res.status(500).json({ error: 'Erro interno ao registrar grupo.' });
+  }
+}
+
+export async function checkinGrupoConvidados(req, res) {
+  // O id do convidado aqui é o ID do RESPONSÁVEL pelo grupo
+  const { idFesta, idConvidado } = req.params;
+  const { usuarioTipo } = req;
+
+  // Inicia uma transação para garantir a integridade dos dados
+  const transaction = await sequelize.transaction();
+
+  try {
+    // Apenas o staff do espaço pode realizar o check-in
+    if (usuarioTipo !== models.Usuario.TIPOS_USUARIO.ADM_ESPACO) {
+      await transaction.rollback();
+      return res
+        .status(403)
+        .json({ error: 'Acesso negado. Apenas o staff do espaço pode realizar o check-in.' });
+    }
+
+    // PASSO 1: Encontrar o responsável E todos os seus filhos de uma vez só.
+    // Usamos o [Op.or] para pegar o convidado cujo 'id' é o do responsável,
+    // OU todos os convidados cujo 'acompanhado_por_id' é o do responsável.
+    const grupoParaCheckin = await models.ConvidadoFesta.findAll({
+      where: {
+        id_festa: idFesta,
+        [Op.or]: [
+          { id: idConvidado },
+          { acompanhado_por_id: idConvidado }
+        ]
+      }
+    }, { transaction });
+
+    // Se não encontrarmos ninguém (nem o responsável), retornamos um erro.
+    if (!grupoParaCheckin || grupoParaCheckin.length === 0) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Grupo de convidados não encontrado.' });
+    }
+
+    const agora = new Date();
+    const convidadosAtualizados = [];
+
+    // PASSO 2: Fazer o check-in de cada membro do grupo que ainda não entrou.
+    for (const convidado of grupoParaCheckin) {
+      if (!convidado.checkin_at) { // Só faz check-in se a pessoa ainda não entrou
+        convidado.checkin_at = agora;
+        await convidado.save({ transaction }); // Salva a alteração dentro da transação
+      }
+      convidadosAtualizados.push(convidado);
+    }
+    
+    // PASSO 3: Se tudo correu bem, confirma todas as alterações no banco.
+    await transaction.commit();
+
+    // Opcional: Disparar um webhook ou outra notificação aqui, se necessário.
+
+    return res.status(200).json({ 
+      mensagem: `Check-in realizado para ${convidadosAtualizados.length} membro(s) do grupo.`, 
+      convidados: convidadosAtualizados 
+    });
+
+  } catch (error) {
+    // PASSO 4: Se qualquer coisa der errado, desfaz todas as alterações.
+    await transaction.rollback();
+    console.error('Erro ao realizar check-in em grupo:', error);
+    return res.status(500).json({ error: 'Falha ao realizar check-in em grupo.' });
+  }
+}
+
+
+export async function checkoutGrupoConvidados(req, res) {
+  // O id do convidado aqui é o ID do RESPONSÁVEL pelo grupo
+  const { idFesta, idConvidado } = req.params;
+  const { usuarioTipo } = req;
+
+  // Inicia uma transação para garantir a integridade dos dados
+  const transaction = await sequelize.transaction();
+
+  try {
+    // Apenas o staff do espaço pode realizar o check-out
+    if (usuarioTipo !== models.Usuario.TIPOS_USUARIO.ADM_ESPACO) {
+      await transaction.rollback();
+      return res
+        .status(403)
+        .json({ error: 'Acesso negado. Apenas o staff do espaço pode realizar o check-out.' });
+    }
+
+    // PASSO 1: Encontrar o responsável E todos os seus filhos de uma vez só.
+    const grupoParaCheckout = await models.ConvidadoFesta.findAll({
+      where: {
+        id_festa: idFesta,
+        [Op.or]: [
+          { id: idConvidado },
+          { acompanhado_por_id: idConvidado }
+        ]
+      }
+    }, { transaction });
+
+    // Se não encontrarmos ninguém (nem o responsável), retornamos um erro.
+    if (!grupoParaCheckout || grupoParaCheckout.length === 0) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Grupo de convidados não encontrado.' });
+    }
+
+    const agora = new Date();
+    const convidadosAtualizados = [];
+
+    // PASSO 2: Fazer o check-out de cada membro do grupo que já entrou e ainda não saiu.
+    for (const convidado of grupoParaCheckout) {
+      // A condição chave: SÓ faz check-out se a pessoa JÁ FEZ check-in E AINDA NÃO FEZ check-out.
+      if (convidado.checkin_at && !convidado.checkout_at) { 
+        convidado.checkout_at = agora;
+        await convidado.save({ transaction }); // Salva a alteração dentro da transação
+      }
+      convidadosAtualizados.push(convidado);
+    }
+    
+    // PASSO 3: Se tudo correu bem, confirma todas as alterações no banco.
+    await transaction.commit();
+
+    // Opcional: Disparar um webhook ou outra notificação aqui, se necessário.
+
+    return res.status(200).json({ 
+      mensagem: `Check-out realizado para o grupo.`, 
+      convidados: convidadosAtualizados 
+    });
+
+  } catch (error) {
+    // PASSO 4: Se qualquer coisa der errado, desfaz todas as alterações.
+    await transaction.rollback();
+    console.error('Erro ao realizar check-out em grupo:', error);
+    return res.status(500).json({ error: 'Falha ao realizar check-out em grupo.' });
   }
 }
 
@@ -388,7 +530,6 @@ export async function registrarAdultos(req, res) {
 
     const convidadosSalvos = [];
     for (const adulto of adultos) {
-      // Validação mais robusta para cada objeto adulto
       if (
         !adulto ||
         typeof adulto.nome !== 'string' ||
@@ -407,8 +548,8 @@ export async function registrarAdultos(req, res) {
         {
           id_festa: idFesta,
           nome_convidado: adulto.nome,
-          telefone_convidado: adulto.telefone, // O frontend já envia desformatado
-          telefone_responsavel_contato: adulto.telefone, // Duplicando o telefone no campo de contato do responsável
+          telefone_convidado: adulto.telefone,
+          telefone_responsavel_contato: adulto.telefone,
           tipo_convidado: 'ADULTO_PAGANTE',
           confirmou_presenca: 'SIM',
           cadastrado_na_hora: cadastrado_na_hora
@@ -426,7 +567,6 @@ export async function registrarAdultos(req, res) {
     });
   } catch (error) {
     console.error('Erro ao registrar grupo de adultos:', error);
-    // Garante que o rollback seja executado em caso de erro
     if (transaction && !transaction.finished) {
       await transaction.rollback();
     }
@@ -480,7 +620,6 @@ export async function buscarConvidadosPorNome(req, res) {
       return res.status(404).json({ error: 'Festa não encontrada.' });
     }
 
-    // permissão
     if (
       usuarioTipo !== models.Usuario.TIPOS_USUARIO.ADM_ESPACO &&
       festa.id_organizador !== usuarioId
@@ -632,8 +771,6 @@ export async function checkinConvidado(req, res) {
         mensagem: `Check-in realizado para este convidado`
       };
 
-      //console.log('Enviando dados para o webhook n8n:', payloadWebhook);
-
       axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
         console.error(
           'Erro secundário ao enviar o webhook para n8n:',
@@ -690,11 +827,8 @@ export async function checkoutConvidado(req, res) {
         telefoneResponsavel: convidado.telefone_responsavel_contato,
         horarioCheckin: convidado.checkin_at,
         horarioCheckout: convidado.checkout_at,
-
         mensagem: `Check-out feito ${convidado.checkin_at}.`
       };
-
-      //console.log('Enviando dados para o webhook n8n:', payloadWebhook);
 
       axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
         console.error(
@@ -778,7 +912,6 @@ export async function buscarFestaPorId(req, res) {
       return res.status(404).json({ error: 'Festa não encontrada com o ID fornecido.' });
     }
 
-    // Se o utilizador logado NÃO é um AdmEspaco E NÃO é o organizador da festa...
     if (
       usuarioTipo !== models.Usuario.TIPOS_USUARIO.ADM_ESPACO &&
       festa.id_organizador !== usuarioId
@@ -849,10 +982,8 @@ export async function uploadImagemConvite(req, res) {
 
 export async function downloadConvidados(req, res) {
   try {
-    // O nome do parâmetro na sua rota é 'id', então usamos req.params.id
     const { id } = req.params;
 
-    // Acessando os modelos através do objeto 'models'
     const festa = await models.Festa.findByPk(id, {
       include: {
         model: models.ConvidadoFesta,
@@ -866,7 +997,6 @@ export async function downloadConvidados(req, res) {
 
     const workbook = new excel.Workbook();
     
-    // CORREÇÃO: Garante que o nome da aba não exceda 31 caracteres
     const worksheetName = `Convidados de ${festa.nome_aniversariante || festa.nome_festa}`.substring(0, 31);
     const worksheet = workbook.addWorksheet(worksheetName);
 
@@ -881,7 +1011,6 @@ export async function downloadConvidados(req, res) {
       { header: 'Data do Check-Out', key: 'dataCheckOut', width: 25 },
     ];
 
-    // O campo de check-in no seu modelo parece ser 'checkin_at'
     festa.convidados.forEach((convidado) => {
       worksheet.addRow({
         nome: convidado.nome_convidado,
@@ -897,15 +1026,14 @@ export async function downloadConvidados(req, res) {
 
     worksheet.getRow(1).font = { bold: true };
 
-    // Lida com nome do aniversariante nulo para criar um nome de arquivo seguro
     const fileNameBase = festa.nome_aniversariante || festa.nome_festa || 'festa_sem_nome';
     const safeFileName = fileNameBase
-    .trim()                          // Remove espaços no início/fim
-    .toLowerCase()                   // Deixa tudo minúsculo (opcional, mas recomendado)
-    .normalize('NFD')               // Remove acentos
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') 
-    .replace(/\s+/g, '_')           // Substitui espaços por underline
-    .replace(/[^\w\-]/g, '')        // Remove caracteres não permitidos (como !, /, %, etc.)
+    .replace(/\s+/g, '_')
+    .replace(/[^\w\-]/g, '')
   
     res.setHeader(
       'Content-Type',
@@ -930,10 +1058,8 @@ export async function dispararMensagem(req, res) {
   const { mensagem, statusAlvo } = req.body; 
 
   try {
-    // Monta condição base
     const whereCondition = { id_festa: idFesta };
 
-    // Filtra conforme o statusAlvo
     if (statusAlvo === 'Presente') {
       whereCondition.checkin_at = { [Op.ne]: null };
       whereCondition.checkout_at = null;
@@ -944,7 +1070,6 @@ export async function dispararMensagem(req, res) {
       whereCondition.checkout_at = null;
     }
     
-
     const convidados = await models.ConvidadoFesta.findAll({ where: whereCondition });
 
     
@@ -964,11 +1089,9 @@ export async function dispararMensagem(req, res) {
       }
     }
 
-    return res.status(200).json({ mensagem: 'Disparo concluído!', quantidade: convidados.length });
-  } catch (error) {
-    console.error('Erro ao disparar mensagem:', error);
-    return res.status(500).json({ error: 'Falha ao disparar mensagens.' });
+      return res.status(200).json({ mensagem: 'Disparo concluído!', quantidade: convidados.length });
+    } catch (error) {
+      console.error('Erro ao disparar mensagem:', error);
+      return res.status(500).json({ error: 'Falha ao disparar mensagens.' });
+    }
   }
-}
-
-
