@@ -293,6 +293,15 @@ export async function deletarFesta(req, res) {
 export async function registrarGrupoConvidados(req, res) {
   const { idFesta } = req.params;
   const { contatoResponsavel, convidados, cadastrado_na_hora = false } = req.body;
+  
+  // --- NOVA VALIDAÇÃO DE SEGURANÇA ---
+  // Verifica se os dados essenciais foram enviados.
+  if (!contatoResponsavel || !contatoResponsavel.nome || !contatoResponsavel.telefone) {
+    return res.status(400).json({ error: 'Os dados de contato do responsável são obrigatórios.' });
+  }
+  if (!Array.isArray(convidados) || convidados.length === 0) {
+    return res.status(400).json({ error: 'A lista de convidados não pode estar vazia.' });
+  }
 
   const transaction = await sequelize.transaction();
 
@@ -306,7 +315,7 @@ export async function registrarGrupoConvidados(req, res) {
     let responsavelId = null;
     const convidadosSalvos = [];
     
-    // PASSO 1: Encontrar e criar o responsável PRIMEIRO
+    // PASSO 1: Encontrar e criar o responsável PRIMEIRO (se ele estiver na lista de convidados)
     const responsavelData = convidados.find(c => !c.tipo_convidado.startsWith('CRIANCA'));
     
     if (responsavelData) {
@@ -333,7 +342,7 @@ export async function registrarGrupoConvidados(req, res) {
       convidadosSalvos.push(novoResponsavel);
     }
 
-    // PASSO 2: Agora, criar as crianças e VINCULAR ao responsável
+    // PASSO 2: Agora, criar as crianças e VINCULAR ao responsável (se ele foi salvo)
     const criancasData = convidados.filter(c => c.tipo_convidado.startsWith('CRIANCA'));
 
     for (const crianca of criancasData) {
@@ -348,10 +357,10 @@ export async function registrarGrupoConvidados(req, res) {
             : null,
           e_crianca_atipica: crianca.e_crianca_atipica || false,
           telefone_convidado: null,
-          nome_responsavel_contato: contatoResponsavel.nome,
+          nome_responsavel_contato: contatoResponsavel.nome, // Agora seguro, pois validamos no início
           telefone_responsavel_contato: contatoResponsavel.telefone,
           cadastrado_na_hora: cadastrado_na_hora,
-          acompanhado_por_id: responsavelId 
+          acompanhado_por_id: responsavelId // Será o ID do pai ou null, corretamente
         },
         { transaction }
       );

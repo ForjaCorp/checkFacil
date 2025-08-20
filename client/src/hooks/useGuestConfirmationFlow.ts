@@ -98,7 +98,7 @@ export function useGuestConfirmationFlow() {
     },
   })
 
-    const handleGroupSubmit = useCallback((
+   const handleGroupSubmit = useCallback((
     companionData: CompanionStepValues | null,
     responsibleIsAttending?: boolean,
     isWalkin: boolean = false,
@@ -112,7 +112,7 @@ export function useGuestConfirmationFlow() {
     const allGuests: object[] = children.map((child) => ({
       nome_convidado: child.name,
       tipo_convidado: 'CRIANCA_PAGANTE',
-      nascimento_convidado: new Date(child.dob!).toISOString().split('T')[0], 
+      nascimento_convidado: child.dob ? new Date(child.dob).toISOString().split('T')[0] : null,
       e_crianca_atipica: child.isAtypical,
       confirmou_presenca: 'SIM',
     }));
@@ -141,6 +141,10 @@ export function useGuestConfirmationFlow() {
       convidados: allGuests,
       cadastrado_na_hora: isWalkin,
     };
+
+    // --- A NOSSA CÂMARA DE SEGURANÇA ---
+    console.log('DADOS A SEREM ENVIADOS PARA A API:', payload);
+    // ------------------------------------
 
     submitGroup(payload);
   }, [flowState, submitGroup])

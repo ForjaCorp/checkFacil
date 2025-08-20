@@ -27,9 +27,7 @@ export function useGuestOperations(eventId: string) {
             ? {
                 ...guest,
                 ...data,
-                // Garante que os campos opcionais sejam tratados corretamente
-                nascimento_convidado: data.nascimento_convidado || null,
-                e_crianca_atipica: data.e_crianca_atipica ?? false,
+                tipo_convidado: data.tipo_convidado as BaseGuest['tipo_convidado'], // <-- ajuste aqui
               }
             : guest,
         ),
