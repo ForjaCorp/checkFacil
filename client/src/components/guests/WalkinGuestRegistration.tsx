@@ -82,9 +82,6 @@ function GroupWithChildrenFlow({ onSuccess: _onSuccess, onBack }: GroupWithChild
     const { responsible, children } = flowState
     if (!responsible || !children) return
 
-    // Se não houver dados do acompanhante e o responsável não estiver comparecendo, não faz nada
-    if (!companionStepData && !responsibleIsAttending) return
-
     // Prepara os dados do acompanhante para envio
     const companionData: CompanionStepValues = {
       companionType: responsibleIsAttending ? 'myself' : (companionStepData?.companionType || 'other'),
