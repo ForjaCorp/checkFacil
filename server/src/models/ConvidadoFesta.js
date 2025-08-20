@@ -17,6 +17,21 @@ class ConvidadoFesta extends Model {
       foreignKey: 'id_festa',
       as: 'festa'
     });
+
+     // Define a relação de um convidado com seus acompanhantes (crianças)
+    this.hasMany(models.ConvidadoFesta, {
+      foreignKey: 'acompanhado_por_id', // O campo que liga a criança ao pai
+      as: 'criancas'                  // Apelido: um responsável TEM MUITAS 'criancas'
+    });
+
+    // Define a relação de um acompanhante (criança) com seu responsável
+    this.belongsTo(models.ConvidadoFesta, {
+      foreignKey: 'acompanhado_por_id', // O mesmo campo de ligação
+      as: 'responsavel'               // Apelido: uma criança PERTENCE A um 'responsavel'
+    });
+
+
+
   }
 }
 
