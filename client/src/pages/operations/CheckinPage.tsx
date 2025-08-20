@@ -111,10 +111,16 @@ export default function CheckinPage() {
     'Presente',
   )
   const [isSending, setIsSending] = useState(false)
-  
 
-  const { handleCheckin, handleCheckout, isCheckinLoading, isCheckoutLoading } =
-    useCheckinOperations(eventId)
+
+  const {
+    handleCheckin,
+    handleCheckout,
+    handleGroupCheckin,  // <-- Adicionar
+    handleGroupCheckout, // <-- Adicionar
+    isCheckinLoading,
+    isCheckoutLoading
+  } = useCheckinOperations(eventId)
   const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
   const { data: eventData } = useQuery({
@@ -144,63 +150,63 @@ export default function CheckinPage() {
     }
   }, [eventData?.horario_fim])
 
- const mapGuestData = (g: ApiGuestResponse): CheckinGuest => {
-  let status: CheckinGuest['status'] = 'Aguardando'
-  if (g.checkout_at) status = 'Saiu'
-  else if (g.checkin_at) status = 'Presente'
+  const mapGuestData = (g: ApiGuestResponse): CheckinGuest => {
+    let status: CheckinGuest['status'] = 'Aguardando'
+    if (g.checkout_at) status = 'Saiu'
+    else if (g.checkin_at) status = 'Presente'
 
-  return {
-    id: g.id,
-    name: g.nome_convidado,
-    status,
-    walkedIn: g.cadastrado_na_hora || false,
-    checkin_at: g.checkin_at || null,
-    guestType: g.tipo_convidado,
-    phoneNumber: g.telefone_convidado || g.telefone_responsavel_contato || null,
-    observacao: g.observacao_convidado || '',
-    
-    // --- Linhas importantes que garantem a tradução correta ---
-    isChild: isCrianca(g.tipo_convidado), 
-    responsibleId: g.acompanhado_por_id || null,
+    return {
+      id: g.id,
+      name: g.nome_convidado,
+      status,
+      walkedIn: g.cadastrado_na_hora || false,
+      checkin_at: g.checkin_at || null,
+      guestType: g.tipo_convidado,
+      phoneNumber: g.telefone_convidado || g.telefone_responsavel_contato || null,
+      observacao: g.observacao_convidado || '',
 
-    // Deixamos a propriedade children vazia por enquanto, ela será preenchida depois
-    children: [], 
+      // --- Linhas importantes que garantem a tradução correta ---
+      isChild: isCrianca(g.tipo_convidado),
+      responsibleId: g.acompanhado_por_id || null,
+
+      // Deixamos a propriedade children vazia por enquanto, ela será preenchida depois
+      children: [],
+    }
   }
-}
 
-/**
- * Transforma uma lista plana de convidados em uma lista agrupada,
- * onde as crianças ficam dentro de um array 'children' de seus responsáveis.
- */
+  /**
+   * Transforma uma lista plana de convidados em uma lista agrupada,
+   * onde as crianças ficam dentro de um array 'children' de seus responsáveis.
+   */
 
-const groupGuests = (guests: CheckinGuest[]): CheckinGuest[] => {
-  const guestsMap = new Map(
-    guests.map(guest => [guest.id, { ...guest, children: [] as CheckinGuest[] }])
-  );
+  const groupGuests = (guests: CheckinGuest[]): CheckinGuest[] => {
+    const guestsMap = new Map(
+      guests.map(guest => [guest.id, { ...guest, children: [] as CheckinGuest[] }])
+    );
 
-  const rootGuests: CheckinGuest[] = [];
+    const rootGuests: CheckinGuest[] = [];
 
-  guestsMap.forEach(guest => {
-    // IF PRINCIPAL: O convidado é uma criança com responsável?
-    if (guest.isChild && guest.responsibleId) {
-      const responsible = guestsMap.get(guest.responsibleId);
-      
-      // IF ANINHADO: Encontramos o responsável na lista?
-      if (responsible) {
-        // SIM: Adiciona a criança na lista de filhos do responsável.
-        responsible.children?.push(guest);
+    guestsMap.forEach(guest => {
+      // IF PRINCIPAL: O convidado é uma criança com responsável?
+      if (guest.isChild && guest.responsibleId) {
+        const responsible = guestsMap.get(guest.responsibleId);
+
+        // IF ANINHADO: Encontramos o responsável na lista?
+        if (responsible) {
+          // SIM: Adiciona a criança na lista de filhos do responsável.
+          responsible.children?.push(guest);
+        } else {
+          // NÃO: A criança é "órfã" (o pai não está na lista), então a mostramos na lista principal.
+          rootGuests.push(guest);
+        }
       } else {
-        // NÃO: A criança é "órfã" (o pai não está na lista), então a mostramos na lista principal.
+        // ELSE PRINCIPAL: Não é uma criança com responsável, então é um adulto/responsável.
         rootGuests.push(guest);
       }
-    } else {
-      // ELSE PRINCIPAL: Não é uma criança com responsável, então é um adulto/responsável.
-      rootGuests.push(guest);
-    }
-  });
+    });
 
-  return rootGuests;
-};
+    return rootGuests;
+  };
 
 
   const { data: guests = [], isLoading } = useQuery({
@@ -215,37 +221,37 @@ const groupGuests = (guests: CheckinGuest[]): CheckinGuest[] => {
 
   // 🔧 proteção contra undefined no name
   // Use `useMemo` para agrupar e filtrar os convidados de forma otimizada
-const groupedAndFilteredGuests = useMemo(() => {
-  // Primeiro, agrupa a lista de convidados vinda da API
-  const grouped = groupGuests(guests); 
-  
-  // Se não houver termo de busca ou filtro, retorna a lista agrupada completa
-  if (!debouncedSearchTerm && statusFilter === 'all') {
-    return grouped;
-  }
+  const groupedAndFilteredGuests = useMemo(() => {
+    // Primeiro, agrupa a lista de convidados vinda da API
+    const grouped = groupGuests(guests);
 
-  // Depois, aplica a lógica de filtro
-  return grouped.filter(guest => {
-    const parentName = guest.name || '';
-    // Checa se o convidado principal (pai/adulto) corresponde à busca
-    const parentMatchesSearch = parentName.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
-    const parentMatchesStatus = statusFilter === 'all' || guest.status === statusFilter;
+    // Se não houver termo de busca ou filtro, retorna a lista agrupada completa
+    if (!debouncedSearchTerm && statusFilter === 'all') {
+      return grouped;
+    }
 
-    // Se o pai corresponde à busca E ao status, mostra o grupo inteiro (pai + filhos)
-    if(parentMatchesSearch && parentMatchesStatus) return true;
+    // Depois, aplica a lógica de filtro
+    return grouped.filter(guest => {
+      const parentName = guest.name || '';
+      // Checa se o convidado principal (pai/adulto) corresponde à busca
+      const parentMatchesSearch = parentName.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+      const parentMatchesStatus = statusFilter === 'all' || guest.status === statusFilter;
 
-    // Se o pai não corresponde, verifica se ALGUM dos filhos corresponde
-    const childMatches = guest.children?.some(child => {
+      // Se o pai corresponde à busca E ao status, mostra o grupo inteiro (pai + filhos)
+      if (parentMatchesSearch && parentMatchesStatus) return true;
+
+      // Se o pai não corresponde, verifica se ALGUM dos filhos corresponde
+      const childMatches = guest.children?.some(child => {
         const childName = child.name || '';
         const childMatchesSearch = childName.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
         const childMatchesStatus = statusFilter === 'all' || child.status === statusFilter;
         return childMatchesSearch && childMatchesStatus;
-    });
+      });
 
-    // Se algum filho corresponder, mostra o grupo inteiro também
-    return childMatches;
-  });
-}, [guests, debouncedSearchTerm, statusFilter]);
+      // Se algum filho corresponder, mostra o grupo inteiro também
+      return childMatches;
+    });
+  }, [guests, debouncedSearchTerm, statusFilter]);
 
 
   const guestsPresentCount = guests.filter((g) => g.status === 'Presente').length
@@ -332,17 +338,17 @@ const groupedAndFilteredGuests = useMemo(() => {
     }
   }
 
-    const handleToggleRow = (guestId: number) => {
-  const newSet = new Set(expandedRows);
-  if (newSet.has(guestId)) {
-    newSet.delete(guestId);
-  } else {
-    newSet.add(guestId);
-  }
-  setExpandedRows(newSet);
-};
+  const handleToggleRow = (guestId: number) => {
+    const newSet = new Set(expandedRows);
+    if (newSet.has(guestId)) {
+      newSet.delete(guestId);
+    } else {
+      newSet.add(guestId);
+    }
+    setExpandedRows(newSet);
+  };
 
-     return (
+  return (
     <div className="container mx-auto p-4 md-p-6 space-y-6 text-base">
       {/* Cabeçalho */}
       <div className="flex flex-col gap-4">
@@ -427,7 +433,7 @@ const groupedAndFilteredGuests = useMemo(() => {
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
-            
+
             <TableBody>
               {(() => {
                 let guestCounter = 1;
@@ -441,17 +447,17 @@ const groupedAndFilteredGuests = useMemo(() => {
                           <div className="flex items-center gap-1">
                             {guest.children && guest.children.length > 0 ? (
                               <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full" onClick={() => handleToggleRow(guest.id)}>
-                                {expandedRows.has(guest.id) ? <ChevronDown className="h-4 w-4"/> : <ChevronRight className="h-4 w-4"/>}
+                                {expandedRows.has(guest.id) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                               </Button>
                             ) : (
                               <div className="w-8"></div>
                             )}
-                            
+
                             <span className="w-8 text-right text-sm text-muted-foreground pr-2 tabular-nums">{guestCounter++}.</span>
-                            
+
                             {guest.name}
                             {guest.walkedIn && (
-                                <Badge variant="outline" className="border-yellow-500 text-yellow-600">Extra</Badge>
+                              <Badge variant="outline" className="border-yellow-500 text-yellow-600">Extra</Badge>
                             )}
                           </div>
                           <div className="pl-16 sm:hidden text-sm text-muted-foreground">
@@ -463,9 +469,9 @@ const groupedAndFilteredGuests = useMemo(() => {
                         <TableCell className="hidden sm:table-cell">{guest.phoneNumber || '-'}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-3 sm:gap-4 flex-nowrap">
-                              <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleOpenObservation(guest.id)}><Edit className="h-4 w-4" /></Button>
-                              <Button size="icon" className="w-8 h-8" onClick={() => handleCheckin(guest.id)} disabled={guest.status !== 'Aguardando' || isCheckinLoading === guest.id}><Check className="h-4 w-4" /></Button>
-                              <Button size="icon" className="w-8 h-8" variant="destructive" onClick={() => handleCheckout(guest.id)} disabled={guest.status !== 'Presente' || isCheckoutLoading === guest.id}><LogOut className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleOpenObservation(guest.id)}><Edit className="h-4 w-4" /></Button>
+                            <Button size="icon" className="w-8 h-8" onClick={() => handleCheckin(guest.id)} disabled={guest.status !== 'Aguardando' || isCheckinLoading === guest.id}><Check className="h-4 w-4" /></Button>
+                            <Button size="icon" className="w-8 h-8" variant="destructive" onClick={() => handleCheckout(guest.id)} disabled={guest.status !== 'Presente' || isCheckoutLoading === guest.id}><LogOut className="h-4 w-4" /></Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -473,24 +479,60 @@ const groupedAndFilteredGuests = useMemo(() => {
                       {/* --- LINHAS DAS CRIANÇAS --- */}
                       {expandedRows.has(guest.id) &&
                         guest.children?.map((child) => (
-                          <TableRow key={child.id} className="bg-muted/50 hover:bg-muted/80" style={{borderTop: 0}}>
+                          <TableRow key={child.id} className="bg-muted/50 hover:bg-muted/80" style={{ borderTop: 0 }}>
                             <TableCell className="pl-12 font-medium">
                               <div className="flex items-center gap-2">
                                 <span className="w-8 text-right text-sm text-muted-foreground pr-2 tabular-nums">{guestCounter++}.</span>
                                 {child.name}
                               </div>
                               <div className="pl-12 sm:hidden text-sm text-muted-foreground">
-                                  <span>Status: {child.status}</span><br />
-                                  <span>Telefone: {child.phoneNumber || '-'}</span>
+                                <span>Status: {child.status}</span><br />
+                                <span>Telefone: {child.phoneNumber || '-'}</span>
                               </div>
                             </TableCell>
                             <TableCell className="hidden sm:table-cell">{child.status}</TableCell>
                             <TableCell className="hidden sm:table-cell">{child.phoneNumber || '-'}</TableCell>
                             <TableCell className="text-right">
                               <div className="flex justify-end gap-3 sm:gap-4 flex-nowrap">
-                                  <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleOpenObservation(child.id)}><Edit className="h-4 w-4" /></Button>
-                                  <Button size="icon" className="w-8 h-8" onClick={() => handleCheckin(child.id)} disabled={child.status !== 'Aguardando' || isCheckinLoading === child.id}><Check className="h-4 w-4" /></Button>
-                                  <Button size="icon" className="w-8 h-8" variant="destructive" onClick={() => handleCheckout(child.id)} disabled={child.status !== 'Presente' || isCheckoutLoading === child.id}><LogOut className="h-4 w-4" /></Button>
+                                {/* Botão de Observação (não muda) */}
+                                <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleOpenObservation(guest.id)}>
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+
+                                {/* Botão de Check-in INTELIGENTE */}
+                                <Button
+                                  size="icon"
+                                  className="w-8 h-8"
+                                  onClick={() => {
+                                    // Se o convidado tem filhos, chama a função de grupo. Senão, a individual.
+                                    if (guest.children && guest.children.length > 0) {
+                                      handleGroupCheckin(guest.id);
+                                    } else {
+                                      handleCheckin(guest.id);
+                                    }
+                                  }}
+                                  disabled={guest.status !== 'Aguardando' || isCheckinLoading === guest.id}
+                                >
+                                  <Check className="h-4 w-4" />
+                                </Button>
+
+                                {/* Botão de Check-out INTELIGENTE */}
+                                <Button
+                                  size="icon"
+                                  className="w-8 h-8"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    // Mesma lógica: se tem filhos, chama a função de grupo.
+                                    if (guest.children && guest.children.length > 0) {
+                                      handleGroupCheckout(guest.id);
+                                    } else {
+                                      handleCheckout(guest.id);
+                                    }
+                                  }}
+                                  disabled={guest.status !== 'Presente' || isCheckoutLoading === guest.id}
+                                >
+                                  <LogOut className="h-4 w-4" />
+                                </Button>
                               </div>
                             </TableCell>
                           </TableRow>
