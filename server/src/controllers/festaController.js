@@ -378,9 +378,138 @@ export async function registrarGrupoConvidados(req, res) {
     return res.status(500).json({ error: 'Erro interno ao registrar grupo.' });
   }
 }
-// ========================================================================
-// AQUI TERMINA A FUNÇÃO CORRIGIDA
-// ========================================================================
+
+export async function checkinGrupoConvidados(req, res) {
+  // O id do convidado aqui é o ID do RESPONSÁVEL pelo grupo
+  const { idFesta, idConvidado } = req.params;
+  const { usuarioTipo } = req;
+
+  // Inicia uma transação para garantir a integridade dos dados
+  const transaction = await sequelize.transaction();
+
+  try {
+    // Apenas o staff do espaço pode realizar o check-in
+    if (usuarioTipo !== models.Usuario.TIPOS_USUARIO.ADM_ESPACO) {
+      await transaction.rollback();
+      return res
+        .status(403)
+        .json({ error: 'Acesso negado. Apenas o staff do espaço pode realizar o check-in.' });
+    }
+
+    // PASSO 1: Encontrar o responsável E todos os seus filhos de uma vez só.
+    // Usamos o [Op.or] para pegar o convidado cujo 'id' é o do responsável,
+    // OU todos os convidados cujo 'acompanhado_por_id' é o do responsável.
+    const grupoParaCheckin = await models.ConvidadoFesta.findAll({
+      where: {
+        id_festa: idFesta,
+        [Op.or]: [
+          { id: idConvidado },
+          { acompanhado_por_id: idConvidado }
+        ]
+      }
+    }, { transaction });
+
+    // Se não encontrarmos ninguém (nem o responsável), retornamos um erro.
+    if (!grupoParaCheckin || grupoParaCheckin.length === 0) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Grupo de convidados não encontrado.' });
+    }
+
+    const agora = new Date();
+    const convidadosAtualizados = [];
+
+    // PASSO 2: Fazer o check-in de cada membro do grupo que ainda não entrou.
+    for (const convidado of grupoParaCheckin) {
+      if (!convidado.checkin_at) { // Só faz check-in se a pessoa ainda não entrou
+        convidado.checkin_at = agora;
+        await convidado.save({ transaction }); // Salva a alteração dentro da transação
+      }
+      convidadosAtualizados.push(convidado);
+    }
+    
+    // PASSO 3: Se tudo correu bem, confirma todas as alterações no banco.
+    await transaction.commit();
+
+    // Opcional: Disparar um webhook ou outra notificação aqui, se necessário.
+
+    return res.status(200).json({ 
+      mensagem: `Check-in realizado para ${convidadosAtualizados.length} membro(s) do grupo.`, 
+      convidados: convidadosAtualizados 
+    });
+
+  } catch (error) {
+    // PASSO 4: Se qualquer coisa der errado, desfaz todas as alterações.
+    await transaction.rollback();
+    console.error('Erro ao realizar check-in em grupo:', error);
+    return res.status(500).json({ error: 'Falha ao realizar check-in em grupo.' });
+  }
+}
+
+
+export async function checkoutGrupoConvidados(req, res) {
+  // O id do convidado aqui é o ID do RESPONSÁVEL pelo grupo
+  const { idFesta, idConvidado } = req.params;
+  const { usuarioTipo } = req;
+
+  // Inicia uma transação para garantir a integridade dos dados
+  const transaction = await sequelize.transaction();
+
+  try {
+    // Apenas o staff do espaço pode realizar o check-out
+    if (usuarioTipo !== models.Usuario.TIPOS_USUARIO.ADM_ESPACO) {
+      await transaction.rollback();
+      return res
+        .status(403)
+        .json({ error: 'Acesso negado. Apenas o staff do espaço pode realizar o check-out.' });
+    }
+
+    // PASSO 1: Encontrar o responsável E todos os seus filhos de uma vez só.
+    const grupoParaCheckout = await models.ConvidadoFesta.findAll({
+      where: {
+        id_festa: idFesta,
+        [Op.or]: [
+          { id: idConvidado },
+          { acompanhado_por_id: idConvidado }
+        ]
+      }
+    }, { transaction });
+
+    // Se não encontrarmos ninguém (nem o responsável), retornamos um erro.
+    if (!grupoParaCheckout || grupoParaCheckout.length === 0) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Grupo de convidados não encontrado.' });
+    }
+
+    const agora = new Date();
+    const convidadosAtualizados = [];
+
+    // PASSO 2: Fazer o check-out de cada membro do grupo que já entrou e ainda não saiu.
+    for (const convidado of grupoParaCheckout) {
+      // A condição chave: SÓ faz check-out se a pessoa JÁ FEZ check-in E AINDA NÃO FEZ check-out.
+      if (convidado.checkin_at && !convidado.checkout_at) { 
+        convidado.checkout_at = agora;
+        await convidado.save({ transaction }); // Salva a alteração dentro da transação
+      }
+      convidadosAtualizados.push(convidado);
+    }
+    
+    // PASSO 3: Se tudo correu bem, confirma todas as alterações no banco.
+    await transaction.commit();
+
+    // Opcional: Disparar um webhook ou outra notificação aqui, se necessário.
+
+    return res.status(200).json({ 
+      mensagem: `Check-out realizado para o grupo.`, 
+      convidados: convidadosAtualizados 
+    });
+
+  } catch (error) {
+    // PASSO 4: Se qualquer coisa der errado, desfaz todas as alterações.
+    await transaction.rollback();
+    console.error('Erro ao realizar check-out em grupo:', error);
+    return res.status(500).json({ error: 'Falha ao realizar check-out em grupo.' });
+  }
+}
 
 export async function registrarAdultos(req, res) {
   const { idFesta } = req.params;

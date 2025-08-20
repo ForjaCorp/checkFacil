@@ -91,6 +91,19 @@ router.patch(
   verificarTokenJWT,
   festaController.checkoutConvidado
 );
+// POST /festa/:idFesta/convidados/:idConvidado/checkin-grupo -> Realiza o check-in em grupo.
+router.post(
+  '/:idFesta/convidados/:idConvidado/checkin-grupo',
+  verificarTokenJWT,
+  festaController.checkinGrupoConvidados
+);
+
+// POST /festa/:idFesta/convidados/:idConvidado/checkout-grupo -> Realiza o check-out em grupo.
+router.post(
+  '/:idFesta/convidados/:idConvidado/checkout-grupo',
+  verificarTokenJWT,
+  festaController.checkoutGrupoConvidados 
+);
 
 router.post(
   '/:idFesta/convite/upload',
