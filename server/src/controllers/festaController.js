@@ -4,7 +4,7 @@ import { randomBytes } from 'crypto';
 import axios from 'axios';
 import excel from 'exceljs';
 
-// Função auxiliar para calcular a idade a partir da data de nascimento
+
 function calcularIdade(dataNascimento) {
   if (!dataNascimento) return null;
   const hoje = new Date();
@@ -60,8 +60,8 @@ export async function criarFesta(req, res) {
           emailCliente: clienteOrganizador.email,
           telefoneCliente: clienteOrganizador.telefone,
           dataFesta: dadosFesta.data_festa,
-          horaInicio: dadosFesta.hora_inicio,
-          horaFim: dadosFesta.hora_fim,
+          horaInicio: dadosFesta.horario_inicio,
+          horaFim: dadosFesta.horario_fim,
           localFesta: dadosFesta.local_festa,
           descricao: dadosFesta.descricao,
           pacote_escolhido: dadosFesta.pacote_escolhido,
@@ -86,8 +86,8 @@ export async function criarFesta(req, res) {
           emailCliente: clienteOrganizador.email,
           telefoneCliente: clienteOrganizador.telefone,
           dataFesta: dadosFesta.data_festa,
-          horaInicio: dadosFesta.hora_inicio,
-          horaFim: dadosFesta.hora_fim,
+          horaInicio: dadosFesta.horario_inicio,
+          horaFim: dadosFesta.horario_fim,
           localFesta: dadosFesta.local_festa,
           descricao: dadosFesta.descricao,
           pacote_escolhido: dadosFesta.pacote_escolhido,
