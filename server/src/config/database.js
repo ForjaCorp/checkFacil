@@ -1,18 +1,23 @@
+import 'dotenv/config'; // Sintaxe correta para ES Modules
 import { Sequelize } from 'sequelize';
-import dotenv from 'dotenv';
 
-dotenv.config();
+const dbConfig = {
+  username: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT || 3306,
+  dialect: process.env.DB_DIALECT || 'mysql',
+  logging: false,
+  timezone: '-03:00',
+};
 
+// Cria a instância para a aplicação usar
 const sequelize = new Sequelize(
-  process.env.DB_NAME || 'nome_do_banco',
-  process.env.DB_USER || 'usuario_do_banco',
-  process.env.DB_PASSWORD || 'senha_do_banco',
-  {
-    host: process.env.DB_HOST || 'localhost',
-    dialect: 'mysql',
-    logging: false,
-    timezone: '-03:00'
-  }
+  dbConfig.database,
+  dbConfig.username,
+  dbConfig.password,
+  dbConfig
 );
 
 export default sequelize;
