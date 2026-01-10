@@ -13,7 +13,7 @@ function gerarToken(params = {}) {
   }
 
   return jwt.sign(params, JWT_SECRET, {
-    expiresIn: 86400 // 24 horas
+    expiresIn: '10d' 
   });
 }
 
@@ -224,7 +224,8 @@ export async function solicitarRedefinicaoSenha(req, res) {
 
     // Gerar token e expiração
     const token = crypto.randomBytes(20).toString('hex')
-    const expiracao = new Date(Date.now() + 3600000) // 1 hora
+    // 10 dias em milissegundos: 10 * 24h * 60m * 60s * 1000ms
+    const expiracao = new Date(Date.now() + (10 * 24 * 60 * 60 * 1000)) 
 
     usuario.redefineSenhaToken = token
     usuario.redefineSenhaExpiracao = expiracao

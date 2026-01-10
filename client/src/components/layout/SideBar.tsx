@@ -1,17 +1,31 @@
-import { LayoutGrid, PlusCircle, LogOut, Music2 } from 'lucide-react'
+import { LayoutGrid, PlusCircle, LogOut, Music2, Smartphone } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 
-import { SideBarLink } from '@/components/layout/SideBarLink'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { useAuth } from '@/contexts/authContextCore'
+// Ajustado para caminhos relativos para resolver erros de compilação
+import { SideBarLink } from './SideBarLink'
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
+import { Button } from '../ui/button'
+import { TooltipProvider } from '../ui/tooltip'
+import { useAuth } from '../../contexts/authContextCore'
+
+// Importando o Gerenciador e componentes de Modal (Dialog) com caminhos relativos
+import { EvolutionManager } from './EvolutionManager'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../ui/dialog'
 
 export function SideBar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const [isEvoOpen, setIsEvoOpen] = useState(false)
 
-  // 🔥 apenas para criar festa
+  // Lógica de permissão para visualização de ferramentas administrativas
   const podeCriar =
     user?.email === 'barradeespacoe@gmail.com' ||
     user?.email === 'adm2.espacocriaraju@gmail.com'
@@ -36,6 +50,7 @@ export function SideBar() {
               <span className="">Check Fácil</span>
             </Link>
           </div>
+          
           <div className="flex-1 overflow-auto py-4">
             <nav className="grid gap-2 px-2 text-sm font-medium lg:px-4">
               <SideBarLink
@@ -45,7 +60,6 @@ export function SideBar() {
                 tooltip="Ver Eventos"
               />
 
-              {/* ✅ Playlist sempre visível */}
               <SideBarLink
                 to="/staff/playlists"
                 icon={<Music2 className="h-5 w-5" />}
@@ -53,14 +67,36 @@ export function SideBar() {
                 tooltip="Gerenciar Playlists"
               />
 
-              {/* ✅ Criar Festa só para os permitidos */}
               {podeCriar && (
-                <SideBarLink
-                  to="/staff/events/createEventDraft"
-                  icon={<PlusCircle className="h-5 w-5" />}
-                  label="Criar Festa"
-                  tooltip="Criar Nova Festa"
-                />
+                <>
+                  <SideBarLink
+                    to="/staff/events/createEventDraft"
+                    icon={<PlusCircle className="h-5 w-5" />}
+                    label="Criar Festa"
+                    tooltip="Criar Nova Festa"
+                  />
+
+                  {/* Gerenciamento de Conexão WhatsApp via Modal acessível pela Sidebar */}
+                  <Dialog open={isEvoOpen} onOpenChange={setIsEvoOpen}>
+                    <DialogTrigger asChild>
+                      <button className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted w-full text-left font-medium">
+                        <Smartphone className="h-5 w-5" />
+                        WhatsApp
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[600px]">
+                      <DialogHeader>
+                        <DialogTitle>Gerenciar Conexão</DialogTitle>
+                        <DialogDescription>
+                          Conecte ou desconecte a instância do WhatsApp para envios do sistema.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="py-4">
+                        <EvolutionManager />
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </>
               )}
             </nav>
           </div>
@@ -75,10 +111,10 @@ export function SideBar() {
                 <p className="font-medium text-foreground group-hover:text-primary transition-colors">
                   {user?.name}
                 </p>
-                <p className="text-muted-foreground">{user?.email}</p>
+                <p className="text-muted-foreground text-[10px] truncate max-w-[150px]">{user?.email}</p>
               </div>
             </Link>
-            <Button size="sm" className="w-full" onClick={handleLogout}>
+            <Button size="sm" variant="outline" className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               Sair
             </Button>
