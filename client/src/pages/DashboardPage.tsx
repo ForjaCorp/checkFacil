@@ -21,6 +21,9 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { usePageHeader } from '@/hooks/usePageHeader'
 import api from '@/services/api'
 
+// ✅ IMPORTANTE: Importando o novo indicador de status simplificado
+import { WhatsAppStatusIndicator } from '@/components/layout/WhatsAppStatusIndicator'
+
 import type { ApiEventResponse, EventsQueryOptions } from '@/types'
 import type { DateRange } from 'react-day-picker'
 
@@ -143,6 +146,15 @@ export default function DashboardPage() {
         title={config.header.title}
         description={config.header.getSubtitle(user.name || user.email)}
       />
+
+      {/* ✅ NOVO: Indicador de Status do WhatsApp na Home
+          Apenas visível para o Administrador do Espaço
+      */}
+      {user.userType === 'Adm_espaco' && (
+        <section className="animate-in fade-in slide-in-from-top-4 duration-500">
+          <WhatsAppStatusIndicator />
+        </section>
+      )}
 
       {isError && (
         <div className="rounded-md border border-destructive bg-destructive/10 p-4 text-center text-sm text-destructive">
