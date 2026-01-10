@@ -8,6 +8,7 @@ import playlistRoutes from './routes/playlistsRoutes.js';
 import _models, { sequelize } from './models/index.js';
 import authRoutes from './routes/authRoutes.js';
 import festaRoutes from './routes/festaRoutes.js';
+import evolutionRoutes from './routes/evolutionapiRoutes.js'; 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,6 +27,7 @@ app.use(express.static(path.join(__dirname, '../../client/dist')));
 app.use('/api/auth', authRoutes);
 app.use('/api/festa', festaRoutes);
 app.use('/api/playlists', playlistRoutes);
+app.use('/api/evolution', evolutionRoutes);
 
 app.get('/*splat', (_req, res) => {
 

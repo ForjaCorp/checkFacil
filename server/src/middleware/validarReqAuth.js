@@ -105,3 +105,22 @@ export function permitirApenas(...tiposPermitidos) {
     }
   };
 }
+
+export function isAdminEspaco(req, res, next) {
+  const { usuarioTipo } = req;
+
+  if (!usuarioTipo) {
+    return res.status(401).json({ 
+      error: 'Informações de usuário não encontradas. Falha na autenticação.' 
+    });
+  }
+
+  // Verifica se o tipo é Adm_espaco conforme o valor salvo no token
+  if (usuarioTipo === 'Adm_espaco') {
+    return next();
+  }
+
+  return res.status(403).json({ 
+    error: 'Acesso negado. Você não tem permissão de administrador do espaço para realizar esta ação.' 
+  });
+}
