@@ -953,7 +953,7 @@ export async function buscarFestaPublicaPorId(req, res) {
       ]
     });
 
-    if (!festa || festa.status === 'RASCUNHO' || festa.status === 'CANCELADA') {
+    if (!festa || festa.status === 'CANCELADA') {
       return res.status(404).json({ error: 'Festa não encontrada ou não está disponível.' });
     }
 

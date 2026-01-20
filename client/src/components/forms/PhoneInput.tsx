@@ -51,6 +51,7 @@ const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(
         {...props}
         ref={combinedRef}
         name={name}
+        onChange={() => {}}
         onBlur={onBlur}
         value={maskedValue}
         autoComplete="tel"

@@ -3,7 +3,7 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CalendarIcon, Loader2 } from 'lucide-react'
 import { useEffect } from 'react'
-import { useForm, type SubmitHandler } from 'react-hook-form'
+import { useForm, type FieldErrors, type SubmitHandler } from 'react-hook-form'
 
 import { PhoneInput } from '@/components/forms/PhoneInput'
 import { Button } from '@/components/ui/button'
@@ -57,7 +57,7 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
 
   // ✨ NOSSO "DEDO-DURO" ESTÁ AQUI!
   // Esta função será chamada se a validação falhar.
-  const onFormError = (errors: any) => {
+  const onFormError = (errors: FieldErrors<EditGuestFormValues>) => {
     console.error("ERROS DE VALIDAÇÃO DO FORMULÁRIO:", errors);
     alert("O formulário contém erros. Verifique o console (F12) para ver os detalhes.");
   };
@@ -101,7 +101,11 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
               <FormItem>
                 <FormLabel>Telefone</FormLabel>
                 <FormControl>
-                  <PhoneInput placeholder="+55 (XX) 9XXXX-XXXX" {...field} />
+                  <PhoneInput
+                    placeholder="+55 (XX) 9XXXX-XXXX"
+                    {...field}
+                    value={field.value ?? ''}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -116,7 +120,7 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
                 <FormItem>
                   <FormLabel>Nome do Responsável</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nome do responsável" {...field} />
+                    <Input placeholder="Nome do responsável" {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -130,7 +134,11 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
                 <FormItem>
                   <FormLabel>Telefone do Responsável</FormLabel>
                   <FormControl>
-                    <PhoneInput placeholder="+55 (XX) 9XXXX-XXXX" {...field} />
+                    <PhoneInput
+                      placeholder="+55 (XX) 9XXXX-XXXX"
+                      {...field}
+                      value={field.value ?? ''}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

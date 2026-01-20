@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Smartphone, RefreshCw, LogOut, Loader2, QrCode, CheckCircle2, AlertCircle } from 'lucide-react';
 // Restaurando o padrão de aliases @/ que é o padrão do seu projeto e resolve melhor os caminhos
 import api from '@/services/api';
@@ -20,7 +20,6 @@ export const EvolutionManager = () => {
       const state = data.instance?.state || data.state;
       setStatus(state === 'open' ? 'connected' : 'disconnected');
     } catch (err) {
-      console.error("Erro ao buscar status do WhatsApp:", err);
       setStatus('disconnected');
     }
   }, []);
@@ -36,7 +35,7 @@ export const EvolutionManager = () => {
         setStatus('connecting');
       }
     } catch (err) {
-      console.error("Erro ao gerar QR Code");
+      setStatus('disconnected');
     } finally {
       setLoading(false);
     }
@@ -51,7 +50,7 @@ export const EvolutionManager = () => {
       setQrCode(null);
       fetchStatus();
     } catch (err) {
-      console.error("Erro ao desconectar");
+      setStatus('disconnected');
     } finally {
       setLoading(false);
     }

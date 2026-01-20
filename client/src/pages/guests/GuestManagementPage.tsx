@@ -40,6 +40,23 @@ import api from '@/services/api';
 // Types & Constants
 import type { AppGuest, GuestType, GuestFilterOptions } from '@/types/guest';
 
+interface ApiGuest {
+  id: number | string
+  nome_convidado: string
+  tipo_convidado: GuestType
+  nascimento_convidado?: string | Date | null
+  e_crianca_atipica?: boolean
+  telefone_convidado?: string | null
+  telefone_responsavel_contato?: string | null
+  nome_responsavel_contato?: string | null
+  telefone_acompanhante?: string | null
+  nome_acompanhante?: string | null
+  observacao_convidado?: string | null
+  checkin_at?: string | null
+  checkout_at?: string | null
+  cadastrado_na_hora?: boolean
+}
+
 const GUEST_TYPE_OPTIONS: GuestFilterOptions[] = [
   { value: 'all', label: 'Todos os tipos' },
   { value: 'ADULTO_PAGANTE', label: 'Adulto' },
@@ -77,7 +94,7 @@ function GuestManagementPage() {
     queryFn: async () => {
       if (!eventId) return [];
       const response = await api.get(`/festa/${eventId}/convidados`);
-      return response.data.map((guest: any) => ({
+      return (response.data as ApiGuest[]).map((guest) => ({
         ...guest,
         id: Number(guest.id),
         telefone_responsavel: guest.telefone_responsavel_contato,
@@ -108,7 +125,12 @@ function GuestManagementPage() {
     if (!editingGuest) return;
 
     const isChild = formData.tipo_convidado?.includes('CRIANCA') || false;
-    const dataToSend: { [key: string]: any } = {
+    const dataToSend: Partial<EditGuestFormValues> & {
+      nome_responsavel_contato?: string | null
+      telefone_responsavel_contato?: string | null
+      telefone_convidado?: string | null
+      nascimento_convidado?: Date
+    } = {
       nome_convidado: formData.nome_convidado,
       tipo_convidado: formData.tipo_convidado,
       e_crianca_atipica: formData.e_crianca_atipica ?? false,

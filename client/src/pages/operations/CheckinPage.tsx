@@ -40,9 +40,6 @@ import { usePageHeader } from '@/hooks/usePageHeader'
 // Services
 import api from '@/services/api'
 
-// Types
-import type { GuestType } from '@/types'
-
 const STATUS_OPTIONS = [
   { value: 'all', label: 'Todos os status' },
   { value: 'Aguardando', label: 'Aguardando' },
@@ -96,6 +93,24 @@ export default function CheckinPage() {
   const [isWalkinDialogOpen, setIsWalkinDialogOpen] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+
+  const handleStatusFilterChange = (value: string) => {
+    if (value === 'all' || value === 'Aguardando' || value === 'Presente' || value === 'Saiu') {
+      setStatusFilter(value)
+      return
+    }
+
+    setStatusFilter('all')
+  }
+
+  const handleFiltroDisparoChange = (value: string) => {
+    if (value === 'Todos' || value === 'Presente' || value === 'Aguardando' || value === 'Saiu') {
+      setFiltroDisparo(value)
+      return
+    }
+
+    setFiltroDisparo('Presente')
+  }
 
   // estados observação
   const [isObservationDialogOpen, setIsObservationDialogOpen] = useState(false)
@@ -372,7 +387,7 @@ export default function CheckinPage() {
               onSearchChange={setSearchTerm}
               filterOptions={STATUS_OPTIONS}
               selectedFilter={statusFilter}
-              onFilterChange={(v) => setStatusFilter(v as any)}
+              onFilterChange={handleStatusFilterChange}
               searchPlaceholder="Buscar convidado..."
               filterPlaceholder="Status"
             />
@@ -560,7 +575,7 @@ export default function CheckinPage() {
             <DialogDescription>Esta mensagem será enviada via WhatsApp.</DialogDescription>
           </DialogHeader>
 
-          <Select value={filtroDisparo} onValueChange={(val) => setFiltroDisparo(val as any)}>
+          <Select value={filtroDisparo} onValueChange={handleFiltroDisparoChange}>
             <SelectTrigger className="mt-2">
               <SelectValue placeholder="Selecione o status para envio" />
             </SelectTrigger>
