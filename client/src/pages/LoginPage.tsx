@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
+import axios from 'axios'
 import { Loader2 } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
@@ -60,9 +61,22 @@ function LoginPage() {
       }
       auth.login(authenticatedUserData, token)
     },
-    onError: (error) => {
-      console.error('Falha no login:', error)
-      toast.error('Falha no login', { description: 'Email ou senha inválidos.' })
+    onError: (error: unknown) => {
+      const errorPayload = axios.isAxiosError(error) ? error.response?.data : undefined
+      const errorStatus = axios.isAxiosError(error) ? error.response?.status : undefined
+
+      console.error('Falha no login:', {
+        message: axios.isAxiosError(error) ? error.message : 'Erro desconhecido',
+        response: errorPayload,
+        status: errorStatus,
+      })
+
+      const description =
+        axios.isAxiosError(error) && typeof errorPayload?.error === 'string'
+          ? errorPayload.error
+          : 'Email ou senha inválidos.'
+
+      toast.error('Falha no login', { description })
     }
   })
 

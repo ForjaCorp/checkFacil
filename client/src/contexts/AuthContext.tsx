@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { useState, useEffect, type ReactNode, useCallback } from 'react'
 
 import {
@@ -73,8 +74,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
           isLoading: false,
         })
         localStorage.setItem('user', JSON.stringify(usuario))
-      } catch (error) {
-        console.error('Falha na validação da sessão, deslogando:', error)
+      } catch (error: unknown) {
+        console.error('Falha na validação da sessão, deslogando:', {
+          message: axios.isAxiosError(error) ? error.message : 'Erro desconhecido',
+          response: axios.isAxiosError(error) ? error.response?.data : undefined,
+          status: axios.isAxiosError(error) ? error.response?.status : undefined,
+        })
         logout()
       }
     }

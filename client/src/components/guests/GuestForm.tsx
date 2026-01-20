@@ -49,11 +49,13 @@ export function GuestForm({ onSubmit, isLoading, initialValues }: GuestFormProps
     defaultValues: initialValues,
   })
 
+  const { reset } = form
+
   useEffect(() => {
     if (initialValues) {
-      form.reset(initialValues)
+      reset(initialValues)
     }
-  }, [initialValues, form.reset])
+  }, [initialValues, reset])
 
   // ✨ NOSSO "DEDO-DURO" ESTÁ AQUI!
   // Esta função será chamada se a validação falhar.
