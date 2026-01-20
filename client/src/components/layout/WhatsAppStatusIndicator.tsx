@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Smartphone, RefreshCw, Loader2 } from 'lucide-react';
 import api from '@/services/api';
 
@@ -18,7 +18,6 @@ export function WhatsAppStatusIndicator() {
       const state = data.instance?.state || data.state;
       setStatus(state === 'open' ? 'connected' : 'disconnected');
     } catch (err) {
-      console.error("Erro ao buscar status do WhatsApp:", err);
       setStatus('disconnected');
     } finally {
       setLoading(false);
