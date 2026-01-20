@@ -4,13 +4,25 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
-// UI Components
 import { ConfirmationDialog } from '@/components/common/ConfirmationDialog';
 import { SearchAndFilterBar } from '@/components/common/SearchAndFilterBar';
 import { ShareInviteLink } from '@/components/events/ShareInviteLink';
 import { GuestForm } from '@/components/guests/GuestForm';
-import { Button } from '@/components/ui/button';
+import { GuestTabs } from '@/components/guests/GuestTabs';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   Table,
   TableBody,
@@ -19,25 +31,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-
-// Hooks
 import { useGuestOperations } from '@/hooks/useGuestOperations';
 import { usePageHeader } from '@/hooks/usePageHeader';
-
-// Schemas
 import { type EditGuestFormValues } from '@/schemas/guestSchemas';
-
-// Services
 import api from '@/services/api';
 
-// Types & Constants
 import type { AppGuest, GuestType, GuestFilterOptions } from '@/types/guest';
 
 interface ApiGuest {
@@ -76,10 +74,14 @@ const GUEST_TYPE_LABELS: Record<GuestType, string> = {
   ACOMPANHANTE_ATIPICO: 'Acompanhante',
 };
 
+const CHILDREN_TYPES: GuestType[] = ['CRIANCA_PAGANTE', 'CRIANCA_ATE_1_ANO'];
+const ADULT_TYPES: GuestType[] = ['ADULTO_PAGANTE', 'BABA', 'ANFITRIAO_FAMILIA_DIRETA', 'ACOMPANHANTE_ATIPICO'];
+
 function GuestManagementPage() {
   const { setTitle } = usePageHeader();
   const { eventId = '' } = useParams<{ eventId: string }>();
 
+  const [activeTab, setActiveTab] = useState<'todos' | 'criancas' | 'adultos'>('todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [guestTypeFilter, setGuestTypeFilter] = useState<'all' | GuestType>('all');
   const [editingGuest, setEditingGuest] = useState<AppGuest | null>(null);
@@ -120,6 +122,16 @@ function GuestManagementPage() {
   }, [setTitle]);
 
   const partyName = eventData?.nome_festa || '';
+
+  const currentTabOptions = useMemo(() => {
+    if (activeTab === 'todos') {
+      return GUEST_TYPE_OPTIONS;
+    }
+    const relevantTypes = activeTab === 'criancas' ? CHILDREN_TYPES : ADULT_TYPES;
+    return GUEST_TYPE_OPTIONS.filter(option => 
+      option.value === 'all' || relevantTypes.includes(option.value as GuestType)
+    );
+  }, [activeTab]);
 
   const handleEditGuestSubmit = (formData: EditGuestFormValues) => {
     if (!editingGuest) return;
@@ -229,20 +241,36 @@ function GuestManagementPage() {
       .filter((guest) => {
         const nome = guest?.nome_convidado || '';
         const matchesSearch = nome.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const isChildType = CHILDREN_TYPES.includes(guest.tipo_convidado);
+        let matchesTab = true;
+        
+        if (activeTab === 'criancas') {
+           matchesTab = isChildType;
+        } else if (activeTab === 'adultos') {
+           matchesTab = !isChildType;
+        }
+        // 'todos' matches everything
+
         const matchesType =
           guestTypeFilter === 'all' || guest?.tipo_convidado === guestTypeFilter;
-        return matchesSearch && matchesType;
+        return matchesSearch && matchesType && matchesTab;
       })
       .sort((a, b) => {
         const nomeA = a?.nome_convidado || '';
         const nomeB = b?.nome_convidado || '';
         return nomeA.localeCompare(nomeB);
       });
-  }, [guests, searchTerm, guestTypeFilter]);
+  }, [guests, searchTerm, guestTypeFilter, activeTab]);
+
+  // Calculate counts for badges
+  const todosCount = guests.length;
+  const criancasCount = guests.filter(g => CHILDREN_TYPES.includes(g.tipo_convidado)).length;
+  const adultosCount = guests.length - criancasCount;
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Lista de Convidados</h1>
@@ -251,12 +279,27 @@ function GuestManagementPage() {
           {eventId && <ShareInviteLink eventId={eventId} />}
         </div>
 
-        <div className="flex flex-col md:flex-row gap-2 items-center">
+        <div className="space-y-4">
+          <GuestTabs 
+            activeTab={activeTab} 
+            onTabChange={(val) => {
+              setActiveTab(val);
+              setGuestTypeFilter('all');
+            }} 
+            counts={{
+              todos: todosCount,
+              adultos: adultosCount,
+              criancas: criancasCount
+            }}
+            className="w-full sm:w-auto"
+          />
+
+          <div className="flex flex-col md:flex-row gap-2 items-center">
           <div className="w-full flex-grow">
             <SearchAndFilterBar
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
-              filterOptions={GUEST_TYPE_OPTIONS}
+              filterOptions={currentTabOptions}
               selectedFilter={guestTypeFilter}
               onFilterChange={(value) =>
                 setGuestTypeFilter(value as 'all' | GuestType)
@@ -280,6 +323,7 @@ function GuestManagementPage() {
           </Button>
         </div>
       </div>
+    </div>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -331,19 +375,28 @@ function GuestManagementPage() {
                     guest.telefone_convidado || guest.telefone_responsavel;
                   return (
                     <TableRow key={guest.id}>
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium max-w-[150px] sm:max-w-[250px]">
                         <div className="flex flex-col">
-                          <span className="flex items-center gap-2">
-                            {guest.nome_convidado}
+                          <div className="flex items-center gap-2">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <span className="truncate cursor-pointer hover:underline decoration-dotted underline-offset-4">
+                                  {guest.nome_convidado}
+                                </span>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-2">
+                                <p className="text-sm font-medium">{guest.nome_convidado}</p>
+                              </PopoverContent>
+                            </Popover>
                             {guest.cadastrado_na_hora && (
                               <Badge
                                 variant="outline"
-                                className="border-yellow-500 text-yellow-600"
+                                className="border-yellow-500 text-yellow-600 shrink-0"
                               >
                                 Extra
                               </Badge>
                             )}
-                          </span>
+                          </div>
                           <span className="sm:hidden text-sm text-muted-foreground">
                             {GUEST_TYPE_LABELS[guest.tipo_convidado] ||
                               guest.tipo_convidado}

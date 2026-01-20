@@ -142,10 +142,6 @@ export function useGuestConfirmationFlow() {
       cadastrado_na_hora: isWalkin,
     };
 
-    // --- A NOSSA CÂMARA DE SEGURANÇA ---
-    console.log('DADOS A SEREM ENVIADOS PARA A API:', payload);
-    // ------------------------------------
-
     submitGroup(payload);
   }, [flowState, submitGroup])
 

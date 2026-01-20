@@ -1,11 +1,11 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Download, Check, LogOut, Edit, ChevronDown, ChevronRight } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { Loader2, Download, Check, LogOut, Edit, ChevronDown, ChevronRight, Search } from 'lucide-react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 // UI Components
-import { SearchAndFilterBar } from '@/components/common/SearchAndFilterBar'
+import { GuestTabs } from '@/components/guests/GuestTabs'
 import { WalkinGuestRegistration } from '@/components/guests/WalkinGuestRegistration'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -86,6 +92,7 @@ export default function CheckinPage() {
   const { setTitle } = usePageHeader()
   const { eventId = '' } = useParams<{ eventId: string }>()
 
+  const [activeTab, setActiveTab] = useState<'todos' | 'criancas' | 'adultos'>('todos')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'Aguardando' | 'Presente' | 'Saiu'>(
     'all',
@@ -240,13 +247,22 @@ export default function CheckinPage() {
     // Primeiro, agrupa a lista de convidados vinda da API
     const grouped = groupGuests(guests);
 
-    // Se não houver termo de busca ou filtro, retorna a lista agrupada completa
-    if (!debouncedSearchTerm && statusFilter === 'all') {
-      return grouped;
-    }
-
     // Depois, aplica a lógica de filtro
     return grouped.filter(guest => {
+      // 1. Filtro por Aba (Todos / Adultos / Crianças)
+      const isGuestChild = !!guest.isChild;
+      const groupHasChildren = guest.children && guest.children.length > 0;
+      
+      if (activeTab === 'criancas') {
+         // Aba Crianças: Mostra se for criança na raiz OU se o grupo contiver crianças
+         if (!isGuestChild && !groupHasChildren) return false;
+      } else if (activeTab === 'adultos') {
+         // Aba Adultos: Esconde se for criança na raiz (mesmo que órfã, pois é aba adultos)
+         // Mas mostra adultos (pais) mesmo que tenham filhos.
+         if (isGuestChild) return false;
+      }
+      // Se activeTab === 'todos', não filtra nada por tipo
+
       const parentName = guest.name || '';
       // Checa se o convidado principal (pai/adulto) corresponde à busca
       const parentMatchesSearch = parentName.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
@@ -266,10 +282,13 @@ export default function CheckinPage() {
       // Se algum filho corresponder, mostra o grupo inteiro também
       return childMatches;
     });
-  }, [guests, debouncedSearchTerm, statusFilter]);
+  }, [guests, debouncedSearchTerm, statusFilter, activeTab]);
 
 
   const guestsPresentCount = guests.filter((g) => g.status === 'Presente').length
+  const todosCount = guests.length
+  const criancasCount = guests.filter((g) => g.isChild).length
+  const adultosCount = guests.filter((g) => !g.isChild).length
 
   const handleWalkinSuccess = () => {
     setIsWalkinDialogOpen(false)
@@ -366,67 +385,99 @@ export default function CheckinPage() {
   return (
     <div className="container mx-auto p-4 md-p-6 space-y-6 text-base">
       {/* Cabeçalho */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Lista de Check-in</h1>
             <p className="text-muted-foreground text-lg">{eventData?.nome_festa || ''}</p>
-            <div className="mt-1 flex flex-wrap gap-2">
-              <Badge variant="default" className="bg-green-600 text-white text-base">
-                Presentes: {guestsPresentCount}
-              </Badge>
-              <Badge variant="secondary" className="text-base">Total: {guests.length}</Badge>
-            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="default" className="bg-green-600 text-white text-base px-3 py-1">
+              Presentes: {guestsPresentCount}
+            </Badge>
+            <Badge variant="secondary" className="text-base px-3 py-1">Total: {guests.length}</Badge>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-2 items-center">
-          <div className="w-full flex-grow">
-            <SearchAndFilterBar
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              filterOptions={STATUS_OPTIONS}
-              selectedFilter={statusFilter}
-              onFilterChange={handleStatusFilterChange}
-              searchPlaceholder="Buscar convidado..."
-              filterPlaceholder="Status"
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-            <Dialog open={isWalkinDialogOpen} onOpenChange={setIsWalkinDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto">+ Adicionar Convidado</Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Cadastrar Convidado Extra</DialogTitle>
-                  <DialogDescription>
-                    Preencha os dados do responsável e dos convidados.
-                  </DialogDescription>
-                </DialogHeader>
-                <WalkinGuestRegistration onSuccess={handleWalkinSuccess} />
-              </DialogContent>
-            </Dialog>
-            <Button
-              onClick={handleDownload}
-              disabled={isDownloading}
-              variant="outline"
-              className="w-full sm:w-auto"
-            >
-              {isDownloading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="mr-2 h-4 w-4" />
-              )}
-              Baixar Planilha
-            </Button>
-            <Button
-              onClick={() => setIsDisparoDialogOpen(true)}
-              variant="secondary"
-              className="w-full sm:w-auto"
-            >
-              📲 Disparar mensagem
-            </Button>
+        <div className="space-y-4">
+          <GuestTabs 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab} 
+            counts={{
+              todos: todosCount,
+              adultos: adultosCount,
+              criancas: criancasCount
+            }}
+            className="w-full"
+          />
+
+          <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-4 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Buscar convidado..."
+                  className="pl-8 bg-white"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="w-full sm:w-[180px]">
+                <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                  <SelectTrigger className="bg-white">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 justify-end">
+              <Dialog open={isWalkinDialogOpen} onOpenChange={setIsWalkinDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-purple-600 hover:bg-purple-700 text-white w-full sm:w-auto">
+                     + Convidado
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Cadastrar Convidado Extra</DialogTitle>
+                    <DialogDescription>
+                      Preencha os dados do responsável e dos convidados.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <WalkinGuestRegistration onSuccess={handleWalkinSuccess} />
+                </DialogContent>
+              </Dialog>
+
+              <Button
+                onClick={handleDownload}
+                disabled={isDownloading}
+                variant="outline"
+                className="w-full sm:w-auto bg-white"
+              >
+                {isDownloading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                Planilha
+              </Button>
+              <Button
+                onClick={() => setIsDisparoDialogOpen(true)}
+                variant="secondary"
+                className="w-full sm:w-auto"
+              >
+                📲 Mensagem
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -455,9 +506,9 @@ export default function CheckinPage() {
 
                 return groupedAndFilteredGuests.length > 0 ? (
                   groupedAndFilteredGuests.map((guest) => (
-                    <>
+                    <Fragment key={guest.id}>
                       {/* --- LINHA DO RESPONSÁVEL / CONVIDADO PRINCIPAL --- */}
-                      <TableRow key={guest.id} className={guest.children && guest.children.length > 0 ? 'border-b-0' : ''}>
+                      <TableRow className={guest.children && guest.children.length > 0 ? 'border-b-0' : ''}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-1">
                             {guest.children && guest.children.length > 0 ? (
@@ -470,9 +521,19 @@ export default function CheckinPage() {
 
                             <span className="w-8 text-right text-sm text-muted-foreground pr-2 tabular-nums">{guestCounter++}.</span>
 
-                            {guest.name}
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <span className="truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px] cursor-pointer hover:underline decoration-dotted underline-offset-4">
+                                  {guest.name}
+                                </span>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-2">
+                                <p className="text-sm font-medium">{guest.name}</p>
+                              </PopoverContent>
+                            </Popover>
+
                             {guest.walkedIn && (
-                              <Badge variant="outline" className="border-yellow-500 text-yellow-600">Extra</Badge>
+                              <Badge variant="outline" className="border-yellow-500 text-yellow-600 shrink-0">Extra</Badge>
                             )}
                           </div>
                           <div className="pl-16 sm:hidden text-sm text-muted-foreground">
@@ -498,7 +559,16 @@ export default function CheckinPage() {
                             <TableCell className="pl-12 font-medium">
                               <div className="flex items-center gap-2">
                                 <span className="w-8 text-right text-sm text-muted-foreground pr-2 tabular-nums">{guestCounter++}.</span>
-                                {child.name}
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <span className="truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px] cursor-pointer hover:underline decoration-dotted underline-offset-4">
+                                      {child.name}
+                                    </span>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-2">
+                                    <p className="text-sm font-medium">{child.name}</p>
+                                  </PopoverContent>
+                                </Popover>
                               </div>
                               <div className="pl-12 sm:hidden text-sm text-muted-foreground">
                                 <span>Status: {child.status}</span><br />
@@ -552,7 +622,7 @@ export default function CheckinPage() {
                             </TableCell>
                           </TableRow>
                         ))}
-                    </>
+                    </Fragment>
                   ))
                 ) : (
                   <TableRow>

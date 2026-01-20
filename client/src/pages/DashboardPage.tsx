@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { EventSection } from '@/components/events/EventSection'
 import { DashboardFilters } from '@/components/layout/DashboardFilters'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { WhatsAppStatusIndicator } from '@/components/layout/WhatsAppStatusIndicator'
 import { Input } from '@/components/ui/input'
 import {
   Pagination,
@@ -22,7 +23,6 @@ import { usePageHeader } from '@/hooks/usePageHeader'
 import api from '@/services/api'
 
 // ✅ IMPORTANTE: Importando o novo indicador de status simplificado
-import { WhatsAppStatusIndicator } from '@/components/layout/WhatsAppStatusIndicator'
 
 import type { ApiEventResponse, EventsQueryOptions } from '@/types'
 import type { DateRange } from 'react-day-picker'

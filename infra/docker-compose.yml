@@ -3,7 +3,7 @@ services:
     build:
       context: ..
       dockerfile: infra/Dockerfile
-    image: checkfacil-api:latest
+    image: checkfacil-api:${CHECKFACIL_IMAGE_TAG:-latest}
     secrets:
       - source: checkfacil_env_file
         target: /app/server/.env
