@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
 import { Smartphone, RefreshCw, LogOut, Loader2, QrCode, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+
 // Restaurando o padrão de aliases @/ que é o padrão do seu projeto e resolve melhor os caminhos
-import api from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import api from '@/services/api';
 
 /**
  * EvolutionManager

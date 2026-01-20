@@ -1,12 +1,7 @@
-import { useState } from 'react'
 import { LayoutGrid, PlusCircle, User, Music2, Smartphone } from 'lucide-react'
+import { useState } from 'react'
 
 import { BottomNavLink } from '@/components/layout/BottomNavLink'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { useAuth } from '@/contexts/authContextCore'
-
-// Importando o Gerenciador e componentes de Modal (Dialog)
-import { EvolutionManager } from './EvolutionManager'
 import {
   Dialog,
   DialogContent,
@@ -15,6 +10,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { useAuth } from '@/contexts/authContextCore'
+
+// Importando o Gerenciador e componentes de Modal (Dialog)
+import { EvolutionManager } from './EvolutionManager'
 
 /**
  * Barra de navegação inferior para dispositivos móveis.

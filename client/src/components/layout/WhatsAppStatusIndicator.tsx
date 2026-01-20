@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
 import { Smartphone, RefreshCw, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+
 import api from '@/services/api';
 
 /**

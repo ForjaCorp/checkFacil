@@ -24,13 +24,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useAuth } from '@/contexts/authContextCore'
 import { cn } from '@/lib/utils'
 
 import type { CompleteDetailsFormValues } from '@/schemas/eventSchemas'
 import type { UseFormReturn } from 'react-hook-form'
 
 // ✅ Hook correto
-import { useAuth } from '@/contexts/authContextCore'
 
 interface ContractedDetailsSectionProps {
   form: UseFormReturn<CompleteDetailsFormValues>

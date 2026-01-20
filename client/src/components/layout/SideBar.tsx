@@ -1,16 +1,11 @@
 import { LayoutGrid, PlusCircle, LogOut, Music2, Smartphone } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 
 // Ajustado para caminhos relativos para resolver erros de compilação
-import { SideBarLink } from './SideBarLink'
+import { useAuth } from '../../contexts/authContextCore'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Button } from '../ui/button'
-import { TooltipProvider } from '../ui/tooltip'
-import { useAuth } from '../../contexts/authContextCore'
-
-// Importando o Gerenciador e componentes de Modal (Dialog) com caminhos relativos
-import { EvolutionManager } from './EvolutionManager'
 import {
   Dialog,
   DialogContent,
@@ -19,6 +14,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog'
+import { TooltipProvider } from '../ui/tooltip'
+
+// Importando o Gerenciador e componentes de Modal (Dialog) com caminhos relativos
+import { EvolutionManager } from './EvolutionManager'
+import { SideBarLink } from './SideBarLink'
 
 export function SideBar() {
   const { user, logout } = useAuth()
