@@ -26,9 +26,7 @@ export function SideBar() {
   const [isEvoOpen, setIsEvoOpen] = useState(false)
 
   // Lógica de permissão para visualização de ferramentas administrativas
-  const podeCriar =
-    user?.email === 'barradeespacoe@gmail.com' ||
-    user?.email === 'adm2.espacocriaraju@gmail.com'
+  const podeCriar = isAdminEmail(user?.email)
 
   const handleLogout = () => {
     logout()

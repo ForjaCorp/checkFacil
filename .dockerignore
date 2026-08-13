@@ -16,6 +16,8 @@ node_modules
 *.log
 .env
 .env.*
+# Permite o .env.production do client (variáveis VITE_ para o build do frontend)
+!client/.env.production
 
 # Ignora pastas de IDEs
 .vscode/

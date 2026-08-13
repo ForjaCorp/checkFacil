@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { useAuth } from '@/contexts/authContextCore'
+import { isAdminEmail } from '@/lib/adminEmails'
 
 // Importando o Gerenciador e componentes de Modal (Dialog)
 import { EvolutionManager } from './EvolutionManager'
@@ -25,9 +26,7 @@ export function BottomNavBar() {
   const [isEvoOpen, setIsEvoOpen] = useState(false)
 
   // Lógica de permissão validada para administradores
-  const isAdmin =
-    user?.email === 'barradeespacoe@gmail.com' ||
-    user?.email === 'adm2.espacocriaraju@gmail.com'
+  const isAdmin = isAdminEmail(user?.email)
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 h-16 bg-primary border-t border-border shadow-t-md z-50 lg:hidden">

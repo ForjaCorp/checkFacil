@@ -2,6 +2,7 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { CalendarIcon } from 'lucide-react'
 
+import { isAdminEmail } from '@/lib/adminEmails'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
@@ -45,9 +46,7 @@ export function ContractedDetailsSection({
   const { user } = useAuth()
 
   // ✅ verifica se pode editar
-  const podeEditar =
-    user?.email === 'barradeespacoe@gmail.com' ||
-    user?.email === 'adm2.espacocriaraju@gmail.com'
+  const podeEditar = isAdminEmail(user?.email)
 
   return (
     <div>
