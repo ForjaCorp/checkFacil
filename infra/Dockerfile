@@ -6,16 +6,12 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 RUN corepack enable
 
-# Copia apenas os manifests para aproveitar cache de camadas
-COPY package.json yarn.lock .yarnrc.yml ./
-COPY client/package.json ./client/package.json
-COPY server/package.json ./server/package.json
-
-# Instala todas as dependências (node-modules linker)
-RUN yarn config set nodeLinker node-modules && yarn install
-
-# Copia o código-fonte (node_modules e .env são ignorados pelo .dockerignore)
+# Copia tudo primeiro (node_modules e .env são ignorados pelo .dockerignore)
 COPY . .
+
+# Configura node-modules ANTES de instalar (sobrescreve o pnp do .yarnrc.yml)
+RUN yarn config set nodeLinker node-modules
+RUN yarn install
 
 # Build do frontend (Vite — pula tsc pra evitar falha por erros de tipo pré-existentes)
 RUN yarn workspace @checkfacil/client vite build
