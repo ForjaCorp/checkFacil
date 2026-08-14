@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 // Ajustado para caminhos relativos para resolver erros de compilação
 import { useAuth } from '../../contexts/authContextCore'
+import { isAdminEmail } from '../../lib/adminEmails'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Button } from '../ui/button'
 import {
