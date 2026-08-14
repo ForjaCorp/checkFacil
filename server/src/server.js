@@ -39,8 +39,6 @@ app.get('/*splat', (_req, res) => {
 
 async function LigarServidor() {
   try {
-    // Cria o database se nao existir
-    await ensureDatabase();
     console.log('[DB] Autenticando conexao...');
     await sequelize.authenticate();
     console.log('[DB] Autenticado. Sincronizando tabelas...');
