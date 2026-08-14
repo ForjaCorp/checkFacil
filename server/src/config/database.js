@@ -1,5 +1,4 @@
 import { Sequelize } from 'sequelize';
-import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -17,17 +16,17 @@ const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
   timezone: '-03:00'
 });
 
-// Cria o database se ele nao existir (usando mysql2 direto)
+// Cria o database se ele nao existir (usando Sequelize sem database)
 export async function ensureDatabase() {
   console.log(`[DB] Tentando criar database "${dbName}" em ${dbHost}...`);
-  const conn = await mysql.createConnection({
+  const sequelizeInit = new Sequelize('', dbUser, dbPassword, {
     host: dbHost,
-    user: dbUser,
-    password: dbPassword
+    dialect: 'mysql',
+    logging: false
   });
-  await conn.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
+  await sequelizeInit.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
+  await sequelizeInit.close();
   console.log(`[DB] Database "${dbName}" garantido com sucesso.`);
-  await conn.end();
 }
 
 export default sequelize;
