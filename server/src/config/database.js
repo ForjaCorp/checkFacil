@@ -1,4 +1,5 @@
 import { Sequelize } from 'sequelize';
+import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -8,14 +9,6 @@ const dbUser = process.env.DB_USER || 'usuario_do_banco';
 const dbPassword = process.env.DB_PASSWORD || 'senha_do_banco';
 const dbHost = process.env.DB_HOST || 'localhost';
 
-// Conecta sem especificar o database para poder cria-lo se necessario
-const sequelizeInit = new Sequelize('mysql', dbUser, dbPassword, {
-  host: dbHost,
-  dialect: 'mysql',
-  logging: false,
-  timezone: '-03:00'
-});
-
 // Conexao principal usada pela aplicacao
 const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
   host: dbHost,
@@ -24,10 +17,17 @@ const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
   timezone: '-03:00'
 });
 
-// Cria o database se ele nao existir
+// Cria o database se ele nao existir (usando mysql2 direto)
 export async function ensureDatabase() {
-  await sequelizeInit.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
-  await sequelizeInit.close();
+  console.log(`[DB] Tentando criar database "${dbName}" em ${dbHost}...`);
+  const conn = await mysql.createConnection({
+    host: dbHost,
+    user: dbUser,
+    password: dbPassword
+  });
+  await conn.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
+  console.log(`[DB] Database "${dbName}" garantido com sucesso.`);
+  await conn.end();
 }
 
 export default sequelize;

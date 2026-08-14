@@ -41,14 +41,18 @@ async function LigarServidor() {
   try {
     // Cria o database se nao existir
     await ensureDatabase();
+    console.log('[DB] Autenticando conexao...');
     await sequelize.authenticate();
+    console.log('[DB] Autenticado. Sincronizando tabelas...');
     // Cria as tabelas no banco se elas ainda nao existirem (nao dropa dados)
     await sequelize.sync();
+    console.log('[DB] Tabelas sincronizadas.');
     app.listen(port, () => {
       console.info(`🚀 Server running on port ${port}`);
     });
   } catch (error) {
-    console.error('Não foi possível conectar ao banco de dados ou iniciar o servidor:', error);
+    console.error('[DB] ERRO:', error.message);
+    console.error(error);
     process.exit(1);
   }
 }
