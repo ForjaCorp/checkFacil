@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
-import { Loader2 } from 'lucide-react'
-import { useEffect } from 'react'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -44,6 +44,7 @@ type LoginFormValues = z.infer<typeof loginFormSchema>
 function LoginPage() {
   const auth = useAuth()
   const navigate = useNavigate()
+  const [showPassword, setShowPassword] = useState(false)
 
   const { mutate: login, isPending } = useMutation({
     mutationFn: (credentials: LoginFormValues) =>
@@ -139,12 +140,27 @@ function LoginPage() {
                   <FormItem>
                     <FormLabel>Senha</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        {...field}
-                        disabled={isPending}
-                      />
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="••••••••"
+                          {...field}
+                          disabled={isPending}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground outline-none"
+                          aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -3,6 +3,7 @@ import { Op } from 'sequelize';
 import { randomBytes } from 'crypto';
 import axios from 'axios';
 import excel from 'exceljs';
+import { enviarBoasVindasClienteNovo } from '../services/whatsappService.js';
 
 
 function calcularIdade(dataNascimento) {
@@ -52,30 +53,21 @@ export async function criarFesta(req, res) {
       clienteOrganizador.redefineSenhaExpiracao = expiracao;
       await clienteOrganizador.save();
 
-      const webhookUrl =
-        'https://webhook.4growthbr.space/webhook/2cd048a2-c416-4e42-8202-e0979aa36cca';
+      // Envia boas-vindas + link de definicao de senha direto pela Evolution API
+      // (substitui o webhook n8n 2cd048a2)
       try {
-        const payloadWebhook = {
+        await enviarBoasVindasClienteNovo({
           nomeCliente: clienteOrganizador.nome,
-          emailCliente: clienteOrganizador.email,
           telefoneCliente: clienteOrganizador.telefone,
           dataFesta: dadosFesta.data_festa,
           horaInicio: dadosFesta.horario_inicio,
           horaFim: dadosFesta.horario_fim,
           localFesta: dadosFesta.local_festa,
-          descricao: dadosFesta.descricao,
-          pacote_escolhido: dadosFesta.pacote_escolhido,
-          numeroConvidados: dadosFesta.numero_convidados_contratado,
           token: tokenDefinicaoSenha
-        };
-        axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
-          console.error(
-            'Erro secundário ao enviar o webhook para n8n:',
-            webhookError.response ? webhookError.response.data : webhookError.message
-          );
         });
-      } catch (webhookError) {
-        console.error('Erro ao tentar disparar o webhook para n8n:', webhookError.message);
+        console.log(`[WhatsApp] Boas-vindas enviada para ${clienteOrganizador.telefone}`);
+      } catch (whatsappError) {
+        console.error('[WhatsApp] Erro ao enviar boas-vindas:', whatsappError.message);
       }
     } else {
       const webhookUrl =

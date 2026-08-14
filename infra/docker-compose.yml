@@ -18,6 +18,8 @@ services:
       - EVOLUTION_API_URL=${EVOLUTION_API_URL}
       - EVOLUTION_API_KEY=${EVOLUTION_API_KEY}
       - EVOLUTION_INSTANCE_NAME=${EVOLUTION_INSTANCE_NAME}
+      # Links enviados via WhatsApp
+      - FRONT_URL=${FRONT_URL:-https://espacocriar.4growthbr.space}
     ports:
       - "3001"
     restart: unless-stopped

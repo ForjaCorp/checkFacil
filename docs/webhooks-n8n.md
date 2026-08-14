@@ -7,14 +7,14 @@ O objetivo é mapear cada webhook para podermos trazer a lógica do n8n para den
 
 ## Visão Geral
 
-| # | Função | Arquivo | Linha | Webhook URL | Ação |
-|---|---|---|---|---|---|
-| 1 | `criarFesta` (cliente novo) | festaController.js | ~56 | `webhook.4growthbr.space/.../2cd048a2` | Boas-vindas + link de senha |
-| 2 | `criarFesta` (cliente existente) | festaController.js | ~82 | `webhook.4growthbr.space/.../642999e9` | Notificação de nova festa |
-| 3 | `checkinConvidado` | festaController.js | ~772 | `webhook.4growthbr.space/.../ab98ae95` | Notificação de check-in |
-| 4 | `checkoutConvidado` | festaController.js | ~831 | `webhook.4growthbr.space/.../730bdcaf` | Notificação de check-out |
-| 5 | `dispararMensagem` | festaController.js | ~1090 | `webhook.4growthbr.space/.../f87a6169` | Disparo de WhatsApp em massa |
-| 6 | `solicitarRedefinicaoSenha` | authController.js | ~242 | `workflows.4growthbr.space/.../8a71a943` | Link de reset de senha |
+| # | Função | Arquivo | Linha | Webhook URL | Ação | Status |
+|---|---|---|---|---|---|---|
+| 1 | `criarFesta` (cliente novo) | festaController.js | ~56 | ~~`webhook.4growthbr.space/.../2cd048a2`~~ | Boas-vindas + link de senha | ✅ MIGRADO — `enviarBoasVindasClienteNovo()` |
+| 2 | `criarFesta` (cliente existente) | festaController.js | ~82 | `webhook.4growthbr.space/.../642999e9` | Notificação de nova festa | ⬜ Pendente |
+| 3 | `checkinConvidado` | festaController.js | ~772 | `webhook.4growthbr.space/.../ab98ae95` | Notificação de check-in | ⬜ Pendente |
+| 4 | `checkoutConvidado` | festaController.js | ~831 | `webhook.4growthbr.space/.../730bdcaf` | Notificação de check-out | ⬜ Pendente |
+| 5 | `dispararMensagem` | festaController.js | ~1090 | `webhook.4growthbr.space/.../f87a6169` | Disparo de WhatsApp em massa | ⬜ Pendente |
+| 6 | `solicitarRedefinicaoSenha` | authController.js | ~242 | `workflows.4growthbr.space/.../8a71a943` | Link de reset de senha | ⬜ Pendente |
 
 Todos usam `axios.post()` para enviar dados para o n8n, que processa e dispara mensagens via Evolution API (WhatsApp).
 
