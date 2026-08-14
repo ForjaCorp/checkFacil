@@ -67,7 +67,14 @@ export async function criarFesta(req, res) {
         });
         console.log(`[WhatsApp] Boas-vindas enviada para ${clienteOrganizador.telefone}`);
       } catch (whatsappError) {
-        console.error('[WhatsApp] Erro ao enviar boas-vindas:', whatsappError.message);
+        // Log com classificacao do erro (TELEFONE_INVALIDO, EVO_CONEXAO, EVO_API_KEY, etc.)
+        console.error(
+          `[WhatsApp] Falha ao enviar boas-vindas [${whatsappError.code || 'ERRO_DESCONHECIDO'}]:`,
+          whatsappError.message
+        );
+        if (whatsappError.detalhe) {
+          console.error('[WhatsApp] Detalhe da Evolution API:', whatsappError.detalhe);
+        }
       }
     } else {
       const webhookUrl =

@@ -11,7 +11,8 @@ const evoApi = axios.create({
   headers: {
     apikey: EVO_KEY,
     'Content-Type': 'application/json'
-  }
+  },
+  timeout: 15000
 });
 
 /**
@@ -38,29 +39,101 @@ function normalizarTelefone(telefone) {
 }
 
 /**
+ * Classifica o erro da Evolution API em um tipo conhecido, com mensagem
+ * amigavel pra aparecer no log do servidor.
+ *
+ * Codigos:
+ *  - TELEFONE_INVALIDO  : formato de telefone nao reconhecido
+ *  - EVO_CONFIG         : EVOLUTION_API_URL/KEY nao configuradas
+ *  - EVO_CONEXAO        : servidor da Evolution inacessivel / timeout
+ *  - EVO_API_KEY        : apikey invalida (401)
+ *  - EVO_INSTANCIA      : instancia nao encontrada (404)
+ *  - EVO_DESCONECTADO   : instancia existe mas o WhatsApp nao esta conectado
+ *  - EVO_ERRO           : outro erro retornado pela Evolution
+ */
+function classificarErro(error, telefoneOriginal) {
+  const err = new Error();
+  err.telefone = telefoneOriginal;
+
+  // Telefone invalido (detectado antes da chamada)
+  if (error.code === 'TELEFONE_INVALIDO') {
+    err.code = 'TELEFONE_INVALIDO';
+    err.message = `Telefone com formato invalido: "${telefoneOriginal}". Use DDD + numero (ex: 79 99112-2334).`;
+    return err;
+  }
+
+  // Config ausente
+  if (!EVO_URL || !EVO_KEY) {
+    err.code = 'EVO_CONFIG';
+    err.message = `EVOLUTION_API_URL ou EVOLUTION_API_KEY nao configuradas no ambiente.`;
+    return err;
+  }
+
+  // Sem resposta do servidor (DNS, conexao recusada, timeout)
+  if (!error.response) {
+    const motivo =
+      error.code === 'ECONNABORTED'
+        ? 'timeout (15s)'
+        : error.code || error.message;
+    err.code = 'EVO_CONEXAO';
+    err.message = `Sem conexao com a Evolution API (${EVO_URL}): ${motivo}. Verifique se o servidor esta no ar.`;
+    return err;
+  }
+
+  // Evolution respondeu com erro HTTP
+  const status = error.response.status;
+  const corpo = typeof error.response.data === 'string'
+    ? error.response.data
+    : JSON.stringify(error.response.data || {});
+  const detalhe = corpo.slice(0, 300);
+
+  if (status === 401) {
+    err.code = 'EVO_API_KEY';
+    err.message = `apikey invalida ou expirada (HTTP 401). Revise a env EVOLUTION_API_KEY.`;
+  } else if (status === 404) {
+    err.code = 'EVO_INSTANCIA';
+    err.message = `Instancia "${INSTANCE_NAME}" nao encontrada na Evolution API (HTTP 404). Revise a env EVOLUTION_INSTANCE_NAME.`;
+  } else if (/not\s+(found|connected)|connection\s+refused|whatsapp.*not.*connect/i.test(corpo)) {
+    err.code = 'EVO_DESCONECTADO';
+    err.message = `Instancia "${INSTANCE_NAME}" existe mas o WhatsApp nao esta conectado. Escaneie o QR Code no painel da Evolution.`;
+  } else {
+    err.code = 'EVO_ERRO';
+    err.message = `Evolution API respondeu HTTP ${status}: ${detalhe}`;
+  }
+
+  err.detalhe = detalhe;
+  err.status = status;
+  return err;
+}
+
+/**
  * Envia uma mensagem de texto via WhatsApp usando a Evolution API.
  *
  * @param {string} telefone - Telefone de destino (qualquer formato BR)
  * @param {string} mensagem - Texto da mensagem
  * @returns {Promise<object>} - Resposta da Evolution API
+ * @throws {Error} com .code classificado (ver classificarErro)
  */
 export async function enviarMensagemWhatsApp(telefone, mensagem) {
   const numero = normalizarTelefone(telefone);
 
   if (!numero) {
-    throw new Error(`Telefone invalido: "${telefone}"`);
+    throw classificarErro({ code: 'TELEFONE_INVALIDO' }, telefone);
   }
 
-  const response = await evoApi.post(`/message/sendText/${INSTANCE_NAME}`, {
-    number: numero,
-    text: mensagem,
-    options: {
-      delay: 1200,
-      presence: 'composing'
-    }
-  });
-
-  return response.data;
+  try {
+    const response = await evoApi.post(`/message/sendText/${INSTANCE_NAME}`, {
+      number: numero,
+      text: mensagem,
+      options: {
+        delay: 1200,
+        presence: 'composing'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw classificarErro(error, telefone);
+  }
 }
 
 /**
