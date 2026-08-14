@@ -170,16 +170,13 @@ Todos usam `axios.post()` para enviar dados para o n8n, que processa e dispara m
 
 ---
 
-### 6. Solicitar Redefinição de Senha
+### 6. Solicitar Redefinição de Senha — ✅ MIGRADO
 
 **Arquivo:** `server/src/controllers/authController.js` — função `solicitarRedefinicaoSenha()`
 
-**Quando dispara:** Usuário clica em "Esqueci minha senha".
+**Quando dispara:** Usuário clica em "Esqueci minha senha" e informa o **telefone** (campo mudou de e-mail para telefone, pois o link é enviado via WhatsApp).
 
-**O que o n8n provavelmente faz:**
-- Envia link de redefinição de senha via WhatsApp
-
-**Payload enviado:**
+**Payload original do webhook:**
 ```json
 {
   "telefone": "+5511999999999",
@@ -187,11 +184,14 @@ Todos usam `axios.post()` para enviar dados para o n8n, que processa e dispara m
 }
 ```
 
-**Webhook URL:** `https://workflows.4growthbr.space/webhook/8a71a943-80d8-465c-998e-61aeab9847ec`
+**Como ficou após a migração:**
+- Frontend (`ForgotPasswordPage.tsx`) envia `{ telefone }` no lugar do e-mail
+- Backend busca o usuário comparando apenas os dígitos do telefone (aceita com/sem 55 e com máscara)
+- Link montado com `FRONT_URL` do env (não mais hardcoded)
+- Envio direto via `enviarMensagemWhatsApp()` (substitui o webhook n8n)
+- Erros classificados: `TELEFONE_INVALIDO` (400), usuário não encontrado (404), `EVO_*` (502 com mensagem clara sobre a conexão do WhatsApp)
 
-**Tipo de envio:** Síncrono com `await` (bloqueia a resposta até o n8n responder)
-
-> Nota: O link de reset está hardcoded com `espacocriar.4growthbr.space`. Se mudar de domínio, precisa atualizar.
+**Tipo de envio:** Síncrono com `await` (usuário recebe feedback se o WhatsApp falhar)
 
 ---
 

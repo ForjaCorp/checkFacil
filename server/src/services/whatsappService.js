@@ -2,7 +2,8 @@ import axios from 'axios';
 
 const EVO_URL = process.env.EVOLUTION_API_URL;
 const EVO_KEY = process.env.EVOLUTION_API_KEY;
-const INSTANCE_NAME = process.env.EVOLUTION_INSTANCE_NAME || 'CheckFacil';
+// .trim() porque a env pode vir com espacos acidentais (ex: " Espaco")
+const INSTANCE_NAME = (process.env.EVOLUTION_INSTANCE_NAME || 'CheckFacil').trim();
 
 const FRONT_URL = process.env.FRONT_URL || 'https://espacocriar.4growthbr.space';
 
