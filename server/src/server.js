@@ -39,8 +39,10 @@ app.get('/*splat', (_req, res) => {
 
 async function LigarServidor() {
   try {
+    // Cria o database se nao existir
+    await ensureDatabase();
     await sequelize.authenticate();
-    // Cria as tabelas no banco se elas ainda não existirem (não dropa dados)
+    // Cria as tabelas no banco se elas ainda nao existirem (nao dropa dados)
     await sequelize.sync();
     app.listen(port, () => {
       console.info(`🚀 Server running on port ${port}`);
