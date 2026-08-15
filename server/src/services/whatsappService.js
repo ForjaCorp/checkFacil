@@ -187,6 +187,60 @@ export async function enviarBoasVindasClienteNovo(dados) {
 }
 
 /**
+ * Confirma o check-in de um convidado para o responsavel.
+ * Substitui o webhook n8n ab98ae95.
+ */
+export async function enviarCheckinConvidado(dados) {
+  const { nomeConvidado, horarioCheckin } = dados;
+
+  const horaFormatada = horarioCheckin
+    ? new Date(horarioCheckin).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    : '';
+
+  const mensagem = [
+    '✅ Check-in realizado!',
+    '',
+    `${nomeConvidado} acabou de entrar na festa.`,
+    horaFormatada ? `🕐 Entrada às ${horaFormatada}.` : null,
+    '',
+    'Bom divertimento! 🎉'
+  ]
+    .filter((linha) => linha !== null)
+    .join('\n');
+
+  return enviarMensagemWhatsApp(dados.telefoneResponsavel, mensagem);
+}
+
+/**
+ * Confirma o check-out de um convidado para o responsavel.
+ * Substitui o webhook n8n 730bdcaf.
+ */
+export async function enviarCheckoutConvidado(dados) {
+  const { nomeConvidado, horarioCheckin, horarioCheckout } = dados;
+
+  const horaEntrada = horarioCheckin
+    ? new Date(horarioCheckin).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    : null;
+  const horaSaida = horarioCheckout
+    ? new Date(horarioCheckout).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    : null;
+
+  const mensagem = [
+    '👋 Check-out realizado!',
+    '',
+    `${nomeConvidado} acabou de sair da festa.`,
+    horaEntrada ? `🕐 Entrada: ${horaEntrada}` : null,
+    horaSaida ? `🕐 Saída: ${horaSaida}` : null,
+    '',
+    'Obrigado por comparecer! 🎈'
+  ]
+    .filter((linha) => linha !== null)
+    .join('\n');
+
+  return enviarMensagemWhatsApp(dados.telefoneResponsavel, mensagem);
+}
+
+/**
  * Notifica um cliente JA cadastrado sobre uma nova festa criada para ele.
  * Substitui o webhook n8n 642999e9.
  */

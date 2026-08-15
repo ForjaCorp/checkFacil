@@ -31,8 +31,16 @@ import api from '@/services/api'
 const loginFormSchema = z.object({
   email: z
     .string()
-    .min(1, { message: 'O email é obrigatório.' })
-    .email({ message: 'Por favor, insira um email válido.' }),
+    .min(1, { message: 'Informe seu e-mail ou telefone.' })
+    .refine(
+      (v) => {
+        // Aceita email OU telefone BR (10/11 digitos, com ou sem 55, com mascara)
+        if (v.includes('@')) return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+        const digitos = v.replace(/\D/g, '').replace(/^55/, '')
+        return digitos.length >= 10 && digitos.length <= 11
+      },
+      { message: 'Informe um e-mail válido ou telefone com DDD. Ex: (86) 99999-9999' }
+    ),
   password: z
     .string()
     .min(1, { message: 'A senha é obrigatória.' })
@@ -75,7 +83,7 @@ function LoginPage() {
       const description =
         axios.isAxiosError(error) && typeof errorPayload?.error === 'string'
           ? errorPayload.error
-          : 'Email ou senha inválidos.'
+          : 'Telefone/e-mail ou senha inválidos.'
 
       toast.error('Falha no login', { description })
     }
@@ -114,7 +122,7 @@ function LoginPage() {
           </div>
           <CardTitle className="text-2xl">Acesse sua Conta</CardTitle>
           <CardDescription>
-            Use seu email e senha para entrar no painel.
+            Use seu telefone (com DDD) ou e-mail e senha para entrar no painel.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -125,9 +133,9 @@ function LoginPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Telefone ou E-mail</FormLabel>
                     <FormControl>
-                      <Input placeholder="seu@email.com" {...field} disabled={isPending} />
+                      <Input placeholder="(86) 99999-9999 ou seu@email.com" {...field} disabled={isPending} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

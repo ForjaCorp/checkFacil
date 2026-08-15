@@ -1,220 +1,147 @@
-# Webhooks n8n — Documentação para Migração
+# Webhooks n8n — Migração para Evolution API direta
 
-Este documento descreve todos os pontos do código que disparam webhooks para o n8n.
-O objetivo é mapear cada webhook para podermos trazer a lógica do n8n para dentro do código.
-
----
-
-## Visão Geral
-
-| # | Função | Arquivo | Linha | Webhook URL | Ação | Status |
-|---|---|---|---|---|---|---|
-| 1 | `criarFesta` (cliente novo) | festaController.js | ~56 | ~~`webhook.4growthbr.space/.../2cd048a2`~~ | Boas-vindas + link de senha | ✅ MIGRADO — `enviarBoasVindasClienteNovo()` |
-| 2 | `criarFesta` (cliente existente) | festaController.js | ~78 | ~~`webhook.4growthbr.space/.../642999e9`~~ | Notificação de nova festa | ✅ MIGRADO — `enviarNovaFestaClienteExistente()` |
-| 3 | `checkinConvidado` | festaController.js | ~772 | `webhook.4growthbr.space/.../ab98ae95` | Notificação de check-in | ⬜ Pendente |
-| 4 | `checkoutConvidado` | festaController.js | ~831 | `webhook.4growthbr.space/.../730bdcaf` | Notificação de check-out | ⬜ Pendente |
-| 5 | `dispararMensagem` | festaController.js | ~1090 | `webhook.4growthbr.space/.../f87a6169` | Disparo de WhatsApp em massa | ⬜ Pendente |
-| 6 | `solicitarRedefinicaoSenha` | authController.js | ~242 | `workflows.4growthbr.space/.../8a71a943` | Link de reset de senha | ⬜ Pendente |
-
-Todos usam `axios.post()` para enviar dados para o n8n, que processa e dispara mensagens via Evolution API (WhatsApp).
+Este documento descreve todos os pontos do código que disparavam webhooks para o n8n.
+A migração substituiu o n8n por chamadas diretas à Evolution API no próprio backend,
+centralizadas em `server/src/services/whatsappService.js`.
 
 ---
 
-## Detalhamento de cada Webhook
+## Visão Geral — ✅ MIGRAÇÃO CONCLUÍDA
 
-### 1. Criar Festa — Cliente Novo
+| # | Função | Arquivo | Serviço | Ação | Status |
+|---|---|---|---|---|---|
+| 1 | `criarFesta` (cliente novo) | festaController.js | `enviarBoasVindasClienteNovo()` | Boas-vindas + link de senha | ✅ MIGRADO |
+| 2 | `criarFesta` (cliente existente) | festaController.js | `enviarNovaFestaClienteExistente()` | Notificação de nova festa | ✅ MIGRADO |
+| 3 | `checkinConvidado` | festaController.js | `enviarCheckinConvidado()` | Confirmação de check-in | ✅ MIGRADO |
+| 4 | `checkoutConvidado` | festaController.js | `enviarCheckoutConvidado()` | Confirmação de check-out | ✅ MIGRADO |
+| 5 | `dispararMensagem` | festaController.js | `enviarMensagemWhatsApp()` (loop) | Disparo em massa | ✅ MIGRADO |
+| 6 | `solicitarRedefinicaoSenha` | authController.js | `enviarMensagemWhatsApp()` | Link de reset de senha | ✅ MIGRADO |
 
-**Arquivo:** `server/src/controllers/festaController.js` — função `criarFesta()`
+Todas as mensagens são enviadas via `enviarMensagemWhatsApp(telefone, mensagem)`, que:
+- Normaliza o telefone (aceita com/sem 55, com máscara)
+- Envia com delay de 1,2s e presença "digitando" (menos chance de bloqueio)
+- Classifica erros com códigos (`TELEFONE_INVALIDO`, `EVO_CONEXAO`, `EVO_API_KEY`, `EVO_INSTANCIA`, `EVO_DESCONECTADO`, `EVO_ERRO`)
 
-**Quando dispara:** Um `Adm_espaco` cria uma festa para um cliente que ainda não tem conta no sistema.
+---
 
-**O que o n8n provavelmente faz:**
-- Recebe os dados do cliente + token de definição de senha
-- Envia mensagem de WhatsApp com link para o cliente definir sua senha
-- Pode enviar detalhes da festa criada
+## Templates de Mensagem (implementados)
 
-**Payload enviado:**
-```json
-{
-  "nomeCliente": "Nome do Cliente",
-  "emailCliente": "cliente@email.com",
-  "telefoneCliente": "+5511999999999",
-  "dataFesta": "2026-01-15",
-  "horaInicio": "14:00",
-  "horaFim": "18:00",
-  "localFesta": "Endereço",
-  "descricao": "Descrição da festa",
-  "pacote_escolhido": "KIDS",
-  "numeroConvidados": 30,
-  "token": "token_hex_para_definir_senha"
-}
+### 1. Boas-vindas — cliente novo (`enviarBoasVindasClienteNovo`)
+
+Dispara quando um `Adm_espaco` cria uma festa para um cliente sem conta.
+
+```
+Ola, {nomeCliente}! 🎉
+
+Sua festa foi agendada no Espaco Criar!
+
+📅 Data: {dd/mm/aaaa}
+🕐 Horario: {HH:MM} as {HH:MM}      (se existir)
+📍 Local: {local}                    (se existir)
+
+Para acompanhar sua festa e gerenciar os convidados, defina sua senha no link abaixo:
+{FRONT_URL}/organizer/choosePassword/{token}
+
+O link e valido por 24 horas.
+
+Apos definir sua senha, entre com seu telefone e complete os dados da festa (aniversariante, tema, convidados e mais) no painel.
+
+Ate logo! 🎈
 ```
 
-**Webhook URL:** `https://webhook.4growthbr.space/webhook/2cd048a2-c416-4e42-8202-e0979aa36cca`
+### 2. Nova festa — cliente existente (`enviarNovaFestaClienteExistente`)
 
-**Tipo de envio:** Assíncrono (fire-and-forget com `.catch()`)
+Dispara quando a festa é criada para um cliente que já tem conta.
 
----
+```
+Ola, {nomeCliente}! 🎉
 
-### 2. Criar Festa — Cliente Existente
+Uma nova festa foi agendada para voce no Espaco Criar!
 
-**Arquivo:** `server/src/controllers/festaController.js` — função `criarFesta()`
+📅 Data: {dd/mm/aaaa}
+🕐 Horario: {HH:MM} as {HH:MM}      (se existir)
+📍 Local: {local}                    (se existir)
 
-**Quando dispara:** Um `Adm_espaco` cria uma festa para um cliente que já tem conta.
-
-**O que o n8n provavelmente faz:**
-- Notifica o cliente sobre a nova festa via WhatsApp
-- Envia detalhes do evento
-
-**Payload enviado:**
-```json
-{
-  "nomeCliente": "Nome do Cliente",
-  "emailCliente": "cliente@email.com",
-  "telefoneCliente": "+5511999999999",
-  "dataFesta": "2026-01-15",
-  "horaInicio": "14:00",
-  "horaFim": "18:00",
-  "localFesta": "Endereço",
-  "descricao": "Descrição da festa",
-  "pacote_escolhido": "KIDS",
-  "numeroConvidados": 30
-}
+Qualquer duvida, estamos a disposicao. Ate a festa! 🎈
 ```
 
-> Nota: Não envia o `token` (cliente já tem senha).
+### 3. Check-in de convidado (`enviarCheckinConvidado`)
 
-**Webhook URL:** `https://webhook.4growthbr.space/webhook/642999e9-678f-4a15-ac9d-cbcb01f34bba`
+Dispara quando o staff faz check-in de um convidado. Enviado ao `telefone_responsavel_contato`.
 
-**Tipo de envio:** Assíncrono (fire-and-forget com `.catch()`)
+```
+✅ Check-in realizado!
 
----
+{nome_convidado} acabou de entrar na festa.
+🕐 Entrada às {HH:MM}.
 
-### 3. Check-in de Convidado
-
-**Arquivo:** `server/src/controllers/festaController.js` — função `checkinConvidado()`
-
-**Quando dispara:** Staff faz check-in de um convidado (individualmente).
-
-**O que o n8n provavelmente faz:**
-- Envia confirmação de check-in via WhatsApp para o responsável
-
-**Payload enviado:**
-```json
-{
-  "nomeCrianca": "Nome da Criança",
-  "nomeResponsavel": "Nome do Responsável",
-  "telefoneResponsavel": "+5511999999999",
-  "horarioCheckin": "2026-01-15T14:30:00.000Z",
-  "mensagem": "Check-in realizado para este convidado"
-}
+Bom divertimento! 🎉
 ```
 
-**Webhook URL:** `https://webhook.4growthbr.space/webhook/ab98ae95-08c2-40b2-a942-c40071b588eb`
+### 4. Check-out de convidado (`enviarCheckoutConvidado`)
 
-**Tipo de envio:** Assíncrono (fire-and-forget com `.catch()`)
+Dispara quando o staff faz check-out. Enviado ao `telefone_responsavel_contato`.
 
----
+```
+👋 Check-out realizado!
 
-### 4. Check-out de Convidado
+{nome_convidado} acabou de sair da festa.
+🕐 Entrada: {HH:MM}
+🕐 Saída: {HH:MM}
 
-**Arquivo:** `server/src/controllers/festaController.js` — função `checkoutConvidado()`
-
-**Quando dispara:** Staff faz check-out de um convidado.
-
-**O que o n8n provavelmente faz:**
-- Envia confirmação de check-out via WhatsApp
-
-**Payload enviado:**
-```json
-{
-  "nomeCrianca": "Nome da Criança",
-  "nomeResponsavel": "Nome do Responsável",
-  "telefoneResponsavel": "+5511999999999",
-  "horarioCheckin": "2026-01-15T14:30:00.000Z",
-  "horarioCheckout": "2026-01-15T18:00:00.000Z",
-  "mensagem": "Check-out feito 2026-01-15T14:30:00.000Z."
-}
+Obrigado por comparecer! 🎈
 ```
 
-**Webhook URL:** `https://webhook.4growthbr.space/webhook/730bdcaf-8066-410c-a12c-1304b1bc65b0`
+### 5. Disparo em massa (`dispararMensagem` → `enviarMensagemWhatsApp` em loop)
 
-**Tipo de envio:** Assíncrono (fire-and-forget com `.catch()`)
+Staff envia texto livre para convidados filtrados por status:
+- `Presente` — com check-in e sem check-out
+- `Saiu` — com check-out
+- `Aguardando` — sem check-in e sem check-out
 
----
+O texto é o que o staff digitou (sem template — mensagem pura), enviado um por vez
+ao `telefone_responsavel_contato`. A resposta retorna `{ quantidade, enviados, falhas }`.
 
-### 5. Disparar Mensagem em Massa
+### 6. Redefinição de senha (`solicitarRedefinicaoSenha` → `enviarMensagemWhatsApp`)
 
-**Arquivo:** `server/src/controllers/festaController.js` — função `dispararMensagem()`
+Dispara na tela "Esqueci minha senha" (usuário informa **telefone** com DDD).
 
-**Quando dispara:** Staff envia uma mensagem personalizada para um grupo de convidados filtrados por status (Presente, Saiu, Aguardando).
+```
+Ola, {nome}! Recebemos sua solicitação de redefinição de senha. Clique no link abaixo para redefinir:
 
-**O que o n8n provavelmente faz:**
-- Para cada convidado com telefone, envia a mensagem via WhatsApp
+{FRONT_URL}/organizer/choosePassword/{token}
 
-**Payload enviado (UM POR CONVIDADO, em loop):**
-```json
-{
-  "telefone": "+5511999999999",
-  "mensagem": "Texto da mensagem enviada pelo staff",
-  "nome_responsavel": "Nome do Responsável",
-  "nome_convidado": "Nome do Convidado"
-}
+Se não foi você, ignore esta mensagem.
 ```
 
-**Webhook URL:** `https://webhook.4growthbr.space/webhook/f87a6169-3a30-452a-8fb5-2cefed7142ba`
-
-**Tipo de envio:** Síncrono com `await` (um por vez, em loop)
-
-> Atenção: Este é o único webhook que usa `await` — pode ser lento se houver muitos convidados.
+Link com `FRONT_URL` do env. Diferente dos demais, falhas de envio **retornam erro**
+(502) pro usuário final ver o motivo (ex.: WhatsApp desconectado).
 
 ---
 
-### 6. Solicitar Redefinição de Senha — ✅ MIGRADO
+## Detalhes técnicos por webhook
 
-**Arquivo:** `server/src/controllers/authController.js` — função `solicitarRedefinicaoSenha()`
-
-**Quando dispara:** Usuário clica em "Esqueci minha senha" e informa o **telefone** (campo mudou de e-mail para telefone, pois o link é enviado via WhatsApp).
-
-**Payload original do webhook:**
-```json
-{
-  "telefone": "+5511999999999",
-  "mensagem": "Olá, recebemos sua solicitação de redefinição de senha. Clique no link abaixo para redefinir:\n\nhttps://espacocriar.4growthbr.space/organizer/choosePassword/TOKEN_AQUI\n\nSe não foi você, ignore esta mensagem."
-}
-```
-
-**Como ficou após a migração:**
-- Frontend (`ForgotPasswordPage.tsx`) envia `{ telefone }` no lugar do e-mail
-- Backend busca o usuário comparando apenas os dígitos do telefone (aceita com/sem 55 e com máscara)
-- Link montado com `FRONT_URL` do env (não mais hardcoded)
-- Envio direto via `enviarMensagemWhatsApp()` (substitui o webhook n8n)
-- Erros classificados: `TELEFONE_INVALIDO` (400), usuário não encontrado (404), `EVO_*` (502 com mensagem clara sobre a conexão do WhatsApp)
-
-**Tipo de envio:** Síncrono com `await` (usuário recebe feedback se o WhatsApp falhar)
+| # | Quando dispara | Se WhatsApp falha | Bloqueia a operação? |
+|---|---|---|---|
+| 1 | criarFesta, cliente novo | Loga `[WhatsApp] Falha [CÓDIGO]` | Não — festa é criada |
+| 2 | criarFesta, cliente existente | Loga `[WhatsApp] Falha [CÓDIGO]` | Não — festa é criada |
+| 3 | check-in | Loga `[WhatsApp] Falha [CÓDIGO]` | Não — check-in é salvo |
+| 4 | check-out | Loga `[WhatsApp] Falha [CÓDIGO]` | Não — check-out é salvo |
+| 5 | disparo em massa | Contabiliza `falhas` por convidado | Não — continua o loop |
+| 6 | esqueci senha | **Retorna 502 ao frontend** | Sim — usuário vê o erro |
 
 ---
 
-## Variáveis de Ambiente Relacionadas
+## Variáveis de Ambiente
 
-O código já usa estas ENVs para a Evolution API (mas os webhooks não as usam — vão direto para o n8n):
-
-| Variável | Uso atual |
+| Variável | Uso |
 |---|---|
-| `EVOLUTION_API_URL` | Usada apenas no `EvolutionapiController.js` |
-| `EVOLUTION_API_KEY` | Usada apenas no `EvolutionapiController.js` |
-| `EVOLUTION_INSTANCE_NAME` | Usada apenas no `EvolutionapiController.js` |
+| `EVOLUTION_API_URL` | URL base da Evolution (ex: `https://evo4.4growthbr.space`) |
+| `EVOLUTION_API_KEY` | Token da instância (apikey) |
+| `EVOLUTION_INSTANCE_NAME` | Nome da instância (ex: `Espaco`) — **sem espaços extras** |
+| `EVOLUTION_GLOBAL_KEY` | Apikey GLOBAL (admin) da Evolution — usada apenas pelo botão "Recriar conexão" (`POST /evolution/reset`) |
+| `FRONT_URL` | Base dos links enviados via WhatsApp |
 
-> Após migrar os webhooks para código direto, as URLs de webhook hardcoded saem e a Evolution API passa a ser chamada diretamente do Node.js.
-
----
-
-## Plano de Migração (sugestão)
-
-Para cada webhook:
-
-1. **Abrir o fluxo no n8n** e documentar o que ele faz exatamente (template de mensagem, condicionais, etc.)
-2. **Criar um serviço de WhatsApp** no servidor (`server/src/services/whatsappService.js`) que chama a Evolution API diretamente
-3. **Substituir cada `axios.post(webhookUrl, ...)`** por uma chamada ao serviço
-4. **Mover templates de mensagem** para o código ou para variáveis de ambiente
-5. **Testar** cada fluxo individualmente
+> Instância travou ("Connection Closed" eterno)? Botão **"Recriar conexão"** no card do
+> WhatsApp do app desloga, deleta e recria a instância com o mesmo nome/token, mostrando
+> o QR pra escanear. Requer `EVOLUTION_GLOBAL_KEY` e `DEL_INSTANCE=TRUE` no container da Evolution.

@@ -52,10 +52,23 @@ export async function registrarConvidado(req, res) {
 }
 
 export async function login(req, res) {
+  // Aceita email OU telefone no campo "email" (detecta pelo @)
   const { email, senha } = req.body;
 
   try {
-    const usuario = await models.Usuario.findOne({ where: { email } });
+    let usuario;
+
+    if (String(email || '').includes('@')) {
+      usuario = await models.Usuario.findOne({ where: { email } });
+    } else {
+      // Busca por telefone comparando apenas os digitos (aceita com/sem 55 e mascara)
+      const digitos = String(email || '').replace(/\D/g, '').replace(/^55/, '');
+      const candidatos = await models.Usuario.findAll({ where: { telefone: { [Op.ne]: null } } });
+      usuario = candidatos.find(
+        (u) => String(u.telefone).replace(/\D/g, '').replace(/^55/, '') === digitos
+      );
+    }
+
     if (!usuario) {
       return res.status(400).json({ error: 'Usuário não encontrado.' });
     }

@@ -1,9 +1,14 @@
 import models, { sequelize } from '../models/index.js';
 import { Op } from 'sequelize';
 import { randomBytes } from 'crypto';
-import axios from 'axios';
 import excel from 'exceljs';
-import { enviarBoasVindasClienteNovo, enviarNovaFestaClienteExistente } from '../services/whatsappService.js';
+import {
+  enviarBoasVindasClienteNovo,
+  enviarNovaFestaClienteExistente,
+  enviarCheckinConvidado,
+  enviarCheckoutConvidado,
+  enviarMensagemWhatsApp
+} from '../services/whatsappService.js';
 
 
 function calcularIdade(dataNascimento) {
@@ -769,25 +774,22 @@ export async function checkinConvidado(req, res) {
     convidado.checkin_at = new Date();
     await convidado.save();
 
-    const webhookUrl =
-      'https://webhook.4growthbr.space/webhook/ab98ae95-08c2-40b2-a942-c40071b588eb';
-    try {
-      const payloadWebhook = {
-        nomeCrianca: convidado.nome_convidado,
-        nomeResponsavel: convidado.nome_responsavel_contato,
-        telefoneResponsavel: convidado.telefone_responsavel_contato,
-        horarioCheckin: convidado.checkin_at,
-        mensagem: `Check-in realizado para este convidado`
-      };
-
-      axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
+    // Confirma o check-in pro responsavel direto pela Evolution API
+    // (substitui o webhook n8n ab98ae95)
+    if (convidado.telefone_responsavel_contato) {
+      try {
+        await enviarCheckinConvidado({
+          nomeConvidado: convidado.nome_convidado,
+          telefoneResponsavel: convidado.telefone_responsavel_contato,
+          horarioCheckin: convidado.checkin_at
+        });
+        console.log(`[WhatsApp] Check-in notificado para ${convidado.telefone_responsavel_contato}`);
+      } catch (whatsappError) {
         console.error(
-          'Erro secundário ao enviar o webhook para n8n:',
-          webhookError.response ? webhookError.response.data : webhookError.message
+          `[WhatsApp] Falha ao notificar check-in [${whatsappError.code || 'ERRO_DESCONHECIDO'}]:`,
+          whatsappError.message
         );
-      });
-    } catch (webhookError) {
-      console.error('Erro ao tentar disparar o webhook para n8n:', webhookError.message);
+      }
     }
 
     return res.status(200).json({ mensagem: 'Check-in realizado com sucesso!', convidado });
@@ -827,30 +829,28 @@ export async function checkoutConvidado(req, res) {
         .json({ error: `Check-out já realizado para este convidado em ${convidado.checkout_at}.` });
     }
 
-    const webhookUrl =
-      'https://webhook.4growthbr.space/webhook/730bdcaf-8066-410c-a12c-1304b1bc65b0'; // URL CheckOut
-    try {
-      const payloadWebhook = {
-        nomeCrianca: convidado.nome_convidado,
-        nomeResponsavel: convidado.nome_responsavel,
-        telefoneResponsavel: convidado.telefone_responsavel_contato,
-        horarioCheckin: convidado.checkin_at,
-        horarioCheckout: convidado.checkout_at,
-        mensagem: `Check-out feito ${convidado.checkin_at}.`
-      };
-
-      axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
-        console.error(
-          'Erro secundário ao enviar o webhook para n8n:',
-          webhookError.response ? webhookError.response.data : webhookError.message
-        );
-      });
-    } catch (webhookError) {
-      console.error('Erro ao tentar disparar o webhook para n8n:', webhookError.message);
-    }
-
+    // Registra o check-out ANTES de notificar (o template usa horario de saida)
     convidado.checkout_at = new Date();
     await convidado.save();
+
+    // Confirma o check-out pro responsavel direto pela Evolution API
+    // (substitui o webhook n8n 730bdcaf)
+    if (convidado.telefone_responsavel_contato) {
+      try {
+        await enviarCheckoutConvidado({
+          nomeConvidado: convidado.nome_convidado,
+          telefoneResponsavel: convidado.telefone_responsavel_contato,
+          horarioCheckin: convidado.checkin_at,
+          horarioCheckout: convidado.checkout_at
+        });
+        console.log(`[WhatsApp] Check-out notificado para ${convidado.telefone_responsavel_contato}`);
+      } catch (whatsappError) {
+        console.error(
+          `[WhatsApp] Falha ao notificar check-out [${whatsappError.code || 'ERRO_DESCONHECIDO'}]:`,
+          whatsappError.message
+        );
+      }
+    }
 
     return res.status(200).json({ mensagem: 'Check-out realizado com sucesso!', convidado });
   } catch (error) {
@@ -1081,24 +1081,31 @@ export async function dispararMensagem(req, res) {
     
     const convidados = await models.ConvidadoFesta.findAll({ where: whereCondition });
 
-    
+    // Dispara direto pela Evolution API (substitui o webhook n8n f87a6169)
+    let enviados = 0;
+    let falhas = 0;
+
     for (const convidado of convidados) {
       if (convidado.telefone_responsavel_contato) {
-        const telefone = convidado.telefone_responsavel_contato;
-
-        await axios.post(
-          'https://webhook.4growthbr.space/webhook/f87a6169-3a30-452a-8fb5-2cefed7142ba',
-          {
-            telefone,
-            mensagem,
-            nome_responsavel: convidado.nome_responsavel_contato || null,
-            nome_convidado: convidado.nome_convidado,
-          }
-        );
+        try {
+          await enviarMensagemWhatsApp(convidado.telefone_responsavel_contato, mensagem);
+          enviados++;
+        } catch (whatsappError) {
+          falhas++;
+          console.error(
+            `[WhatsApp] Falha no disparo em massa p/ ${convidado.telefone_responsavel_contato} [${whatsappError.code || 'ERRO_DESCONHECIDO'}]:`,
+            whatsappError.message
+          );
+        }
       }
     }
 
-      return res.status(200).json({ mensagem: 'Disparo concluído!', quantidade: convidados.length });
+    return res.status(200).json({
+      mensagem: 'Disparo concluído!',
+      quantidade: convidados.length,
+      enviados,
+      falhas
+    });
     } catch (error) {
       console.error('Erro ao disparar mensagem:', error);
       return res.status(500).json({ error: 'Falha ao disparar mensagens.' });
