@@ -6,6 +6,7 @@ import axios from 'axios'
 import { toast } from 'sonner'
 
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PhoneInput } from '@/components/forms/PhoneInput'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,6 +16,7 @@ import { Label } from '@/components/ui/label'
 import { useAuth } from '@/contexts/authContextCore'
 import { usePageHeader } from '@/hooks/usePageHeader'
 import { isAdminEmail } from '@/lib/adminEmails'
+import { unformatPhoneNumber } from '@/lib/phoneUtils'
 import api from '@/services/api'
 
 /**
@@ -33,7 +35,7 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [nome, setNome] = useState(user?.name ?? '')
   const [email, setEmail] = useState(user?.email ?? '')
-  const [telefone, setTelefone] = useState(user?.phone ?? '')
+  const [telefone, setTelefone] = useState(unformatPhoneNumber(user?.phone ?? ''))
   const [foto, setFoto] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
 
@@ -52,7 +54,7 @@ export default function ProfilePage() {
       const dados = new FormData()
       dados.append('nome', nome.trim())
       dados.append('email', email.trim())
-      dados.append('telefone', telefone.trim())
+      dados.append('telefone', unformatPhoneNumber(telefone))
       if (foto) dados.append('foto', foto)
       return api.put('/auth/me', dados)
     },
@@ -62,6 +64,7 @@ export default function ProfilePage() {
         phone: data.usuario.telefone, photoUrl: data.usuario.fotoUrl,
       })
       setFoto(null)
+      setPreview(null)
       toast.success('Perfil atualizado com sucesso.')
     },
     onError: (error: unknown) => toast.error('Não foi possível atualizar o perfil.', {
@@ -114,7 +117,14 @@ export default function ProfilePage() {
             <div className="space-y-2"><Label htmlFor="perfil-email">E-mail</Label>
               <Input id="perfil-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isPending} /></div>
             <div className="space-y-2"><Label htmlFor="perfil-telefone">Telefone</Label>
-              <Input id="perfil-telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} disabled={isPending} /></div>
+              <PhoneInput
+                id="perfil-telefone"
+                placeholder="+55 (XX) 9XXXX-XXXX"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+                disabled={isPending}
+              />
+            </div>
             <Button type="submit" className="w-full" disabled={isPending || !nome.trim() || !email.trim()}>
               {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               Salvar alterações

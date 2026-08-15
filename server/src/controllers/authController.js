@@ -186,6 +186,17 @@ export async function convidarAdmEspaco(req, res) {
       return res.status(400).json({ error: 'Nome, email e telefone são obrigatórios.' });
     }
 
+    const digitos = String(telefone).replace(/\D/g, '');
+    const telefoneNormalizado =
+      digitos.length >= 12 && digitos.startsWith('55')
+        ? digitos
+        : digitos.length === 10 || digitos.length === 11
+          ? `55${digitos}`
+          : null;
+    if (!telefoneNormalizado) {
+      return res.status(400).json({ error: 'Telefone inválido. Informe DDD + número (com ou sem 55).' });
+    }
+
     const usuarioExistente = await models.Usuario.findOne({ where: { email } });
     if (usuarioExistente) {
       return res.status(400).json({ error: 'Este email já está cadastrado.' });
@@ -199,7 +210,7 @@ export async function convidarAdmEspaco(req, res) {
       nome,
       email,
       senha: crypto.randomBytes(24).toString('hex'), // provisoria: adm define via link
-      telefone,
+      telefone: telefoneNormalizado,
       tipoUsuario: models.Usuario.TIPOS_USUARIO.ADM_ESPACO,
       redefineSenhaToken: tokenDefinicaoSenha,
       redefineSenhaExpiracao: expiracao
@@ -208,7 +219,7 @@ export async function convidarAdmEspaco(req, res) {
     let whatsappEnviado = true;
     let whatsappErro = null;
     try {
-      await enviarConviteAdmEspaco({ nomeAdm: nome, telefoneAdm: telefone, token: tokenDefinicaoSenha });
+      await enviarConviteAdmEspaco({ nomeAdm: nome, telefoneAdm: telefoneNormalizado, token: tokenDefinicaoSenha });
     } catch (e) {
       whatsappEnviado = false;
       whatsappErro = e.message;
@@ -474,7 +485,8 @@ export async function atualizarPerfil(req, res) {
 
     usuario.nome = nome;
     usuario.email = email;
-    usuario.telefone = telefone || null;
+    const telefoneNormalizado = telefone ? telefone.replace(/\D/g, '') : '';
+    usuario.telefone = telefoneNormalizado || null;
     if (req.file) {
       if (usuario.fotoUrl) {
         const antiga = path.join(__dirname, '../../', usuario.fotoUrl.replace(/^\//, ''));

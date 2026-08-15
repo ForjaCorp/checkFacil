@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
 
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PhoneInput } from '@/components/forms/PhoneInput'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -31,6 +32,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { usePageHeader } from '@/hooks/usePageHeader'
 import { isAdminEmail } from '@/lib/adminEmails'
+import { unformatPhoneNumber } from '@/lib/phoneUtils'
 import api from '@/services/api'
 
 import { useAuth } from '@/contexts/authContextCore'
@@ -113,11 +115,12 @@ export default function AdminManagementPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!nome.trim() || !email.trim() || !telefone.trim()) {
+    const telefoneNormalizado = unformatPhoneNumber(telefone)
+    if (!nome.trim() || !email.trim() || !telefoneNormalizado) {
       toast.error('Preencha nome, e-mail e telefone.')
       return
     }
-    convidarAdm({ nome: nome.trim(), email: email.trim(), telefone: telefone.trim() })
+    convidarAdm({ nome: nome.trim(), email: email.trim(), telefone: telefoneNormalizado })
   }
 
   // Guarda depois dos hooks para manter a ordem de execução do React.
@@ -241,9 +244,9 @@ export default function AdminManagementPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="adm-telefone">Telefone (WhatsApp)</Label>
-              <Input
+              <PhoneInput
                 id="adm-telefone"
-                placeholder="(86) 99999-9999"
+                placeholder="+55 (XX) 9XXXX-XXXX"
                 value={telefone}
                 onChange={(e) => setTelefone(e.target.value)}
                 disabled={isInviting}
