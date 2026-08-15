@@ -85,7 +85,7 @@ function EventForm({ eventData, playlists }: { eventData: ApiEventData; playlist
       partyName: eventData.nome_festa,
       partyDate: new Date(eventData.data_festa.replace(/-/g, '/')),
       packageType: eventData.pacote_escolhido,
-      contractedGuests: eventData.numero_convidados_contratado || 0,
+      contractedGuests: eventData.numero_convidados_contratado ?? undefined,
       startTime: eventData.horario_inicio ? eventData.horario_inicio.substring(0, 5) : '',
       endTime: eventData.horario_fim ? eventData.horario_fim.substring(0, 5) : '',
       birthdayPersonName: eventData.nome_aniversariante || '',

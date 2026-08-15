@@ -59,7 +59,7 @@ function CreateDraftEventPage() {
       startTime: '14:00', // Valor padrão obrigatório
       endTime: '17:00',   // Valor padrão obrigatório
       packageType: 'KIDS',
-      contractedGuests: 0,
+      contractedGuests: undefined, // undefined para o campo nascer vazio (placeholder) e nao com 0
     },
   })
 
@@ -285,8 +285,9 @@ function CreateDraftEventPage() {
                             type="number"
                             placeholder="Ex: 80"
                             {...field}
+                            value={field.value ?? ''}
                             onChange={(e) =>
-                              field.onChange(e.target.value === '' ? 0 : +e.target.value)
+                              field.onChange(e.target.value === '' ? undefined : +e.target.value)
                             }
                           />
                         </FormControl>
