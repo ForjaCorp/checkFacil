@@ -7,6 +7,10 @@ const INSTANCE_NAME = (process.env.EVOLUTION_INSTANCE_NAME || 'CheckFacil').trim
 
 const FRONT_URL = process.env.FRONT_URL || 'https://espacocriar.4growthbr.space';
 
+// Apikey GLOBAL (admin) do servidor Evolution - necessaria para criar/deletar instancias.
+// Sem ela, o reset automatico nao funciona (so o painel da Evolution consegue).
+const EVO_GLOBAL_KEY = process.env.EVOLUTION_GLOBAL_KEY;
+
 const evoApi = axios.create({
   baseURL: EVO_URL,
   headers: {
@@ -178,4 +182,93 @@ export async function enviarBoasVindasClienteNovo(dados) {
     .join('\n');
 
   return enviarMensagemWhatsApp(telefoneCliente, mensagem);
+}
+
+/**
+ * Reset completo da instancia WhatsApp: desloga, deleta e recria com o
+ * MESMO nome e MESMO token (apikey continua valida, nada muda no .env).
+ * Devolve o QR Code pro usuario escanear.
+ *
+ * Usado quando a sessao Baileys "trava" (state connecting eterno,
+ * "Connection Closed" em todo envio e nem o logout funciona).
+ *
+ * Requer EVOLUTION_GLOBAL_KEY no ambiente (apikey admin do servidor
+ * Evolution) porque criar/deletar instancia nao aceita o token da
+ * propria instancia.
+ */
+export async function recriarInstanciaWhatsApp() {
+  if (!EVO_GLOBAL_KEY) {
+    const err = new Error(
+      'EVOLUTION_GLOBAL_KEY nao configurada no servidor. Essa e a apikey GLOBAL (admin) do painel da Evolution, necessaria para recriar a instancia.'
+    );
+    err.code = 'EVO_SEM_GLOBAL_KEY';
+    throw err;
+  }
+
+  const etapas = [];
+
+  // Cliente com a apikey global
+  const evoAdmin = axios.create({
+    baseURL: EVO_URL,
+    headers: { apikey: EVO_GLOBAL_KEY, 'Content-Type': 'application/json' },
+    timeout: 30000
+  });
+
+  // 1. Logout limpo (se a sessao estiver morta, falha e seguimos mesmo assim)
+  try {
+    await evoAdmin.delete(`/instance/logout/${INSTANCE_NAME}`);
+    etapas.push('logout: ok');
+  } catch (e) {
+    etapas.push('logout: falhou (sessao possivelmente morta) - continuando');
+  }
+
+  // 2. Deletar a instancia corrompida
+  try {
+    await evoAdmin.delete(`/instance/delete/${INSTANCE_NAME}`);
+    etapas.push('delete: ok');
+  } catch (error) {
+    const status = error.response?.status;
+    const err = new Error(
+      `Nao foi possivel deletar a instancia "${INSTANCE_NAME}" (HTTP ${status ?? 'sem resposta'}). ` +
+        'Verifique se o servidor Evolution permite delecao via API (env DEL_INSTANCE=TRUE) ou delete manualmente pelo painel.'
+    );
+    err.code = 'EVO_DELETE_FALHOU';
+    err.etapas = etapas;
+    throw err;
+  }
+
+  // 3. Recriar com o MESMO nome e MESMO token (apikey atual continua valendo)
+  try {
+    await evoAdmin.post('/instance/create', {
+      instanceName: INSTANCE_NAME,
+      token: EVO_KEY,
+      qrcode: true,
+      integration: 'WHATSAPP-BAILEYS'
+    });
+    etapas.push('recriacao: ok');
+  } catch (error) {
+    const status = error.response?.status;
+    const err = new Error(
+      `Nao foi possivel recriar a instancia "${INSTANCE_NAME}" (HTTP ${status ?? 'sem resposta'}). ` +
+        'Confira a EVOLUTION_GLOBAL_KEY (precisa ser a apikey global/admin) e crie manualmente pelo painel com o mesmo nome e token.'
+    );
+    err.code = 'EVO_CREATE_FALHOU';
+    err.etapas = etapas;
+    throw err;
+  }
+
+  // 4. Gera o QR Code pra escanear
+  try {
+    const response = await evoAdmin.get(`/instance/connect/${INSTANCE_NAME}`);
+    const qrcode = response.data.base64 || response.data.qrcode?.base64 || null;
+    etapas.push('qrcode: gerado');
+    return { qrcode, etapas };
+  } catch (error) {
+    const err = new Error(
+      'Instancia recriada, mas falhou ao gerar o QR Code. Gere manualmente no painel da Evolution.'
+    );
+    err.code = 'EVO_QR_FALHOU';
+    err.etapas = etapas;
+    throw err;
+  }
 }

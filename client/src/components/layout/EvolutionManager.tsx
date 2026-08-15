@@ -1,4 +1,4 @@
-import { Smartphone, RefreshCw, LogOut, Loader2, QrCode, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Smartphone, RefreshCw, LogOut, Loader2, QrCode, CheckCircle2, AlertCircle, RotateCcw } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
 // Restaurando o padrão de aliases @/ que é o padrão do seu projeto e resolve melhor os caminhos
@@ -52,6 +52,32 @@ export const EvolutionManager = () => {
       fetchStatus();
     } catch (err) {
       setStatus('disconnected');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Reset completo: desloga, deleta e recria a instancia com o mesmo nome/token.
+  // Resolve sessoes travadas ("Connection Closed" eterno). Depois mostra o QR.
+  const handleReset = async () => {
+    if (!window.confirm(
+      "Recriar a instância do WhatsApp?\n\n" +
+      "Isso resolve conexões travadas, mas será preciso escanear o QR Code novamente. " +
+      "O histórico de mensagens da Evolution será apagado (os disparos do sistema continuam funcionando normalmente)."
+    )) return;
+    setLoading(true);
+    setQrCode(null);
+    try {
+      const { data } = await api.post('/evolution/reset');
+      if (data.qrcode) {
+        setQrCode(data.qrcode);
+        setStatus('connecting');
+      } else {
+        fetchStatus();
+      }
+    } catch (err: any) {
+      const detalhe = err?.response?.data?.error || 'Falha ao recriar a instância.';
+      window.alert(`Não foi possível recriar a instância:\n\n${detalhe}`);
     } finally {
       setLoading(false);
     }
@@ -124,14 +150,26 @@ export const EvolutionManager = () => {
 
             <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
               {status !== 'connected' && !qrCode && (
-                <Button 
-                  onClick={handleConnect} 
-                  disabled={loading} 
-                  className="bg-primary hover:bg-primary/90 h-11 px-6 shadow-md transition-all active:scale-95"
-                >
-                  {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Smartphone className="mr-2 h-5 w-5" />}
-                  Gerar QR Code
-                </Button>
+                <>
+                  <Button
+                    onClick={handleConnect}
+                    disabled={loading}
+                    className="bg-primary hover:bg-primary/90 h-11 px-6 shadow-md transition-all active:scale-95"
+                  >
+                    {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Smartphone className="mr-2 h-5 w-5" />}
+                    Gerar QR Code
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleReset}
+                    disabled={loading}
+                    className="text-amber-700 hover:text-amber-800 border-amber-300 hover:bg-amber-50 h-11 px-6 transition-all"
+                    title="Resolve conexões travadas recriando a instância do zero"
+                  >
+                    {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <RotateCcw className="mr-2 h-5 w-5" />}
+                    Recriar conexão
+                  </Button>
+                </>
               )}
               
               {status === 'connected' && (

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { recriarInstanciaWhatsApp } from '../services/whatsappService.js';
 
 const EVO_URL = process.env.EVOLUTION_API_URL;
 const EVO_KEY = process.env.EVOLUTION_API_KEY;
@@ -64,5 +65,23 @@ export async function logoutInstance(req, res) {
   } catch (error) {
     logErroEvolution('logout', error);
     return res.status(500).json({ error: 'Erro ao desconectar' });
+  }
+}
+
+/**
+ * Reset completo: desloga, deleta e recria a instancia com o mesmo nome e
+ * token (apikey). Resolve sessoes travadas ("Connection Closed" eterno).
+ * Devolve o QR Code pra escanear. Requer EVOLUTION_GLOBAL_KEY no ambiente.
+ */
+export async function resetInstance(req, res) {
+  try {
+    const resultado = await recriarInstanciaWhatsApp();
+    return res.status(200).json(resultado);
+  } catch (error) {
+    logErroEvolution('reset', error);
+    return res.status(error.code === 'EVO_SEM_GLOBAL_KEY' ? 400 : 502).json({
+      error: error.message,
+      etapas: error.etapas || []
+    });
   }
 }
