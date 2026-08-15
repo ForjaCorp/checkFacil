@@ -176,6 +176,8 @@ export async function enviarBoasVindasClienteNovo(dados) {
     '',
     'O link e valido por 24 horas.',
     '',
+    'Apos definir sua senha, entre com seu telefone e complete os dados da festa (aniversariante, tema, convidados e mais) no painel.',
+    '',
     'Ate logo! 🎈'
   ]
     .filter((linha) => linha !== null)
