@@ -1,8 +1,8 @@
 import models from '../models/index.js';
 import jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
-import axios from 'axios'
 import crypto from 'crypto'
+import { enviarMensagemWhatsApp } from '../services/whatsappService.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -52,10 +52,23 @@ export async function registrarConvidado(req, res) {
 }
 
 export async function login(req, res) {
+  // Aceita email OU telefone no campo "email" (detecta pelo @)
   const { email, senha } = req.body;
 
   try {
-    const usuario = await models.Usuario.findOne({ where: { email } });
+    let usuario;
+
+    if (String(email || '').includes('@')) {
+      usuario = await models.Usuario.findOne({ where: { email } });
+    } else {
+      // Busca por telefone comparando apenas os digitos (aceita com/sem 55 e mascara)
+      const digitos = String(email || '').replace(/\D/g, '').replace(/^55/, '');
+      const candidatos = await models.Usuario.findAll({ where: { telefone: { [Op.ne]: null } } });
+      usuario = candidatos.find(
+        (u) => String(u.telefone).replace(/\D/g, '').replace(/^55/, '') === digitos
+      );
+    }
+
     if (!usuario) {
       return res.status(400).json({ error: 'Usuário não encontrado.' });
     }
@@ -210,45 +223,53 @@ export async function definirSenha(req, res) {
 
 
 export async function solicitarRedefinicaoSenha(req, res) {
-  const { email } = req.body
+  const { telefone } = req.body
+
+  if (!telefone || !String(telefone).replace(/\D/g, '')) {
+    return res.status(400).json({ error: 'Informe o telefone cadastrado (com DDD).' })
+  }
 
   try {
-    const usuario = await models.Usuario.findOne({ where: { email } })
-    if (!usuario) {
-      return res.status(404).json({ error: 'Usuário não encontrado com este e-mail.' })
-    }
+    // Busca usuario comparando apenas os digitos do telefone (aceita qualquer
+    // formato cadastrado: com mascaras, com ou sem 55)
+    const digitos = String(telefone).replace(/\D/g, '')
+    const candidatos = await models.Usuario.findAll({ where: { telefone: { [Op.ne]: null } } })
+    const usuario = candidatos.find(
+      (u) => String(u.telefone).replace(/\D/g, '').replace(/^55/, '') === digitos.replace(/^55/, '')
+    )
 
-    if (!usuario.telefone) {
-      return res.status(400).json({ error: 'Usuário não possui telefone cadastrado.' })
+    if (!usuario) {
+      return res.status(404).json({ error: 'Nenhum usuário encontrado com este telefone.' })
     }
 
     // Gerar token e expiração
     const token = crypto.randomBytes(20).toString('hex')
     // 10 dias em milissegundos: 10 * 24h * 60m * 60s * 1000ms
-    const expiracao = new Date(Date.now() + (10 * 24 * 60 * 60 * 1000)) 
+    const expiracao = new Date(Date.now() + (10 * 24 * 60 * 60 * 1000))
 
     usuario.redefineSenhaToken = token
     usuario.redefineSenhaExpiracao = expiracao
     await usuario.save()
 
-    // Montar link
-    const resetLink = `https://espacocriar.4growthbr.space/organizer/choosePassword/${token}`
+    // Montar link e mensagem
+    const frontUrl = process.env.FRONT_URL || 'https://espacocriar.4growthbr.space'
+    const resetLink = `${frontUrl}/organizer/choosePassword/${token}`
+    const mensagem = `Olá, ${usuario.nome}! Recebemos sua solicitação de redefinição de senha. Clique no link abaixo para redefinir:\n\n${resetLink}\n\nSe não foi você, ignore esta mensagem.`
 
-    // Montar mensagem
-    const mensagem = `Olá, recebemos sua solicitação de redefinição de senha. Clique no link abaixo para redefinir:\n\n${resetLink}\n\nSe não foi você, ignore esta mensagem.`
-
-    // Chamar o webhook do n8n
-   await axios.post(
-  'https://workflows.4growthbr.space/webhook/8a71a943-80d8-465c-998e-61aeab9847ec',
-  {
-    telefone: usuario.telefone,
-    mensagem: mensagem
-  }
-)
+    // Envia direto pela Evolution API (substitui o webhook n8n 8a71a943)
+    await enviarMensagemWhatsApp(usuario.telefone, mensagem)
 
     return res.status(200).json({ mensagem: 'Link de redefinição enviado via WhatsApp!' })
   } catch (error) {
+    // Erros do whatsappService vem classificados com .code
+    if (error.code && String(error.code).startsWith('EVO_')) {
+      console.error(`[WhatsApp] Falha no reset de senha [${error.code}]:`, error.message)
+      return res.status(502).json({
+        error: 'Falha ao enviar o WhatsApp. ' + error.message
+      })
+    }
+
     console.error('Erro ao solicitar redefinição de senha:', error)
-    return res.status(500).json({ error: 'Falha ao solicitar redefinição de senha.' })
+    return res.status(500).json({ error: 'Erro interno ao solicitar redefinição. Tente novamente.' })
   }
 }

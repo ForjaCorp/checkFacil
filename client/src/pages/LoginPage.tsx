@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
-import { Loader2 } from 'lucide-react'
-import { useEffect } from 'react'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -31,8 +31,16 @@ import api from '@/services/api'
 const loginFormSchema = z.object({
   email: z
     .string()
-    .min(1, { message: 'O email é obrigatório.' })
-    .email({ message: 'Por favor, insira um email válido.' }),
+    .min(1, { message: 'Informe seu e-mail ou telefone.' })
+    .refine(
+      (v) => {
+        // Aceita email OU telefone BR (10/11 digitos, com ou sem 55, com mascara)
+        if (v.includes('@')) return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+        const digitos = v.replace(/\D/g, '').replace(/^55/, '')
+        return digitos.length >= 10 && digitos.length <= 11
+      },
+      { message: 'Informe um e-mail válido ou telefone com DDD. Ex: (86) 99999-9999' }
+    ),
   password: z
     .string()
     .min(1, { message: 'A senha é obrigatória.' })
@@ -44,6 +52,7 @@ type LoginFormValues = z.infer<typeof loginFormSchema>
 function LoginPage() {
   const auth = useAuth()
   const navigate = useNavigate()
+  const [showPassword, setShowPassword] = useState(false)
 
   const { mutate: login, isPending } = useMutation({
     mutationFn: (credentials: LoginFormValues) =>
@@ -74,7 +83,7 @@ function LoginPage() {
       const description =
         axios.isAxiosError(error) && typeof errorPayload?.error === 'string'
           ? errorPayload.error
-          : 'Email ou senha inválidos.'
+          : 'Telefone/e-mail ou senha inválidos.'
 
       toast.error('Falha no login', { description })
     }
@@ -113,7 +122,7 @@ function LoginPage() {
           </div>
           <CardTitle className="text-2xl">Acesse sua Conta</CardTitle>
           <CardDescription>
-            Use seu email e senha para entrar no painel.
+            Use seu telefone (com DDD) ou e-mail e senha para entrar no painel.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -124,9 +133,9 @@ function LoginPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Telefone ou E-mail</FormLabel>
                     <FormControl>
-                      <Input placeholder="seu@email.com" {...field} disabled={isPending} />
+                      <Input placeholder="(86) 99999-9999 ou seu@email.com" {...field} disabled={isPending} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -139,12 +148,27 @@ function LoginPage() {
                   <FormItem>
                     <FormLabel>Senha</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        {...field}
-                        disabled={isPending}
-                      />
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="••••••••"
+                          {...field}
+                          disabled={isPending}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground outline-none"
+                          aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

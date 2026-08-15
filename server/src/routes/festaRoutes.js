@@ -31,6 +31,13 @@ router.patch('/:idFesta', verificarTokenJWT, festaController.atualizarFesta);
 // DELETE /festa/:idFesta -> Deleta uma festa específica.
 router.delete('/:idFesta', verificarTokenJWT, festaController.deletarFesta);
 
+// POST /festa/:idFesta/reenviar-link-senha -> Reenvia link de senha do organizador (Adm_espaco).
+router.post(
+  '/:idFesta/reenviar-link-senha',
+  verificarTokenJWT,
+  festaController.reenviarLinkSenha
+);
+
 // --- ROTAS PARA CONVIDADOS DE UMA FESTA ---
 
 // GET /festa/:idFesta/convidados -> Lista todos os convidados.

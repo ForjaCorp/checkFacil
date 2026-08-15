@@ -65,6 +65,11 @@ export default function DashboardPage() {
       date: eventFromApi.data_festa,
       status: eventFromApi.status,
       organizerName: eventFromApi.organizador?.nome,
+      startTime: eventFromApi.horario_inicio,
+      endTime: eventFromApi.horario_fim,
+      birthdayAge: eventFromApi.idade_aniversariante,
+      packageType: eventFromApi.pacote_escolhido,
+      guestsCount: eventFromApi.numero_convidados_contratado,
     }))
 
     return {

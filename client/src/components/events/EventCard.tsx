@@ -1,6 +1,20 @@
-import { Calendar, FilePenLine, PlayCircle, Users } from 'lucide-react'
+import { Cake, Calendar, Clock, FilePenLine, Gift, Loader2, PlayCircle, Trash2, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import type { AxiosError } from 'axios'
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,6 +25,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import api from '@/services/api'
 
 import type { AppEvent } from '@/types'
 
@@ -19,7 +34,33 @@ interface EventCardProps {
   variant: 'staff' | 'organizer'
 }
 
+const PACOTE_LABELS: Record<string, string> = {
+  KIDS: 'Kids',
+  KIDS_MAIS_PARK: 'Kids + Park',
+  PLAY: 'Play',
+  PLAY_MAIS_PARK: 'Play + Park',
+  KIDS_PARK_PLAY: 'Kids + Park + Play',
+}
+
+// Horario vem como "14:00:00" do banco - exibe so HH:MM
+const horaCurta = (hora?: string | null) => (hora ? hora.slice(0, 5) : null)
+
 export function EventCard({ event, variant }: EventCardProps) {
+  const queryClient = useQueryClient()
+
+  const { mutate: excluirFesta, isPending: isDeleting } = useMutation({
+    mutationFn: () => api.delete(`/festa/${event.id}`),
+    onSuccess: () => {
+      toast.success('Festa excluída com sucesso.')
+      queryClient.invalidateQueries({ queryKey: ['events'] })
+    },
+    onError: (error: AxiosError<{ error?: string }>) => {
+      toast.error('Falha ao excluir a festa.', {
+        description: error.response?.data?.error ?? 'Tente novamente em instantes.',
+      })
+    },
+  })
+
   const getStatusInfo = (
     status: string,
   ): {
@@ -61,9 +102,46 @@ export function EventCard({ event, variant }: EventCardProps) {
       <CardHeader>
         <div className="flex justify-between items-start gap-2">
           <CardTitle className="text-lg font-bold">{event.name}</CardTitle>
-          <Badge variant={statusInfo.variant} className={statusInfo.className}>
-            {statusInfo.text}
-          </Badge>
+          <div className="flex items-center gap-1 z-10">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  disabled={isDeleting}
+                  title="Excluir festa"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir festa</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja excluir a festa "{event.name}"? Esta ação não pode ser
+                    desfeita e todos os convidados cadastrados nela também serão removidos.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => excluirFesta()}
+                    className="bg-destructive text-white hover:bg-destructive/90"
+                  >
+                    Excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <Badge variant={statusInfo.variant} className={statusInfo.className}>
+              {statusInfo.text}
+            </Badge>
+          </div>
         </div>
         {isStaff && (
           <CardDescription>Organizador: {event.organizerName || 'Não definido'}</CardDescription>
@@ -74,6 +152,44 @@ export function EventCard({ event, variant }: EventCardProps) {
         <div className="flex items-center text-sm text-muted-foreground">
           <Calendar className="mr-2 h-4 w-4 shrink-0" />
           <span>{new Date(event.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</span>
+          {(event.startTime || event.endTime) && (
+            <>
+              <Clock className="ml-3 mr-2 h-4 w-4 shrink-0" />
+              <span>
+                {horaCurta(event.startTime) ?? '--'}
+                {event.endTime ? ` – ${horaCurta(event.endTime)}` : ''}
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Infos extras: idade, pacote e convidados contratados */}
+        <div className="mt-3 grid grid-cols-3 divide-x divide-border rounded-md border bg-muted/40">
+          <div className="flex flex-col items-center gap-0.5 px-1 py-2 text-center">
+            <span className="flex items-center gap-1 text-muted-foreground">
+              <Cake className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-medium">IDADE</span>
+            </span>
+            <span className="text-sm font-semibold">
+              {event.birthdayAge != null ? `${event.birthdayAge} anos` : '—'}
+            </span>
+          </div>
+          <div className="flex flex-col items-center gap-0.5 px-1 py-2 text-center">
+            <span className="flex items-center gap-1 text-muted-foreground">
+              <Gift className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-medium">PACOTE</span>
+            </span>
+            <span className="text-sm font-semibold">
+              {event.packageType ? PACOTE_LABELS[event.packageType] ?? event.packageType : '—'}
+            </span>
+          </div>
+          <div className="flex flex-col items-center gap-0.5 px-1 py-2 text-center">
+            <span className="flex items-center gap-1 text-muted-foreground">
+              <Users className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-medium">CONVIDADOS</span>
+            </span>
+            <span className="text-sm font-semibold">{event.guestsCount ?? '—'}</span>
+          </div>
         </div>
       </CardContent>
 

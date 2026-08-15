@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import * as z from 'zod'
+import type { AxiosError } from 'axios'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,29 +14,63 @@ import { Input } from '@/components/ui/input'
 import api from '@/services/api'
 
 const forgotPasswordSchema = z.object({
-  email: z.string().min(1, { message: 'O e-mail é obrigatório.' }).email('Insira um e-mail válido'),
+  telefone: z
+    .string()
+    .min(1, { message: 'O telefone é obrigatório.' })
+    .refine((v) => {
+      const digitos = v.replace(/\D/g, '').replace(/^55/, '')
+      return digitos.length >= 10 && digitos.length <= 11
+    }, 'Informe um telefone válido com DDD. Ex: (86) 99999-9999'),
 })
 
 type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>
+
+interface ApiErrorResponse {
+  error?: string
+}
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate()
 
   const form = useForm<ForgotPasswordValues>({
     resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: { email: '' },
+    defaultValues: { telefone: '' },
   })
 
   const { mutate: solicitarLink, isPending } = useMutation({
     mutationFn: (values: ForgotPasswordValues) =>
-      api.post('/auth/forgot-password', { email: values.email }),
+      api.post('/auth/forgot-password', { telefone: values.telefone }),
     onSuccess: () => {
       toast.success('Enviamos o link de redefinição via WhatsApp!')
       navigate('/login')
     },
-    onError: () => {
+    onError: (error: AxiosError<ApiErrorResponse>) => {
+      // 404: telefone nao encontrado | 502: falha no envio do WhatsApp (conexao Evolution)
+      // 400: telefone invalido | outros: erro generico
+      const status = error.response?.status
+      const mensagem = error.response?.data?.error
+
+      if (status === 502) {
+        toast.error('Falha ao enviar pelo WhatsApp.', {
+          description: mensagem ?? 'Verifique a conexão do WhatsApp e tente novamente.',
+        })
+        return
+      }
+
+      if (status === 404) {
+        toast.error('Telefone não encontrado.', {
+          description: mensagem ?? 'Nenhum usuário encontrado com este telefone.',
+        })
+        return
+      }
+
+      if (status === 400 && mensagem) {
+        toast.error('Telefone inválido.', { description: mensagem })
+        return
+      }
+
       toast.error('Falha ao solicitar redefinição.', {
-        description: 'Verifique o e-mail informado e tente novamente.',
+        description: mensagem ?? 'Tente novamente em instantes.',
       })
     },
   })
@@ -50,7 +85,7 @@ export default function ForgotPasswordPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Recuperar Senha</CardTitle>
           <CardDescription>
-            Digite seu e-mail para receber o link de redefinição via WhatsApp.
+            Digite seu telefone (com DDD) para receber o link de redefinição via WhatsApp.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -58,12 +93,18 @@ export default function ForgotPasswordPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="telefone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-mail</FormLabel>
+                    <FormLabel>Telefone</FormLabel>
                     <FormControl>
-                      <Input placeholder="seu@email.com" {...field} disabled={isPending} />
+                      <Input
+                        type="tel"
+                        inputMode="tel"
+                        placeholder="(86) 99999-9999"
+                        {...field}
+                        disabled={isPending}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

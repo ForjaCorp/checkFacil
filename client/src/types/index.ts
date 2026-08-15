@@ -15,6 +15,11 @@ export interface ApiEventResponse {
   id: number
   nome_festa: string
   data_festa: string
+  horario_inicio?: string | null
+  horario_fim?: string | null
+  idade_aniversariante?: number | null
+  pacote_escolhido?: string | null
+  numero_convidados_contratado?: number | null
   status: string
   organizador?: {
     nome: string
@@ -31,6 +36,11 @@ export interface AppEvent {
   date: string
   status: string
   organizerName?: string
+  startTime?: string | null
+  endTime?: string | null
+  birthdayAge?: number | null
+  packageType?: string | null
+  guestsCount?: number | null
 }
 
 // =================================

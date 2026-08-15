@@ -1,6 +1,6 @@
 import express from 'express';
 // ✅ CORRIGIDO: Nome do arquivo com 'E' maiúsculo conforme você criou
-import { getStatus, connectInstance, logoutInstance } from '../controllers/EvolutionapiController.js';
+import { getStatus, connectInstance, logoutInstance, resetInstance } from '../controllers/EvolutionapiController.js';
 // Ajuste o nome aqui se no seu projeto for 'verificarTokenJWT'
 import { verificarTokenJWT, isAdminEspaco } from '../middleware/validarReqAuth.js';
 
@@ -12,5 +12,6 @@ router.use(verificarTokenJWT, isAdminEspaco);
 router.get('/status', getStatus);
 router.get('/connect', connectInstance);
 router.post('/logout', logoutInstance);
+router.post('/reset', resetInstance);
 
 export default router;

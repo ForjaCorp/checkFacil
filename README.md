@@ -18,7 +18,7 @@ Este projeto é um monorepo gerenciado com **Yarn Workspaces**, composto pelos s
 | **Qualidade de Código** | [Husky](https://typicode.github.io/husky/) + [Lint-Staged](https://github.com/okonet/lint-staged) para hooks de pre-commit automatizados. |
 | **Frontend** | [React](https://react.dev/) (Vite), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [TanStack Query](https://tanstack.com/query/latest) (Server State), [Zod](https://zod.dev/), [React Hook Form](https://react-hook-form.com/) |
 | **Backend** | [Node.js](https://nodejs.org/), [Express.js](https://expressjs.com/), [Sequelize](https://sequelize.org/) (ORM), [MySQL](https://www.mysql.com/), [JWT](https://jwt.io/) |
-| **DevOps** | [Docker](https://www.docker.com/), [Traefik](https://traefik.io/traefik/) (Proxy Reverso para Produção) |
+| **DevOps** | [Docker](https://www.docker.com/), [Coolify](https://coolify.io/) (deploy via `infra/docker-compose.yml`) |
 
 ## ⚙️ Configuração do Ambiente Local
 
@@ -66,6 +66,27 @@ Este projeto é um monorepo gerenciado com **Yarn Workspaces**, composto pelos s
 
     * **Backend (`/server/.env`) - Para `yarn dev`:**
         *Use as mesmas variáveis acima, ajustando os dados do banco de dados se necessário para o seu ambiente local.*
+        *Variáveis adicionais do servidor:*
+
+        ```env
+        # Evolution API (mensagens de WhatsApp)
+        EVOLUTION_API_URL=https://evo4.4growthbr.space
+        EVOLUTION_API_KEY=sua_apikey_aqui
+        EVOLUTION_INSTANCE_NAME=Espaco
+
+        # URL do frontend (usada nos links enviados via WhatsApp)
+        FRONT_URL=https://espacocriar.4growthbr.space
+        ```
+
+    * **Frontend (`/client/.env.development`) - Para `yarn dev`:**
+        *Emails que liberam as opções de administrador na UI em modo dev. Os mesmos valores devem existir em `/client/.env.production` para o build de produção.*
+
+        ```env
+        VITE_ADM_EMAIL_1=barradeespacoe@gmail.com
+        VITE_ADM_EMAIL_2=adm2.espacocriaraju@gmail.com
+        ```
+
+        > **Atenção:** o Vite carrega `.env.development` em modo dev e `.env.production` no build (`vite build`). Se trocar um email, atualize os dois arquivos.
 
 4. **Configuração do Editor (VS Code):**
     Para garantir que o VS Code utilize a versão correta do TypeScript gerenciada pelo Yarn, rode:
@@ -85,6 +106,25 @@ Todos os comandos devem ser executados a partir da **raiz do monorepo**. O **Tur
     ```bash
     yarn dev
     ```
+
+* **Banco de Dados (criar/atualizar tabelas):**
+
+    O projeto usa `sequelize.sync()` — não há migrations estilo Prisma. As tabelas podem ser criadas/atualizadas de duas formas:
+
+    1. **Automaticamente** ao subir o servidor (`yarn dev` ou `yarn start`) — o `server.js` roda o sync no startup.
+    2. **Via terminal (recomendado para aplicar mudanças nos models):**
+
+        ```bash
+        # cria tabelas que faltam (não mexe nas existentes)
+        yarn workspace @checkfacil/server sync
+
+        # cria + ajusta colunas existentes pra baterem com os models
+        yarn workspace @checkfacil/server sync --alter
+        ```
+
+        > **Importante:** o comando usa as credenciais do `/server/.env`. O `--alter` não dropa tabelas nem dados, mas revise o diff se as tabelas já tiverem dados em produção.
+
+    > O banco (database/schema) em si não é criado pelo sync — crie-o antes com `CREATE DATABASE espacoCriar;` se ainda não existir. Um script de referência com o schema completo está em `/infra/init.sql`.
 
 * **Construir todos os pacotes para produção:**
 

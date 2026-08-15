@@ -1,10 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
+import { KeyRound, Loader2 } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
+import type { AxiosError } from 'axios'
+
+import { useAuth } from '@/contexts/authContextCore'
 
 import { ContractedDetailsSection } from '@/components/events/ContractedDetailsSection'
 import { PersonalizePartySection } from '@/components/events/PersonalizePartySection'
@@ -77,6 +80,8 @@ function EventForm({ eventData, playlists }: { eventData: ApiEventData; playlist
   const { eventId } = useParams<{ eventId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const isAdmEspaco = user?.userType === 'Adm_espaco'
 
   const form = useForm<CompleteDetailsFormValues>({
     resolver: zodResolver(completeDetailsSchema),
@@ -85,7 +90,7 @@ function EventForm({ eventData, playlists }: { eventData: ApiEventData; playlist
       partyName: eventData.nome_festa,
       partyDate: new Date(eventData.data_festa.replace(/-/g, '/')),
       packageType: eventData.pacote_escolhido,
-      contractedGuests: eventData.numero_convidados_contratado || 0,
+      contractedGuests: eventData.numero_convidados_contratado ?? undefined,
       startTime: eventData.horario_inicio ? eventData.horario_inicio.substring(0, 5) : '',
       endTime: eventData.horario_fim ? eventData.horario_fim.substring(0, 5) : '',
       birthdayPersonName: eventData.nome_aniversariante || '',
@@ -128,6 +133,19 @@ function EventForm({ eventData, playlists }: { eventData: ApiEventData; playlist
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
     },
     onError: () => toast.error('Falha ao enviar a imagem do convite.'),
+  })
+
+  // Reenvia o link de definicao de senha do cliente via WhatsApp (uso do Adm_espaco)
+  const { mutate: reenviarLinkSenha, isPending: isResending } = useMutation({
+    mutationFn: () => api.post(`/festa/${eventId}/reenviar-link-senha`),
+    onSuccess: (response) => {
+      toast.success(response.data?.mensagem || 'Link reenviado com sucesso!')
+    },
+    onError: (error: AxiosError<{ error?: string }>) => {
+      toast.error('Falha ao reenviar o link.', {
+        description: error.response?.data?.error ?? 'Tente novamente em instantes.',
+      })
+    },
   })
 
   const handleInviteImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -241,6 +259,23 @@ function EventForm({ eventData, playlists }: { eventData: ApiEventData; playlist
                     ? 'Finalizar Agendamento e Salvar'
                     : 'Salvar Alterações'}
             </Button>
+            {isAdmEspaco && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                disabled={isResending || isSaving || isUploading}
+                onClick={() => reenviarLinkSenha()}
+                title="Reenvia via WhatsApp um link novo para o cliente definir a senha (válido por 48h)"
+              >
+                {isResending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <KeyRound className="mr-2 h-4 w-4" />
+                )}
+                {isResending ? 'Enviando link...' : 'Reenviar link de senha ao cliente'}
+              </Button>
+            )}
           </form>
         </Form>
       </CardContent>
