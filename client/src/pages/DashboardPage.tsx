@@ -1,12 +1,14 @@
 import { useQuery, type QueryFunctionContext } from '@tanstack/react-query'
 import { endOfMonth, format, startOfMonth, startOfToday } from 'date-fns'
-import { Search } from 'lucide-react'
+import { CalendarDays, LayoutGrid, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { EventCalendarView } from '@/components/events/EventCalendarView'
 import { EventSection } from '@/components/events/EventSection'
 import { DashboardFilters } from '@/components/layout/DashboardFilters'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { WhatsAppStatusIndicator } from '@/components/layout/WhatsAppStatusIndicator'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Pagination,
@@ -24,8 +26,21 @@ import api from '@/services/api'
 
 // ✅ IMPORTANTE: Importando o novo indicador de status simplificado
 
-import type { ApiEventResponse, EventsQueryOptions } from '@/types'
+import type { ApiEventResponse, AppEvent, EventsQueryOptions } from '@/types'
 import type { DateRange } from 'react-day-picker'
+
+const mapApiEvent = (eventFromApi: ApiEventResponse): AppEvent => ({
+  id: eventFromApi.id,
+  name: eventFromApi.nome_festa,
+  date: eventFromApi.data_festa,
+  status: eventFromApi.status,
+  organizerName: eventFromApi.organizador?.nome,
+  startTime: eventFromApi.horario_inicio,
+  endTime: eventFromApi.horario_fim,
+  birthdayAge: eventFromApi.idade_aniversariante,
+  packageType: eventFromApi.pacote_escolhido,
+  guestsCount: eventFromApi.numero_convidados_contratado,
+})
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -38,6 +53,7 @@ export default function DashboardPage() {
   const [activeCategory, setActiveCategory] = useState<
     'this_month' | 'upcoming' | 'completed' | null
   >(null)
+  const [viewMode, setViewMode] = useState<'lista' | 'calendario'>('lista')
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
@@ -59,18 +75,7 @@ export default function DashboardPage() {
       data_fim: options.endDate,
     }
     const { data } = await api.get('/festa/listar', { params })
-    const mappedEvents = data.festas.map((eventFromApi: ApiEventResponse) => ({
-      id: eventFromApi.id,
-      name: eventFromApi.nome_festa,
-      date: eventFromApi.data_festa,
-      status: eventFromApi.status,
-      organizerName: eventFromApi.organizador?.nome,
-      startTime: eventFromApi.horario_inicio,
-      endTime: eventFromApi.horario_fim,
-      birthdayAge: eventFromApi.idade_aniversariante,
-      packageType: eventFromApi.pacote_escolhido,
-      guestsCount: eventFromApi.numero_convidados_contratado,
-    }))
+    const mappedEvents = data.festas.map(mapApiEvent)
 
     return {
       festas: mappedEvents,
@@ -96,6 +101,26 @@ export default function DashboardPage() {
     queryKey: ['events', queryOptions],
     queryFn: fetchEvents,
     placeholderData: (previousData) => previousData,
+  })
+
+  // Calendario: busca todas as festas (sem paginacao) aplicando busca e status
+  const {
+    data: calendarEvents,
+    isLoading: isCalendarLoading,
+  } = useQuery({
+    queryKey: ['events-calendar', debouncedSearchTerm, statusFilter === 'TODOS' ? undefined : statusFilter],
+    queryFn: async () => {
+      const { data } = await api.get('/festa/listar', {
+        params: {
+          page: 1,
+          limit: 500,
+          search: debouncedSearchTerm || undefined,
+          status: statusFilter === 'TODOS' ? undefined : statusFilter,
+        },
+      })
+      return data.festas.map(mapApiEvent) as AppEvent[]
+    },
+    enabled: viewMode === 'calendario',
   })
 
   const events = queryData?.festas || []
@@ -168,28 +193,60 @@ export default function DashboardPage() {
       )}
 
       <div className="flex flex-col gap-4">
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome da festa..."
-            className="pl-10"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nome da festa..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          {/* Toggle Lista / Calendario */}
+          <div className="grid grid-cols-2 gap-1 rounded-lg border p-1 sm:w-auto">
+            <Button
+              size="sm"
+              variant={viewMode === 'lista' ? 'secondary' : 'ghost'}
+              className="h-8"
+              onClick={() => setViewMode('lista')}
+            >
+              <LayoutGrid className="mr-1 h-4 w-4" />
+              Lista
+            </Button>
+            <Button
+              size="sm"
+              variant={viewMode === 'calendario' ? 'secondary' : 'ghost'}
+              className="h-8"
+              onClick={() => setViewMode('calendario')}
+            >
+              <CalendarDays className="mr-1 h-4 w-4" />
+              Calendário
+            </Button>
+          </div>
         </div>
 
-        <DashboardFilters
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          dateRange={dateRange}
-          setDateRange={setDateRange}
-          applyCategoryFilter={applyCategoryFilter}
-          activeCategory={activeCategory}
-          clearFilters={clearFilters}
-        />
+        {viewMode === 'lista' && (
+          <DashboardFilters
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            applyCategoryFilter={applyCategoryFilter}
+            activeCategory={activeCategory}
+            clearFilters={clearFilters}
+          />
+        )}
       </div>
 
-      <EventSection
+      {viewMode === 'calendario' ? (
+        isCalendarLoading ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">Carregando calendário...</p>
+        ) : (
+          <EventCalendarView events={calendarEvents ?? []} variant={config.events.cardVariant} />
+        )
+      ) : (
+        <EventSection
         isLoading={isLoading}
         events={events}
         sectionTitle="Resultados"
@@ -233,7 +290,8 @@ export default function DashboardPage() {
             </Pagination>
           )
         }
-      />
+        />
+      )}
     </div>
   )
 }
