@@ -22,6 +22,7 @@ const GuestManagementPage = lazy(() => import('@/pages/guests/GuestManagementPag
 const CheckinPage = lazy(() => import('@/pages/operations/CheckinPage'))
 const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
 const PlaylistManagementPage = lazy(() => import('@/pages/staff/PlaylistManagementPage'))
+const AdminManagementPage = lazy(() => import('@/pages/staff/AdminManagementPage'))
 
 function App() {
   const { isLoading } = useAuth()
@@ -61,6 +62,7 @@ function App() {
             <Route path="/staff/event/:eventId/details" element={<CompleteEventDetailsPage />} />
             <Route path="/staff/event/:eventId/checkin" element={<CheckinPage />} />
             <Route path="/staff/playlists" element={<PlaylistManagementPage />} />
+            <Route path="/staff/admins" element={<AdminManagementPage />} />
             <Route path="/organizer/dashboard" element={<DashboardPage />} />
             <Route
               path="/organizer/event/:eventId/details"

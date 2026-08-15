@@ -1,4 +1,4 @@
-import { LayoutGrid, PlusCircle, User, Music2, Smartphone } from 'lucide-react'
+import { LayoutGrid, PlusCircle, User, Music2, ShieldCheck, Smartphone } from 'lucide-react'
 import { useState } from 'react'
 
 import { BottomNavLink } from '@/components/layout/BottomNavLink'
@@ -53,6 +53,12 @@ export function BottomNavBar() {
                 to="/staff/events/createEventDraft"
                 icon={<PlusCircle className="h-6 w-6" />}
                 label="Criar"
+              />
+
+              <BottomNavLink
+                to="/staff/admins"
+                icon={<ShieldCheck className="h-6 w-6" />}
+                label="Adms"
               />
 
               {/* Gatilho do WhatsApp - Abre o Modal igual ao Desktop */}

@@ -308,6 +308,35 @@ export async function enviarReenvioLinkSenha(dados) {
 }
 
 /**
+ * Convida um novo Adm_espaco: link de definicao de senha via WhatsApp.
+ * Mesmo padrao do cliente novo, adaptado para a equipe.
+ */
+export async function enviarConviteAdmEspaco(dados) {
+  const { nomeAdm, telefoneAdm, token } = dados;
+
+  const linkSenha = `${FRONT_URL}/organizer/choosePassword/${token}`;
+
+  const mensagem = [
+    `Ola, ${nomeAdm}!`,
+    '',
+    'Voce foi cadastrado(a) como administrador(a) do Espaco Criar no Check Facil!',
+    '',
+    'Defina sua senha no link abaixo para acessar o painel:',
+    linkSenha,
+    '',
+    'O link e valido por 48 horas.',
+    '',
+    'Apos definir sua senha, entre com seu telefone ou e-mail.',
+    '',
+    'Se nao foi voce quem pediu, ignore esta mensagem.'
+  ]
+    .filter((linha) => linha !== null)
+    .join('\n');
+
+  return enviarMensagemWhatsApp(telefoneAdm, mensagem);
+}
+
+/**
  * Reset completo da instancia WhatsApp: desloga, deleta e recria com o
  * MESMO nome e MESMO token (apikey continua valida, nada muda no .env).
  * Devolve o QR Code pro usuario escanear.

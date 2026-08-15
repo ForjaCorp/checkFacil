@@ -2,7 +2,7 @@ import models from '../models/index.js';
 import jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
 import crypto from 'crypto'
-import { enviarMensagemWhatsApp } from '../services/whatsappService.js';
+import { enviarMensagemWhatsApp, enviarConviteAdmEspaco } from '../services/whatsappService.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -121,6 +121,84 @@ export async function registrarAdmEspaco(req, res) {
       return res.status(400).json({ error: 'Dados inválidos.', detalhes: erros });
     }
     return res.status(500).json({ error: 'Erro ao registrar administrador do espaço.' });
+  }
+}
+
+/**
+ * Lista todos os Adm_espaco (uso da pagina de gestao de equipe).
+ * So pode ser chamado por outro Adm_espaco (guardado na rota).
+ */
+export async function listarAdmsEspaco(req, res) {
+  try {
+    const adms = await models.Usuario.findAll({
+      where: { tipoUsuario: models.Usuario.TIPOS_USUARIO.ADM_ESPACO },
+      attributes: ['id', 'nome', 'email', 'telefone', 'createdAt'],
+      order: [['createdAt', 'ASC']]
+    });
+    return res.status(200).json({ adms });
+  } catch (error) {
+    console.error('Erro ao listar administradores do espaço:', error);
+    return res.status(500).json({ error: 'Erro ao listar administradores do espaço.' });
+  }
+}
+
+/**
+ * Cadastra um novo Adm_espaco e envia o link de definicao de senha
+ * via WhatsApp (mesmo fluxo do cliente novo). Se o WhatsApp falhar,
+ * o usuario e criado mesmo assim e o erro e informado pro adm reenviar.
+ */
+export async function convidarAdmEspaco(req, res) {
+  const { nome, email, telefone } = req.body;
+
+  try {
+    if (!nome || !email || !telefone) {
+      return res.status(400).json({ error: 'Nome, email e telefone são obrigatórios.' });
+    }
+
+    const usuarioExistente = await models.Usuario.findOne({ where: { email } });
+    if (usuarioExistente) {
+      return res.status(400).json({ error: 'Este email já está cadastrado.' });
+    }
+
+    const tokenDefinicaoSenha = crypto.randomBytes(20).toString('hex');
+    const expiracao = new Date();
+    expiracao.setHours(expiracao.getHours() + 48);
+
+    const usuario = await models.Usuario.create({
+      nome,
+      email,
+      senha: crypto.randomBytes(24).toString('hex'), // provisoria: adm define via link
+      telefone,
+      tipoUsuario: models.Usuario.TIPOS_USUARIO.ADM_ESPACO,
+      redefineSenhaToken: tokenDefinicaoSenha,
+      redefineSenhaExpiracao: expiracao
+    });
+
+    let whatsappEnviado = true;
+    let whatsappErro = null;
+    try {
+      await enviarConviteAdmEspaco({ nomeAdm: nome, telefoneAdm: telefone, token: tokenDefinicaoSenha });
+    } catch (e) {
+      whatsappEnviado = false;
+      whatsappErro = e.message;
+      console.error(`[WhatsApp] Falha ao enviar convite de adm [${e.code || 'ERRO'}]:`, e.message);
+    }
+
+    const { senha: _, ...usuarioSemSenha } = usuario.toJSON();
+
+    return res.status(201).json({
+      usuario: usuarioSemSenha,
+      whatsappEnviado,
+      ...(whatsappErro ? { aviso: `Administrador criado, mas o WhatsApp falhou: ${whatsappErro}` } : {}),
+      mensagem: 'Administrador de Espaço convidado com sucesso!'
+    });
+  } catch (error) {
+    console.error('Erro ao convidar administrador do espaço:', error);
+    if (error.name === 'SequelizeValidationError') {
+      const erros = error.errors.map((e) => e.message);
+      return res.status(400).json({ error: 'Dados inválidos.', detalhes: erros });
+    }
+    return res.status(500).json({ error: 'Erro ao convidar administrador do espaço.' });
   }
 }
 

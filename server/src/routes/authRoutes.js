@@ -26,6 +26,21 @@ router.post(
   authController.registrarAdmEspaco
 );
 
+// Gestao de equipe do espaco (pagina de administradores)
+router.get(
+  '/adms',
+  verificarTokenJWT,
+  permitirApenas(models.Usuario.TIPOS_USUARIO.ADM_ESPACO),
+  authController.listarAdmsEspaco
+);
+
+router.post(
+  '/adms/convidar',
+  verificarTokenJWT,
+  permitirApenas(models.Usuario.TIPOS_USUARIO.ADM_ESPACO),
+  authController.convidarAdmEspaco
+);
+
 router.post('/register/admFesta', validarRegistro, authController.registrarAdmFesta);
 
 router.post('/login', validarLogin, authController.login);
