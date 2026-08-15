@@ -275,7 +275,11 @@ export async function deletarFesta(req, res) {
         .json({ error: 'Acesso negado. Você não tem permissão para deletar esta festa.' });
     }
 
-    await festa.destroy();
+    // Remove os convidados junto (nao ha cascade no banco) dentro de uma transacao
+    await sequelize.transaction(async (t) => {
+      await models.ConvidadoFesta.destroy({ where: { id_festa: festa.id }, transaction: t });
+      await festa.destroy({ transaction: t });
+    });
 
     return res.status(200).json({ mensagem: 'Festa deletada com sucesso.' });
   } catch (error) {

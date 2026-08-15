@@ -1,6 +1,20 @@
-import { Calendar, FilePenLine, PlayCircle, Users } from 'lucide-react'
+import { Calendar, FilePenLine, Loader2, PlayCircle, Trash2, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import type { AxiosError } from 'axios'
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,6 +25,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import api from '@/services/api'
 
 import type { AppEvent } from '@/types'
 
@@ -20,6 +35,21 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, variant }: EventCardProps) {
+  const queryClient = useQueryClient()
+
+  const { mutate: excluirFesta, isPending: isDeleting } = useMutation({
+    mutationFn: () => api.delete(`/festa/${event.id}`),
+    onSuccess: () => {
+      toast.success('Festa excluída com sucesso.')
+      queryClient.invalidateQueries({ queryKey: ['events'] })
+    },
+    onError: (error: AxiosError<{ error?: string }>) => {
+      toast.error('Falha ao excluir a festa.', {
+        description: error.response?.data?.error ?? 'Tente novamente em instantes.',
+      })
+    },
+  })
+
   const getStatusInfo = (
     status: string,
   ): {
@@ -61,9 +91,46 @@ export function EventCard({ event, variant }: EventCardProps) {
       <CardHeader>
         <div className="flex justify-between items-start gap-2">
           <CardTitle className="text-lg font-bold">{event.name}</CardTitle>
-          <Badge variant={statusInfo.variant} className={statusInfo.className}>
-            {statusInfo.text}
-          </Badge>
+          <div className="flex items-center gap-1 z-10">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  disabled={isDeleting}
+                  title="Excluir festa"
+                >
+                  {isDeleting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir festa</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja excluir a festa "{event.name}"? Esta ação não pode ser
+                    desfeita e todos os convidados cadastrados nela também serão removidos.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => excluirFesta()}
+                    className="bg-destructive text-white hover:bg-destructive/90"
+                  >
+                    Excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <Badge variant={statusInfo.variant} className={statusInfo.className}>
+              {statusInfo.text}
+            </Badge>
+          </div>
         </div>
         {isStaff && (
           <CardDescription>Organizador: {event.organizerName || 'Não definido'}</CardDescription>
