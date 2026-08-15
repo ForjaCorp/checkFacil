@@ -174,7 +174,7 @@ export async function enviarBoasVindasClienteNovo(dados) {
     'Para acompanhar sua festa e gerenciar os convidados, defina sua senha no link abaixo:',
     linkSenha,
     '',
-    'O link e valido por 24 horas.',
+    'O link e valido por 48 horas.',
     '',
     'Apos definir sua senha, entre com seu telefone e complete os dados da festa (aniversariante, tema, convidados e mais) no painel.',
     '',
@@ -261,13 +261,45 @@ export async function enviarNovaFestaClienteExistente(dados) {
   const mensagem = [
     `Ola, ${nomeCliente}! 🎉`,
     '',
-    'Uma nova festa foi agendada para voce no Espaco Criar!',
+    'Sua proxima festa ja esta agendada no Espaco Criar!',
     '',
     `📅 Data: ${dataFormatada}`,
     horaInicio ? `🕐 Horario: ${horaInicio}${horaFim ? ` as ${horaFim}` : ''}` : null,
     localFesta ? `📍 Local: ${localFesta}` : null,
     '',
-    'Qualquer duvida, estamos a disposicao. Ate a festa! 🎈'
+    'Confirme e complete os dados da festa no painel (aniversariante, tema, convidados e mais). Entre com seu telefone e senha no link abaixo:',
+    FRONT_URL,
+    '',
+    'Se esqueceu sua senha, use a opcao "Esqueci minha senha" na tela de login.',
+    '',
+    'Ate a festa! 🎈'
+  ]
+    .filter((linha) => linha !== null)
+    .join('\n');
+
+  return enviarMensagemWhatsApp(telefoneCliente, mensagem);
+}
+
+/**
+ * Reenvia o link de definicao de senha a pedido do Adm_espaco
+ * (quando o original expirou ou o cliente nao recebeu).
+ */
+export async function enviarReenvioLinkSenha(dados) {
+  const { nomeCliente, telefoneCliente, token } = dados;
+
+  const linkSenha = `${FRONT_URL}/organizer/choosePassword/${token}`;
+
+  const mensagem = [
+    `Ola, ${nomeCliente}!`,
+    '',
+    'Reenviamos o link para voce definir sua senha no Espaco Criar:',
+    linkSenha,
+    '',
+    'O link e valido por 48 horas.',
+    '',
+    'Apos definir sua senha, entre com seu telefone e complete os dados da sua festa no painel.',
+    '',
+    'Se nao foi voce quem pediu, ignore esta mensagem.'
   ]
     .filter((linha) => linha !== null)
     .join('\n');

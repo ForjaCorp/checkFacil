@@ -42,7 +42,7 @@ Sua festa foi agendada no Espaco Criar!
 Para acompanhar sua festa e gerenciar os convidados, defina sua senha no link abaixo:
 {FRONT_URL}/organizer/choosePassword/{token}
 
-O link e valido por 24 horas.
+O link e valido por 48 horas.
 
 Apos definir sua senha, entre com seu telefone e complete os dados da festa (aniversariante, tema, convidados e mais) no painel.
 
@@ -56,13 +56,37 @@ Dispara quando a festa é criada para um cliente que já tem conta.
 ```
 Ola, {nomeCliente}! 🎉
 
-Uma nova festa foi agendada para voce no Espaco Criar!
+Sua proxima festa ja esta agendada no Espaco Criar!
 
 📅 Data: {dd/mm/aaaa}
 🕐 Horario: {HH:MM} as {HH:MM}      (se existir)
 📍 Local: {local}                    (se existir)
 
-Qualquer duvida, estamos a disposicao. Ate a festa! 🎈
+Confirme e complete os dados da festa no painel (aniversariante, tema, convidados e mais). Entre com seu telefone e senha no link abaixo:
+{FRONT_URL}
+
+Se esqueceu sua senha, use a opcao "Esqueci minha senha" na tela de login.
+
+Ate a festa! 🎈
+```
+
+### 2b. Reenvio do link de senha (`enviarReenvioLinkSenha`)
+
+Dispara quando o `Adm_espaco` clica em **"Reenviar link de senha ao cliente"** na tela de
+detalhes da festa (`POST /festa/:idFesta/reenviar-link-senha`). Gera um token NOVO
+(invalida o anterior), válido por 48h.
+
+```
+Ola, {nomeCliente}!
+
+Reenviamos o link para voce definir sua senha no Espaco Criar:
+{FRONT_URL}/organizer/choosePassword/{token}
+
+O link e valido por 48 horas.
+
+Apos definir sua senha, entre com seu telefone e complete os dados da sua festa no painel.
+
+Se nao foi voce quem pediu, ignore esta mensagem.
 ```
 
 ### 3. Check-in de convidado (`enviarCheckinConvidado`)

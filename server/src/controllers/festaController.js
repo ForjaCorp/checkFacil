@@ -7,6 +7,7 @@ import {
   enviarNovaFestaClienteExistente,
   enviarCheckinConvidado,
   enviarCheckoutConvidado,
+  enviarReenvioLinkSenha,
   enviarMensagemWhatsApp
 } from '../services/whatsappService.js';
 
@@ -52,7 +53,7 @@ export async function criarFesta(req, res) {
 
       const tokenDefinicaoSenha = randomBytes(20).toString('hex');
       const expiracao = new Date();
-      expiracao.setHours(expiracao.getHours() + 24); // Token válido por 24h
+      expiracao.setHours(expiracao.getHours() + 48); // Token válido por 48h
 
       clienteOrganizador.redefineSenhaToken = tokenDefinicaoSenha;
       clienteOrganizador.redefineSenhaExpiracao = expiracao;
@@ -287,6 +288,66 @@ export async function deletarFesta(req, res) {
   } catch (error) {
     console.error('Erro ao deletar festa:', error);
     return res.status(500).json({ error: 'Falha ao deletar a festa.' });
+  }
+}
+
+/**
+ * Reenvia o link de definicao de senha do organizador da festa via WhatsApp.
+ * Uso do Adm_espaco quando o link original expirou (48h) ou o cliente nao recebeu.
+ */
+export async function reenviarLinkSenha(req, res) {
+  const { idFesta } = req.params;
+  const { usuarioTipo } = req;
+
+  try {
+    if (usuarioTipo !== models.Usuario.TIPOS_USUARIO.ADM_ESPACO) {
+      return res
+        .status(403)
+        .json({ error: 'Apenas administradores do espaco podem reenviar o link de senha.' });
+    }
+
+    const festa = await models.Festa.findByPk(idFesta, {
+      include: [{ model: models.Usuario, as: 'organizador' }]
+    });
+    if (!festa || !festa.organizador) {
+      return res.status(404).json({ error: 'Festa ou organizador nao encontrado.' });
+    }
+
+    const organizador = festa.organizador;
+    if (!organizador.telefone) {
+      return res.status(400).json({
+        error: 'O organizador desta festa nao tem telefone cadastrado.'
+      });
+    }
+
+    // Gera um token novo (invalida o anterior) com validade de 48h
+    const token = randomBytes(20).toString('hex');
+    const expiracao = new Date();
+    expiracao.setHours(expiracao.getHours() + 48);
+
+    organizador.redefineSenhaToken = token;
+    organizador.redefineSenhaExpiracao = expiracao;
+    await organizador.save();
+
+    await enviarReenvioLinkSenha({
+      nomeCliente: organizador.nome,
+      telefoneCliente: organizador.telefone,
+      token
+    });
+
+    return res
+      .status(200)
+      .json({ mensagem: `Link de senha reenviado para ${organizador.telefone}.` });
+  } catch (error) {
+    console.error(
+      `[WhatsApp] Falha ao reenviar link de senha [${error.code || 'ERRO_DESCONHECIDO'}]:`,
+      error.message
+    );
+    return res.status(502).json({
+      error:
+        error.message ||
+        'Falha ao enviar o WhatsApp. Verifique a conexao do WhatsApp e tente novamente.'
+    });
   }
 }
 
