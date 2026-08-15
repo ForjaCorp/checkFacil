@@ -126,9 +126,8 @@ export default function CheckinPage() {
 
   // estados disparo
   const [isDisparoDialogOpen, setIsDisparoDialogOpen] = useState(false)
-  const [disparoMensagem, setDisparoMensagem] = useState(
-    'Cantamos os parabéns a pouco e todos estão curtindo muito.',
-  )
+  // inicia vazio: pre-preenchido dava risco de disparar texto exemplo sem editar
+  const [disparoMensagem, setDisparoMensagem] = useState('')
   const [filtroDisparo, setFiltroDisparo] = useState<'Todos' | 'Presente' | 'Aguardando' | 'Saiu'>(
     'Presente',
   )
@@ -667,7 +666,7 @@ export default function CheckinPage() {
             <Button variant="outline" onClick={() => setIsDisparoDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleDispararMensagem} disabled={isSending}>
+            <Button onClick={handleDispararMensagem} disabled={isSending || !disparoMensagem.trim()}>
               {isSending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSending ? 'Enviando...' : 'Enviar'}
             </Button>
