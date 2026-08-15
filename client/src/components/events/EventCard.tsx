@@ -1,4 +1,4 @@
-import { Calendar, FilePenLine, Loader2, PlayCircle, Trash2, Users } from 'lucide-react'
+import { Cake, Calendar, Clock, FilePenLine, Gift, Loader2, PlayCircle, Trash2, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -33,6 +33,17 @@ interface EventCardProps {
   event: AppEvent
   variant: 'staff' | 'organizer'
 }
+
+const PACOTE_LABELS: Record<string, string> = {
+  KIDS: 'Kids',
+  KIDS_MAIS_PARK: 'Kids + Park',
+  PLAY: 'Play',
+  PLAY_MAIS_PARK: 'Play + Park',
+  KIDS_PARK_PLAY: 'Kids + Park + Play',
+}
+
+// Horario vem como "14:00:00" do banco - exibe so HH:MM
+const horaCurta = (hora?: string | null) => (hora ? hora.slice(0, 5) : null)
 
 export function EventCard({ event, variant }: EventCardProps) {
   const queryClient = useQueryClient()
@@ -141,6 +152,44 @@ export function EventCard({ event, variant }: EventCardProps) {
         <div className="flex items-center text-sm text-muted-foreground">
           <Calendar className="mr-2 h-4 w-4 shrink-0" />
           <span>{new Date(event.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</span>
+          {(event.startTime || event.endTime) && (
+            <>
+              <Clock className="ml-3 mr-2 h-4 w-4 shrink-0" />
+              <span>
+                {horaCurta(event.startTime) ?? '--'}
+                {event.endTime ? ` – ${horaCurta(event.endTime)}` : ''}
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Infos extras: idade, pacote e convidados contratados */}
+        <div className="mt-3 grid grid-cols-3 divide-x divide-border rounded-md border bg-muted/40">
+          <div className="flex flex-col items-center gap-0.5 px-1 py-2 text-center">
+            <span className="flex items-center gap-1 text-muted-foreground">
+              <Cake className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-medium">IDADE</span>
+            </span>
+            <span className="text-sm font-semibold">
+              {event.birthdayAge != null ? `${event.birthdayAge} anos` : '—'}
+            </span>
+          </div>
+          <div className="flex flex-col items-center gap-0.5 px-1 py-2 text-center">
+            <span className="flex items-center gap-1 text-muted-foreground">
+              <Gift className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-medium">PACOTE</span>
+            </span>
+            <span className="text-sm font-semibold">
+              {event.packageType ? PACOTE_LABELS[event.packageType] ?? event.packageType : '—'}
+            </span>
+          </div>
+          <div className="flex flex-col items-center gap-0.5 px-1 py-2 text-center">
+            <span className="flex items-center gap-1 text-muted-foreground">
+              <Users className="h-3.5 w-3.5" />
+              <span className="text-[11px] font-medium">CONVIDADOS</span>
+            </span>
+            <span className="text-sm font-semibold">{event.guestsCount ?? '—'}</span>
+          </div>
         </div>
       </CardContent>
 
