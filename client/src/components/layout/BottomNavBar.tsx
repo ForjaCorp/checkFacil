@@ -55,12 +55,6 @@ export function BottomNavBar() {
                 label="Criar"
               />
 
-              <BottomNavLink
-                to="/staff/admins"
-                icon={<ShieldCheck className="h-6 w-6" />}
-                label="Adms"
-              />
-
               {/* Gatilho do WhatsApp - Abre o Modal igual ao Desktop */}
               <Dialog open={isEvoOpen} onOpenChange={setIsEvoOpen}>
                 <DialogTrigger asChild>

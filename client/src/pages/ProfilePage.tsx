@@ -1,4 +1,4 @@
-import { LogOut } from 'lucide-react'
+import { LogOut, ShieldCheck } from 'lucide-react'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/contexts/authContextCore'
 import { usePageHeader } from '@/hooks/usePageHeader'
+import { isAdminEmail } from '@/lib/adminEmails'
 
 /**
  * Profile page component.
@@ -60,7 +61,14 @@ export default function ProfilePage() {
 
         <CardContent className="mt-4">
           <Separator />
-          <div className="pt-6">
+          <div className="pt-6 flex flex-col gap-3">
+            {/* Acesso mobile a gestao de administradores (menu fica na sidebar no desktop) */}
+            {isAdminEmail(user.email) && (
+              <Button variant="outline" className="w-full" onClick={() => navigate('/staff/admins')}>
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                Gerenciar Administradores
+              </Button>
+            )}
             <Button variant="destructive" className="w-full" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               Sair da Conta
