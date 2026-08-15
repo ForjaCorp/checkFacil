@@ -359,7 +359,7 @@ export default function CheckinPage() {
     try {
       await api.post(`/festa/${eventId}/disparar-mensagem`, {
         mensagem: disparoMensagem,
-        filtro: filtroDisparo,
+        statusAlvo: filtroDisparo === 'Todos' ? undefined : filtroDisparo,
       })
       toast.success('Mensagem disparada!')
       setIsDisparoDialogOpen(false)

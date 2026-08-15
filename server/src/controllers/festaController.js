@@ -1142,28 +1142,36 @@ export async function dispararMensagem(req, res) {
     
     const convidados = await models.ConvidadoFesta.findAll({ where: whereCondition });
 
+    // Deduplica por telefone: um responsavel com 3 filhos recebe a mensagem 1x so
+    const telefonesVistos = new Set();
+    const convidadosUnicos = convidados.filter((c) => {
+      if (!c.telefone_responsavel_contato) return false;
+      const chave = String(c.telefone_responsavel_contato).replace(/\D/g, '');
+      if (telefonesVistos.has(chave)) return false;
+      telefonesVistos.add(chave);
+      return true;
+    });
+
     // Dispara direto pela Evolution API (substitui o webhook n8n f87a6169)
     let enviados = 0;
     let falhas = 0;
 
-    for (const convidado of convidados) {
-      if (convidado.telefone_responsavel_contato) {
-        try {
-          await enviarMensagemWhatsApp(convidado.telefone_responsavel_contato, mensagem);
-          enviados++;
-        } catch (whatsappError) {
-          falhas++;
-          console.error(
-            `[WhatsApp] Falha no disparo em massa p/ ${convidado.telefone_responsavel_contato} [${whatsappError.code || 'ERRO_DESCONHECIDO'}]:`,
-            whatsappError.message
-          );
-        }
+    for (const convidado of convidadosUnicos) {
+      try {
+        await enviarMensagemWhatsApp(convidado.telefone_responsavel_contato, mensagem);
+        enviados++;
+      } catch (whatsappError) {
+        falhas++;
+        console.error(
+          `[WhatsApp] Falha no disparo em massa p/ ${convidado.telefone_responsavel_contato} [${whatsappError.code || 'ERRO_DESCONHECIDO'}]:`,
+          whatsappError.message
+        );
       }
     }
 
     return res.status(200).json({
       mensagem: 'Disparo concluído!',
-      quantidade: convidados.length,
+      quantidade: convidadosUnicos.length,
       enviados,
       falhas
     });
