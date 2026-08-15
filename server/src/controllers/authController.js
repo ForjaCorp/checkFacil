@@ -2,7 +2,38 @@ import models from '../models/index.js';
 import jwt from 'jsonwebtoken';
 import { Op } from 'sequelize';
 import crypto from 'crypto'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import multer from 'multer'
 import { enviarMensagemWhatsApp, enviarConviteAdmEspaco } from '../services/whatsappService.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Upload de avatar: 2MB, apenas imagens, nome unico no disco
+const UPLOAD_DIR = path.join(__dirname, '../../uploads/avatars')
+fs.mkdirSync(UPLOAD_DIR, { recursive: true })
+
+const uploadAvatar = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase()
+      cb(null, `avatar-${Date.now()}-${crypto.randomBytes(6).toString('hex')}${ext}`)
+    }
+  }),
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const permitidas = ['.jpg', '.jpeg', '.png', '.webp']
+    const ext = path.extname(file.originalname).toLowerCase()
+    if (!permitidas.includes(ext)) {
+      return cb(new Error('Formato inválido. Use JPG, PNG ou WEBP.'))
+    }
+    cb(null, true)
+  }
+})
+
+export { uploadAvatar }
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -202,6 +233,74 @@ export async function convidarAdmEspaco(req, res) {
   }
 }
 
+/**
+ * Reenvia o link de definicao de senha de um adm da equipe via WhatsApp
+ * (quando expirou ou ele nao recebeu).
+ */
+export async function reenviarSenhaAdm(req, res) {
+  const { id } = req.params;
+
+  try {
+    const adm = await models.Usuario.findByPk(id);
+    if (!adm || adm.tipoUsuario !== models.Usuario.TIPOS_USUARIO.ADM_ESPACO) {
+      return res.status(404).json({ error: 'Administrador não encontrado.' });
+    }
+    if (!adm.telefone) {
+      return res.status(400).json({ error: 'Este administrador não tem telefone cadastrado.' });
+    }
+
+    const token = crypto.randomBytes(20).toString('hex');
+    const expiracao = new Date();
+    expiracao.setHours(expiracao.getHours() + 48);
+
+    adm.redefineSenhaToken = token;
+    adm.redefineSenhaExpiracao = expiracao;
+    await adm.save();
+
+    await enviarConviteAdmEspaco({ nomeAdm: adm.nome, telefoneAdm: adm.telefone, token });
+
+    return res.status(200).json({ mensagem: `Link de senha reenviado para ${adm.telefone}.` });
+  } catch (error) {
+    console.error('Erro ao reenviar senha de administrador:', error);
+    return res.status(502).json({
+      error: error.message || 'Falha ao enviar o WhatsApp. Verifique a conexão e tente novamente.'
+    });
+  }
+}
+
+/**
+ * Exclui um adm da equipe. Bloqueia excluir a si mesmo (evita lockout)
+ * e os emails admin do .env (titulares).
+ */
+export async function excluirAdm(req, res) {
+  const { id } = req.params;
+
+  try {
+    if (Number(id) === req.usuarioId) {
+      return res.status(400).json({ error: 'Você não pode excluir a si mesmo.' });
+    }
+
+    const adm = await models.Usuario.findByPk(id);
+    if (!adm || adm.tipoUsuario !== models.Usuario.TIPOS_USUARIO.ADM_ESPACO) {
+      return res.status(404).json({ error: 'Administrador não encontrado.' });
+    }
+
+    const emailsTitulares = String(process.env.ADMIN_EMAILS || process.env.VITE_ADMIN_EMAILS || '')
+      .split(',')
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean);
+    if (emailsTitulares.includes(adm.email.toLowerCase())) {
+      return res.status(400).json({ error: 'Uma conta titular não pode ser excluída.' });
+    }
+
+    await adm.destroy();
+    return res.status(200).json({ mensagem: 'Administrador excluído.' });
+  } catch (error) {
+    console.error('Erro ao excluir administrador:', error);
+    return res.status(500).json({ error: 'Erro ao excluir administrador.' });
+  }
+}
+
 export async function registrarAdmFesta(req, res) {
   const { nome, email, senha, telefone } = req.body;
 
@@ -349,5 +448,47 @@ export async function solicitarRedefinicaoSenha(req, res) {
 
     console.error('Erro ao solicitar redefinição de senha:', error)
     return res.status(500).json({ error: 'Erro interno ao solicitar redefinição. Tente novamente.' })
+  }
+}
+
+export async function atualizarPerfil(req, res) {
+  try {
+    const usuario = await models.Usuario.findByPk(req.usuarioId);
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+
+    const nome = String(req.body.nome || '').trim();
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const telefone = String(req.body.telefone || '').trim();
+    if (!nome || !email) {
+      return res.status(400).json({ error: 'Nome e e-mail são obrigatórios.' });
+    }
+
+    const emailEmUso = await models.Usuario.findOne({
+      where: { email, id: { [Op.ne]: usuario.id } }
+    });
+    if (emailEmUso) {
+      return res.status(400).json({ error: 'Este e-mail já está cadastrado.' });
+    }
+
+    usuario.nome = nome;
+    usuario.email = email;
+    usuario.telefone = telefone || null;
+    if (req.file) {
+      if (usuario.fotoUrl) {
+        const antiga = path.join(__dirname, '../../', usuario.fotoUrl.replace(/^\//, ''));
+        if (antiga.startsWith(UPLOAD_DIR) && fs.existsSync(antiga)) fs.unlinkSync(antiga);
+      }
+      usuario.fotoUrl = `/uploads/avatars/${req.file.filename}`;
+    }
+    await usuario.save();
+
+    const { senha: _, redefineSenhaToken: __, redefineSenhaExpiracao: ___, ...perfil } = usuario.toJSON();
+    return res.status(200).json({ usuario: perfil, mensagem: 'Perfil atualizado com sucesso.' });
+  } catch (error) {
+    if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    console.error('Erro ao atualizar perfil:', error);
+    return res.status(500).json({ error: error.message || 'Erro ao atualizar perfil.' });
   }
 }

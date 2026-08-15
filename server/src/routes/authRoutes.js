@@ -41,6 +41,20 @@ router.post(
   authController.convidarAdmEspaco
 );
 
+router.post(
+  '/adms/:id/redefinir-senha',
+  verificarTokenJWT,
+  permitirApenas(models.Usuario.TIPOS_USUARIO.ADM_ESPACO),
+  authController.reenviarSenhaAdm
+);
+
+router.delete(
+  '/adms/:id',
+  verificarTokenJWT,
+  permitirApenas(models.Usuario.TIPOS_USUARIO.ADM_ESPACO),
+  authController.excluirAdm
+);
+
 router.post('/register/admFesta', validarRegistro, authController.registrarAdmFesta);
 
 router.post('/login', validarLogin, authController.login);
@@ -49,6 +63,13 @@ router.post('/login', validarLogin, authController.login);
 router.post('/forgot-password', authController.solicitarRedefinicaoSenha);
 
 router.get('/me', verificarTokenJWT, authController.validarSessao);
+
+router.put(
+  '/me',
+  verificarTokenJWT,
+  authController.uploadAvatar.single('foto'),
+  authController.atualizarPerfil
+);
 
 router.post('/definir-senha', authController.definirSenha);
 

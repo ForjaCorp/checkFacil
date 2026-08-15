@@ -8,12 +8,26 @@ import {
   startOfWeek,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { CalendarDays, ChevronLeft, ChevronRight, Loader2, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import api from '@/services/api'
 import type { AppEvent } from '@/types'
 
 interface EventCalendarViewProps {
@@ -55,6 +69,19 @@ const horaCurta = (hora?: string | null) => (hora ? hora.slice(0, 5) : null)
 export function EventCalendarView({ events, variant }: EventCalendarViewProps) {
   const [mesRef, setMesRef] = useState(() => startOfMonth(new Date()))
   const [diaSelecionado, setDiaSelecionado] = useState(() => format(new Date(), 'yyyy-MM-dd'))
+  const queryClient = useQueryClient()
+
+  const { mutate: excluirFesta, isPending: isDeleting } = useMutation({
+    mutationFn: (id: number) => api.delete(`/festa/${id}`),
+    onSuccess: () => {
+      toast.success('Festa excluída com sucesso.')
+      queryClient.invalidateQueries({ queryKey: ['events-calendar'] })
+      queryClient.invalidateQueries({ queryKey: ['events'] })
+    },
+    onError: () => {
+      toast.error('Falha ao excluir a festa.')
+    },
+  })
 
   // Agrupa eventos por dia ("yyyy-MM-dd")
   const eventosPorDia = useMemo(() => {
@@ -210,22 +237,58 @@ export function EventCalendarView({ events, variant }: EventCalendarViewProps) {
             <ul className="space-y-2">
               {detalhesDia.map((festa) => (
                 <li key={festa.id}>
-                  <Link
-                    to={linkDetalhes(festa.id)}
-                    className="flex items-center justify-between gap-2 rounded-md border bg-background px-3 py-2 transition-colors hover:border-primary/50"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{festa.name}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {horaCurta(festa.startTime) ?? 'Horário a definir'}
-                        {festa.endTime ? ` – ${horaCurta(festa.endTime)}` : ''}
-                        {festa.organizerName ? ` · ${festa.organizerName}` : ''}
-                      </p>
-                    </div>
-                    <span className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium ${statusInfo(festa.status).chip}`}>
-                      {statusInfo(festa.status).text}
-                    </span>
-                  </Link>
+                  <div className="flex items-center gap-1 rounded-md border bg-background px-3 py-2 transition-colors hover:border-primary/50">
+                    <Link to={linkDetalhes(festa.id)} className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{festa.name}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {horaCurta(festa.startTime) ?? 'Horário a definir'}
+                          {festa.endTime ? ` – ${horaCurta(festa.endTime)}` : ''}
+                          {festa.organizerName ? ` · ${festa.organizerName}` : ''}
+                        </p>
+                      </div>
+                      <span className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium ${statusInfo(festa.status).chip}`}>
+                        {statusInfo(festa.status).text}
+                      </span>
+                    </Link>
+                    {variant === 'staff' && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            disabled={isDeleting}
+                            title="Excluir festa"
+                          >
+                            {isDeleting ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir festa</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja excluir a festa &quot;{festa.name}&quot;? Esta ação não pode ser
+                              desfeita e todos os convidados cadastrados nela também serão removidos.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => excluirFesta(festa.id)}
+                              className="bg-destructive text-white hover:bg-destructive/90"
+                            >
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>

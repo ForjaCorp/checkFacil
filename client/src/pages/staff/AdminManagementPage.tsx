@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, ShieldCheck, UserPlus } from 'lucide-react'
+import { KeyRound, Loader2, ShieldCheck, Trash2, UserPlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -8,6 +8,11 @@ import type { AxiosError } from 'axios'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import {
   Card,
   CardContent,
@@ -51,11 +56,6 @@ export default function AdminManagementPage() {
   // Visivel apenas para os emails de admin do .env (mesmo padrao do menu "Criar Festa")
   const isSuperAdmin = isAdminEmail(user?.email)
 
-  // Guarda: apenas os emails do .env acessam; demais Adm_espaco sao redirecionados
-  if (!isSuperAdmin) {
-    return <Navigate to="/staff/dashboard" replace />
-  }
-
   useEffect(() => {
     setTitle('Administradores')
     return () => setTitle(null)
@@ -94,6 +94,23 @@ export default function AdminManagementPage() {
     },
   })
 
+  const { mutate: redefinirSenha, isPending: isResetting } = useMutation({
+    mutationFn: (id: number) => api.post(`/auth/adms/${id}/redefinir-senha`),
+    onSuccess: () => toast.success('Link de redefinição enviado pelo WhatsApp.'),
+    onError: (error: AxiosError<{ error?: string }>) =>
+      toast.error('Não foi possível enviar o link.', { description: error.response?.data?.error }),
+  })
+
+  const { mutate: excluirAdm, isPending: isDeleting } = useMutation({
+    mutationFn: (id: number) => api.delete(`/auth/adms/${id}`),
+    onSuccess: () => {
+      toast.success('Administrador excluído.')
+      queryClient.invalidateQueries({ queryKey: ['adms-espaco'] })
+    },
+    onError: (error: AxiosError<{ error?: string }>) =>
+      toast.error('Não foi possível excluir.', { description: error.response?.data?.error }),
+  })
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!nome.trim() || !email.trim() || !telefone.trim()) {
@@ -101,6 +118,11 @@ export default function AdminManagementPage() {
       return
     }
     convidarAdm({ nome: nome.trim(), email: email.trim(), telefone: telefone.trim() })
+  }
+
+  // Guarda depois dos hooks para manter a ordem de execução do React.
+  if (!isSuperAdmin) {
+    return <Navigate to="/staff/dashboard" replace />
   }
 
   return (
@@ -146,7 +168,38 @@ export default function AdminManagementPage() {
                   {isAdminEmail(adm.email) ? (
                     <Badge>Titular</Badge>
                   ) : (
-                    <Badge variant="outline">Admin</Badge>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Badge variant="outline" className="hidden sm:inline-flex">Admin</Badge>
+                      <Button
+                        variant="ghost" size="icon" title="Enviar redefinição de senha"
+                        disabled={isResetting || isDeleting}
+                        onClick={() => redefinirSenha(adm.id)}
+                      >
+                        <KeyRound className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" title="Excluir administrador"
+                            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                            disabled={isResetting || isDeleting}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir administrador?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {adm.nome} perderá o acesso ao painel. Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction className="bg-destructive text-white hover:bg-destructive/90"
+                              onClick={() => excluirAdm(adm.id)}>Excluir</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   )}
                 </li>
               ))}

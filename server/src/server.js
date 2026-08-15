@@ -44,6 +44,14 @@ async function LigarServidor() {
     console.log('[DB] Autenticado. Sincronizando tabelas...');
     // Cria as tabelas no banco se elas ainda nao existirem (nao dropa dados)
     await sequelize.sync();
+    const colunasUsuario = await sequelize.getQueryInterface().describeTable('usuarios');
+    if (!colunasUsuario.fotoUrl) {
+      await sequelize.getQueryInterface().addColumn('usuarios', 'fotoUrl', {
+        type: (await import('sequelize')).DataTypes.STRING,
+        allowNull: true
+      });
+      console.log('[DB] Coluna usuarios.fotoUrl criada.');
+    }
     console.log('[DB] Tabelas sincronizadas.');
     app.listen(port, () => {
       console.info(`🚀 Server running on port ${port}`);

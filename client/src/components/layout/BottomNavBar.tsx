@@ -1,4 +1,4 @@
-import { LayoutGrid, PlusCircle, User, Music2, ShieldCheck, Smartphone } from 'lucide-react'
+import { LayoutGrid, PlusCircle, User, Music2, Smartphone } from 'lucide-react'
 import { useState } from 'react'
 
 import { BottomNavLink } from '@/components/layout/BottomNavLink'

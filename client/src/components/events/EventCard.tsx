@@ -123,7 +123,7 @@ export function EventCard({ event, variant }: EventCardProps) {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Excluir festa</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Tem certeza que deseja excluir a festa "{event.name}"? Esta ação não pode ser
+                    Tem certeza que deseja excluir a festa “{event.name}”? Esta ação não pode ser
                     desfeita e todos os convidados cadastrados nela também serão removidos.
                   </AlertDialogDescription>
                 </AlertDialogHeader>

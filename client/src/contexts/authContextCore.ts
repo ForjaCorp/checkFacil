@@ -8,6 +8,8 @@ export interface AuthenticatedUser {
   id: string
   email: string
   name?: string
+  phone?: string | null
+  photoUrl?: string | null
   userType: UserRole
 }
 
@@ -21,6 +23,7 @@ export interface AuthState {
 export interface AuthContextType extends AuthState {
   login: (userData: AuthenticatedUser, token?: string) => void
   logout: () => void
+  updateUser: (userData: Partial<AuthenticatedUser>) => void
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
