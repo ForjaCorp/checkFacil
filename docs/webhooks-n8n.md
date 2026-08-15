@@ -10,7 +10,7 @@ O objetivo é mapear cada webhook para podermos trazer a lógica do n8n para den
 | # | Função | Arquivo | Linha | Webhook URL | Ação | Status |
 |---|---|---|---|---|---|---|
 | 1 | `criarFesta` (cliente novo) | festaController.js | ~56 | ~~`webhook.4growthbr.space/.../2cd048a2`~~ | Boas-vindas + link de senha | ✅ MIGRADO — `enviarBoasVindasClienteNovo()` |
-| 2 | `criarFesta` (cliente existente) | festaController.js | ~82 | `webhook.4growthbr.space/.../642999e9` | Notificação de nova festa | ⬜ Pendente |
+| 2 | `criarFesta` (cliente existente) | festaController.js | ~78 | ~~`webhook.4growthbr.space/.../642999e9`~~ | Notificação de nova festa | ✅ MIGRADO — `enviarNovaFestaClienteExistente()` |
 | 3 | `checkinConvidado` | festaController.js | ~772 | `webhook.4growthbr.space/.../ab98ae95` | Notificação de check-in | ⬜ Pendente |
 | 4 | `checkoutConvidado` | festaController.js | ~831 | `webhook.4growthbr.space/.../730bdcaf` | Notificação de check-out | ⬜ Pendente |
 | 5 | `dispararMensagem` | festaController.js | ~1090 | `webhook.4growthbr.space/.../f87a6169` | Disparo de WhatsApp em massa | ⬜ Pendente |

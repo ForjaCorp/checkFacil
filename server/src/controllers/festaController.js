@@ -3,7 +3,7 @@ import { Op } from 'sequelize';
 import { randomBytes } from 'crypto';
 import axios from 'axios';
 import excel from 'exceljs';
-import { enviarBoasVindasClienteNovo } from '../services/whatsappService.js';
+import { enviarBoasVindasClienteNovo, enviarNovaFestaClienteExistente } from '../services/whatsappService.js';
 
 
 function calcularIdade(dataNascimento) {
@@ -77,29 +77,26 @@ export async function criarFesta(req, res) {
         }
       }
     } else {
-      const webhookUrl =
-        'https://webhook.4growthbr.space/webhook/642999e9-678f-4a15-ac9d-cbcb01f34bba';
+      // Cliente JA cadastrado: notifica a nova festa direto pela Evolution API
+      // (substitui o webhook n8n 642999e9)
       try {
-        const payloadWebhook = {
+        await enviarNovaFestaClienteExistente({
           nomeCliente: clienteOrganizador.nome,
-          emailCliente: clienteOrganizador.email,
           telefoneCliente: clienteOrganizador.telefone,
           dataFesta: dadosFesta.data_festa,
           horaInicio: dadosFesta.horario_inicio,
           horaFim: dadosFesta.horario_fim,
-          localFesta: dadosFesta.local_festa,
-          descricao: dadosFesta.descricao,
-          pacote_escolhido: dadosFesta.pacote_escolhido,
-          numeroConvidados: dadosFesta.numero_convidados_contratado,
-        };
-        axios.post(webhookUrl, payloadWebhook).catch((webhookError) => {
-          console.error(
-            'Erro secundário ao enviar o webhook para n8n:',
-            webhookError.response ? webhookError.response.data : webhookError.message
-          );
+          localFesta: dadosFesta.local_festa
         });
-      } catch (webhookError) {
-        console.error('Erro ao tentar disparar o webhook para n8n:', webhookError.message);
+        console.log(`[WhatsApp] Notificacao de nova festa enviada para ${clienteOrganizador.telefone}`);
+      } catch (whatsappError) {
+        console.error(
+          `[WhatsApp] Falha ao notificar nova festa [${whatsappError.code || 'ERRO_DESCONHECIDO'}]:`,
+          whatsappError.message
+        );
+        if (whatsappError.detalhe) {
+          console.error('[WhatsApp] Detalhe da Evolution API:', whatsappError.detalhe);
+        }
       }
     }
 

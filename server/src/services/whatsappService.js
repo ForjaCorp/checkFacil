@@ -185,6 +185,41 @@ export async function enviarBoasVindasClienteNovo(dados) {
 }
 
 /**
+ * Notifica um cliente JA cadastrado sobre uma nova festa criada para ele.
+ * Substitui o webhook n8n 642999e9.
+ */
+export async function enviarNovaFestaClienteExistente(dados) {
+  const {
+    nomeCliente,
+    telefoneCliente,
+    dataFesta,
+    horaInicio,
+    horaFim,
+    localFesta
+  } = dados;
+
+  const dataFormatada = dataFesta
+    ? new Date(`${dataFesta}T00:00:00`).toLocaleDateString('pt-BR')
+    : 'a definir';
+
+  const mensagem = [
+    `Ola, ${nomeCliente}! 🎉`,
+    '',
+    'Uma nova festa foi agendada para voce no Espaco Criar!',
+    '',
+    `📅 Data: ${dataFormatada}`,
+    horaInicio ? `🕐 Horario: ${horaInicio}${horaFim ? ` as ${horaFim}` : ''}` : null,
+    localFesta ? `📍 Local: ${localFesta}` : null,
+    '',
+    'Qualquer duvida, estamos a disposicao. Ate a festa! 🎈'
+  ]
+    .filter((linha) => linha !== null)
+    .join('\n');
+
+  return enviarMensagemWhatsApp(telefoneCliente, mensagem);
+}
+
+/**
  * Reset completo da instancia WhatsApp: desloga, deleta e recria com o
  * MESMO nome e MESMO token (apikey continua valida, nada muda no .env).
  * Devolve o QR Code pro usuario escanear.
