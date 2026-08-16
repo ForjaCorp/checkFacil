@@ -86,68 +86,83 @@ export default function ProfilePage() {
     .substring(0, 2)
 
   return (
-    <div className="flex flex-col gap-6 h-full">
+    <div className="flex h-full flex-col gap-4">
       <PageHeader title="Meu Perfil" description="Suas informações de conta." />
 
-      <Card>
-        <CardHeader className="flex flex-col items-center text-center">
-          <Avatar className="h-24 w-24 mb-4">
-            <AvatarImage src={preview ?? user.photoUrl ?? undefined} alt={`Avatar de ${user.name}`} />
-            <AvatarFallback className="text-3xl">{userInitials}</AvatarFallback>
-          </Avatar>
-          <CardTitle className="text-2xl">{user.name}</CardTitle>
-          <CardDescription>{user.email}</CardDescription>
-          <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
-            onChange={(event) => {
-              const arquivo = event.target.files?.[0]
-              if (!arquivo) return
-              if (arquivo.size > 2 * 1024 * 1024) return toast.error('A foto deve ter no máximo 2 MB.')
-              setFoto(arquivo)
-              setPreview(URL.createObjectURL(arquivo))
-            }} />
-          <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-            <Camera className="mr-2 h-4 w-4" /> Alterar foto
-          </Button>
-        </CardHeader>
-
-        <CardContent className="mt-4">
-          <Separator />
-          <form className="space-y-4 py-6" onSubmit={(event) => { event.preventDefault(); salvar() }}>
-            <div className="space-y-2"><Label htmlFor="perfil-nome">Nome</Label>
-              <Input id="perfil-nome" value={nome} onChange={(e) => setNome(e.target.value)} disabled={isPending} /></div>
-            <div className="space-y-2"><Label htmlFor="perfil-email">E-mail</Label>
-              <Input id="perfil-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isPending} /></div>
-            <div className="space-y-2"><Label htmlFor="perfil-telefone">Telefone</Label>
-              <PhoneInput
-                id="perfil-telefone"
-                placeholder="+55 (XX) 9XXXX-XXXX"
-                value={telefone}
-                onChange={(e) => setTelefone(e.target.value)}
-                disabled={isPending}
-              />
+      <div className="mx-auto w-full max-w-md lg:max-w-lg">
+        <Card>
+          <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-4">
+            <div className="relative shrink-0">
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={preview ?? user.photoUrl ?? undefined} alt={`Avatar de ${user.name}`} />
+                <AvatarFallback className="text-xl">{userInitials}</AvatarFallback>
+              </Avatar>
+              <button
+                type="button"
+                title="Alterar foto"
+                aria-label="Alterar foto"
+                className="absolute -bottom-1 -right-1 rounded-full bg-primary p-1.5 text-primary-foreground shadow-sm transition-transform hover:scale-110"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Camera className="h-3.5 w-3.5" />
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                onChange={(event) => {
+                  const arquivo = event.target.files?.[0]
+                  if (!arquivo) return
+                  if (arquivo.size > 2 * 1024 * 1024) return toast.error('A foto deve ter no máximo 2 MB.')
+                  setFoto(arquivo)
+                  setPreview(URL.createObjectURL(arquivo))
+                }} />
             </div>
-            <Button type="submit" className="w-full" disabled={isPending || !nome.trim() || !email.trim()}>
-              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-              Salvar alterações
-            </Button>
-          </form>
-          <Separator />
-          <div className="pt-6 flex flex-col gap-3">
-            <PushNotificationsCard />
-            {/* Acesso mobile a gestao de administradores (menu fica na sidebar no desktop) */}
-            {isAdminEmail(user.email) && (
-              <Button variant="outline" className="w-full" onClick={() => navigate('/staff/admins')}>
-                <ShieldCheck className="mr-2 h-4 w-4" />
-                Gerenciar Administradores
+            <div className="min-w-0 text-left">
+              <CardTitle className="truncate text-lg">{user.name}</CardTitle>
+              <CardDescription className="truncate">{user.email}</CardDescription>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); salvar() }}>
+              <div className="space-y-2"><Label htmlFor="perfil-nome">Nome</Label>
+                <Input id="perfil-nome" value={nome} onChange={(e) => setNome(e.target.value)} disabled={isPending} /></div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="space-y-2"><Label htmlFor="perfil-email">E-mail</Label>
+                  <Input id="perfil-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isPending} /></div>
+                <div className="space-y-2"><Label htmlFor="perfil-telefone">Telefone</Label>
+                  <PhoneInput
+                    id="perfil-telefone"
+                    placeholder="+55 (XX) 9XXXX-XXXX"
+                    value={telefone}
+                    onChange={(e) => setTelefone(e.target.value)}
+                    disabled={isPending}
+                  />
+                </div>
+              </div>
+              <Button type="submit" className="w-full" disabled={isPending || !nome.trim() || !email.trim()}>
+                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                Salvar alterações
               </Button>
-            )}
-            <Button variant="destructive" className="w-full" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair da Conta
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            </form>
+
+            <Separator />
+
+            <div className="flex flex-col gap-3">
+              <PushNotificationsCard />
+              {/* Acesso mobile a gestao de administradores (menu fica na sidebar no desktop) */}
+              {isAdminEmail(user.email) && (
+                <Button variant="outline" className="w-full" onClick={() => navigate('/staff/admins')}>
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  Gerenciar Administradores
+                </Button>
+              )}
+              <Button variant="destructive" className="w-full" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Sair da Conta
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { EventCalendarView } from '@/components/events/EventCalendarView'
 import { EventSection } from '@/components/events/EventSection'
 import { EventosEspacoBanner } from '@/components/events/EventosEspacoBanner'
+import { PushAtivacaoBanner } from '@/components/layout/PushAtivacaoBanner'
 import { DashboardFilters } from '@/components/layout/DashboardFilters'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { WhatsAppStatusIndicator } from '@/components/layout/WhatsAppStatusIndicator'
@@ -188,7 +189,12 @@ export default function DashboardPage() {
       )}
 
       {/* Banner de eventos do espaco (colonias de ferias, datas especiais) — visao do cliente */}
-      {user.userType === 'Adm_festa' && <EventosEspacoBanner />}
+      {user.userType === 'Adm_festa' && (
+        <>
+          <PushAtivacaoBanner />
+          <EventosEspacoBanner />
+        </>
+      )}
 
       {isError && (
         <div className="rounded-md border border-destructive bg-destructive/10 p-4 text-center text-sm text-destructive">

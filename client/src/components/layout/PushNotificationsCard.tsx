@@ -4,16 +4,23 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAuth } from '@/contexts/authContextCore'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
+import { isAdminEmail } from '@/lib/adminEmails'
 
 /**
  * Card para ativar/desativar notificacoes push no dispositivo atual.
- * Inclui teste e o aviso de instalacao no iPhone.
+ * O botao de teste aparece apenas para titulares (validacao tecnica),
+ * clientes comuns veem apenas o controle de ativar/desativar.
  */
 export function PushNotificationsCard() {
+  const { user } = useAuth()
   const { suportado, ativado, carregando, ativando, iosSemInstalar, ativar, desativar, enviarTeste } =
     usePushNotifications()
   const [testando, setTestando] = useState(false)
+
+  // Botao de teste e diagnostico: restrito aos titulares
+  const podeTestar = isAdminEmail(user?.email)
 
   if (carregando) return null
 
@@ -63,7 +70,7 @@ export function PushNotificationsCard() {
           {ativando && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {ativado ? 'Desativar neste dispositivo' : 'Ativar notificações'}
         </Button>
-        {ativado && (
+        {ativado && podeTestar && (
           <Button variant="ghost" size="sm" disabled={testando} onClick={handleTeste}>
             {testando ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
             Enviar teste
