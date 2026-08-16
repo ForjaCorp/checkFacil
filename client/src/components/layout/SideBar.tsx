@@ -1,4 +1,4 @@
-import { LayoutGrid, PlusCircle, LogOut, Music2, ShieldCheck, Smartphone } from 'lucide-react'
+import { CalendarDays, LayoutGrid, PlusCircle, LogOut, Music2, ShieldCheck, Smartphone } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -80,6 +80,13 @@ export function SideBar() {
                     icon={<ShieldCheck className="h-5 w-5" />}
                     label="Administradores"
                     tooltip="Gerenciar Administradores"
+                  />
+
+                  <SideBarLink
+                    to="/staff/eventos-espaco"
+                    icon={<CalendarDays className="h-5 w-5" />}
+                    label="Eventos do Espaço"
+                    tooltip="Gerenciar Eventos do Espaço"
                   />
 
                   {/* Gerenciamento de Conexão WhatsApp via Modal acessível pela Sidebar */}

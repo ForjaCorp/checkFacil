@@ -18,6 +18,12 @@ class ConvidadoFesta extends Model {
       as: 'festa'
     });
 
+    // Ponte opcional com a identidade do convidado (quando ele cria conta)
+    this.belongsTo(models.Usuario, {
+      foreignKey: 'id_usuario',
+      as: 'usuario'
+    });
+
      // Define a relação de um convidado com seus acompanhantes (crianças)
     this.hasMany(models.ConvidadoFesta, {
       foreignKey: 'acompanhado_por_id', // O campo que liga a criança ao pai
@@ -45,6 +51,11 @@ ConvidadoFesta.init(
     id_festa: {
       type: DataTypes.INTEGER,
       allowNull: false
+    },
+    // FK opcional: convidado que criou conta no app (Usuario tipo CONVIDADO)
+    id_usuario: {
+      type: DataTypes.INTEGER,
+      allowNull: true
     },
     nome_convidado: {
       type: DataTypes.STRING,

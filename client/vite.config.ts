@@ -11,6 +11,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
+      // injectManifest: usa o SW custom (src/sw.js) para suportar push + notificationclick
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       registerType: 'autoUpdate',
       manifest: {
         name: 'Check Fácil',

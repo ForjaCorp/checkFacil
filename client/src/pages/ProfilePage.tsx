@@ -6,6 +6,7 @@ import axios from 'axios'
 import { toast } from 'sonner'
 
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PushNotificationsCard } from '@/components/layout/PushNotificationsCard'
 import { PhoneInput } from '@/components/forms/PhoneInput'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -132,6 +133,7 @@ export default function ProfilePage() {
           </form>
           <Separator />
           <div className="pt-6 flex flex-col gap-3">
+            <PushNotificationsCard />
             {/* Acesso mobile a gestao de administradores (menu fica na sidebar no desktop) */}
             {isAdminEmail(user.email) && (
               <Button variant="outline" className="w-full" onClick={() => navigate('/staff/admins')}>
