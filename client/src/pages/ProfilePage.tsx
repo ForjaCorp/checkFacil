@@ -99,11 +99,11 @@ export default function ProfilePage() {
       <div className="mx-auto w-full max-w-2xl">
         {/* Cabecalho com capa + identidade */}
         <Card className="overflow-hidden">
-          <div className="relative h-20 w-full bg-gradient-to-r from-primary/80 via-primary/60 to-primary/40 sm:h-24">
+          <div className="relative h-24 w-full bg-gradient-to-r from-primary/80 via-primary/60 to-primary/40 sm:h-28">
             <img
               src="/espacocriar-logo.png"
               alt="Logo do espaço"
-              className="absolute inset-0 m-auto h-12 object-contain opacity-90 sm:h-14"
+              className="absolute inset-0 m-auto h-20 object-contain sm:h-24"
             />
           </div>
           <CardContent className="relative px-4 pb-4 sm:px-6">
