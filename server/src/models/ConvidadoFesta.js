@@ -24,6 +24,16 @@ class ConvidadoFesta extends Model {
       as: 'usuario'
     });
 
+    this.belongsTo(models.Dependente, {
+      foreignKey: 'id_dependente',
+      as: 'dependentePerfil'
+    });
+
+    this.belongsTo(models.ResponsavelFamiliar, {
+      foreignKey: 'id_responsavel_familiar',
+      as: 'responsavelFamiliar'
+    });
+
      // Define a relação de um convidado com seus acompanhantes (crianças)
     this.hasMany(models.ConvidadoFesta, {
       foreignKey: 'acompanhado_por_id', // O campo que liga a criança ao pai
@@ -54,6 +64,14 @@ ConvidadoFesta.init(
     },
     // FK opcional: convidado que criou conta no app (Usuario tipo CONVIDADO)
     id_usuario: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    id_dependente: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    id_responsavel_familiar: {
       type: DataTypes.INTEGER,
       allowNull: true
     },

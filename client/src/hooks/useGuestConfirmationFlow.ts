@@ -6,15 +6,16 @@ import { toast } from 'sonner'
 import { unformatPhoneNumber } from '@/lib/phoneUtils'
 import { type AddChildrenStepValues } from '@/pages/guest/steps/AddChildrenStep'
 import { type CompanionStepValues } from '@/pages/guest/steps/CompanionStep'
-import { type ResponsibleStepValues } from '@/pages/guest/steps/ConfirmResponsibleStep'
+import { type FamilySession, type ResponsibleStepValues, type SavedDependent } from '@/pages/guest/steps/ConfirmResponsibleStep'
 import api from '@/services/api'
 
 
-type Step = 'RESPONSIBLE' | 'CHILDREN' | 'COMPANION' | 'FINAL_CONFIRMATION' | 'SUCCESS' | 'ERROR'
+type Step = 'RESPONSIBLE' | 'FAMILY_SELECTION' | 'CHILDREN' | 'COMPANION' | 'FINAL_CONFIRMATION' | 'SUCCESS' | 'ERROR'
 
 interface GuestFlowState {
   responsible: ResponsibleStepValues | null
   children: AddChildrenStepValues['children'] | null
+  family: FamilySession | null
 }
 
 const calculateAgeOnEventDate = (dob: Date, eventDate: string) => {
@@ -36,7 +37,7 @@ export function useGuestConfirmationFlow() {
 
   const getInitialStep = (state: GuestFlowState | null): Step => {
     if (!state?.responsible) return 'RESPONSIBLE'
-    if (!state.children) return 'CHILDREN'
+    if (!state.children) return state.family?.dependents.length ? 'FAMILY_SELECTION' : 'CHILDREN'
     const needsCompanion = state.children.some(
       (child) => child.isAtypical || child.dob === undefined,
     )
@@ -46,10 +47,21 @@ export function useGuestConfirmationFlow() {
   const [flowState, setFlowState] = useState<GuestFlowState>(() => {
     try {
       const storedState = sessionStorage.getItem(GUEST_FLOW_SESSION_KEY)
-      return storedState ? JSON.parse(storedState) : { responsible: null, children: null }
+      if (!storedState) return { responsible: null, children: null, family: null }
+      const parsed = JSON.parse(storedState) as Omit<GuestFlowState, 'children'> & {
+        children: Array<Omit<AddChildrenStepValues['children'][number], 'dob'> & { dob?: string }> | null
+      }
+      return {
+        ...parsed,
+        family: parsed.family || null,
+        children: parsed.children?.map((child) => ({
+          ...child,
+          dob: child.dob ? new Date(child.dob) : undefined,
+        })) || null,
+      }
     } catch (error) {
       console.error('Falha ao ler o estado da sessão:', error)
-      return { responsible: null, children: null }
+      return { responsible: null, children: null, family: null }
     }
   })
 
@@ -88,7 +100,7 @@ export function useGuestConfirmationFlow() {
     onSuccess: () => {
       toast.success('Presença confirmada com sucesso!')
       // Limpa o estado do fluxo atual
-      setFlowState({ responsible: null, children: null })
+      setFlowState({ responsible: null, children: null, family: null })
       sessionStorage.removeItem(GUEST_FLOW_SESSION_KEY)
       setCurrentStep('SUCCESS')
     },
@@ -114,6 +126,8 @@ export function useGuestConfirmationFlow() {
       tipo_convidado: 'CRIANCA_PAGANTE',
       nascimento_convidado: child.dob ? new Date(child.dob).toISOString().split('T')[0] : null,
       e_crianca_atipica: child.isAtypical,
+      id_dependente: child.dependentId,
+      necessidades: child.needs || [],
       confirmou_presenca: 'SIM',
     }));
 
@@ -140,15 +154,32 @@ export function useGuestConfirmationFlow() {
       },
       convidados: allGuests,
       cadastrado_na_hora: isWalkin,
+      familyToken: flowState.family?.token,
+      salvarPerfil: flowState.family?.saveProfile ?? false,
     };
 
     submitGroup(payload);
   }, [flowState, submitGroup])
 
-  const handleNextFromResponsible = useCallback((data: ResponsibleStepValues) => {
+  const handleNextFromResponsible = useCallback((data: ResponsibleStepValues, family: FamilySession) => {
     setFlowState(prev => ({
       ...prev,
-      responsible: data
+      responsible: data,
+      family,
+    }))
+    setCurrentStep(family.dependents.length ? 'FAMILY_SELECTION' : 'CHILDREN')
+  }, [])
+
+  const handleFamilySelection = useCallback((dependents: SavedDependent[]) => {
+    setFlowState((prev) => ({
+      ...prev,
+      children: dependents.map((dependent) => ({
+        dependentId: dependent.id,
+        name: dependent.nome,
+        dob: new Date(`${dependent.data_nascimento}T12:00:00`),
+        isAtypical: (dependent.necessidades_recorrentes || []).includes('Necessidade de acompanhante'),
+        needs: dependent.necessidades_recorrentes || [],
+      })),
     }))
     setCurrentStep('CHILDREN')
   }, [])
@@ -197,7 +228,7 @@ export function useGuestConfirmationFlow() {
       })) || []
 
   const resetFlow = useCallback(() => {
-    setFlowState({ responsible: null, children: null })
+    setFlowState({ responsible: null, children: null, family: null })
     try {
       sessionStorage.removeItem(GUEST_FLOW_SESSION_KEY)
     } catch (error) {
@@ -213,6 +244,7 @@ export function useGuestConfirmationFlow() {
     isPending,
     childrenNeedingCompanion,
     handleNextFromResponsible,
+    handleFamilySelection,
     handleNextFromChildren,
     handleGroupSubmit,
     setCurrentStep,

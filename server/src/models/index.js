@@ -7,6 +7,10 @@ import Playlist from './Playlist.js';
 import EventoEspaco from './EventoEspaco.js';
 import PushSubscription from './PushSubscription.js';
 import NotificacaoAgendada from './NotificacaoAgendada.js';
+import ResponsavelFamiliar from './ResponsavelFamiliar.js';
+import Dependente from './Dependente.js';
+import ResponsavelDependente from './ResponsavelDependente.js';
+import OtpPerfilFamiliar from './OtpPerfilFamiliar.js';
 
 const models = {
   Usuario,
@@ -15,7 +19,11 @@ const models = {
   Playlist,
   EventoEspaco,
   PushSubscription,
-  NotificacaoAgendada
+  NotificacaoAgendada,
+  ResponsavelFamiliar,
+  Dependente,
+  ResponsavelDependente,
+  OtpPerfilFamiliar
 };
 
 Object.values(models).forEach((model) => {

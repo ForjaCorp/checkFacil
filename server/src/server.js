@@ -11,6 +11,7 @@ import festaRoutes from './routes/festaRoutes.js';
 import evolutionRoutes from './routes/evolutionapiRoutes.js';
 import eventoEspacoRoutes from './routes/eventoEspacoRoutes.js';
 import pushRoutes from './routes/pushRoutes.js';
+import perfilFamiliarRoutes from './routes/perfilFamiliarRoutes.js';
 import { iniciarAgendadorNotificacoes } from './jobs/agendadorNotificacoes.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,6 +19,8 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3001;
+
+app.set('trust proxy', 1);
 
 app.use(cors());
 app.use(express.json());
@@ -33,6 +36,7 @@ app.use('/api/playlists', playlistRoutes);
 app.use('/api/evolution', evolutionRoutes);
 app.use('/api/eventos-espaco', eventoEspacoRoutes);
 app.use('/api/push', pushRoutes);
+app.use('/api/familias', perfilFamiliarRoutes);
 
 app.get('/*splat', (_req, res) => {
 
@@ -65,6 +69,18 @@ async function LigarServidor() {
         allowNull: true
       });
       console.log('[DB] Coluna convidadosFesta.id_usuario criada.');
+    }
+    if (!colunasConvidado.id_dependente) {
+      await sequelize.getQueryInterface().addColumn('convidadosFesta', 'id_dependente', {
+        type: (await import('sequelize')).DataTypes.INTEGER,
+        allowNull: true
+      });
+    }
+    if (!colunasConvidado.id_responsavel_familiar) {
+      await sequelize.getQueryInterface().addColumn('convidadosFesta', 'id_responsavel_familiar', {
+        type: (await import('sequelize')).DataTypes.INTEGER,
+        allowNull: true
+      });
     }
     console.log('[DB] Tabelas sincronizadas.');
     iniciarAgendadorNotificacoes();

@@ -1,6 +1,7 @@
 import models, { sequelize } from '../models/index.js';
 import { Op } from 'sequelize';
 import { randomBytes } from 'crypto';
+import jwt from 'jsonwebtoken';
 import excel from 'exceljs';
 import {
   enviarBoasVindasClienteNovo,
@@ -24,6 +25,19 @@ function calcularIdade(dataNascimento) {
   }
   return idade;
 }
+
+const NECESSIDADES_CONVIDADO = new Set([
+  'Alimentação ou alergia',
+  'Acessibilidade ou mobilidade',
+  'Sensibilidade a som, luz ou aglomeração',
+  'Necessidade de acompanhante',
+  'Medicação ou cuidado importante'
+]);
+
+const filtrarNecessidades = (value) =>
+  Array.isArray(value)
+    ? [...new Set(value.filter((item) => NECESSIDADES_CONVIDADO.has(item)))]
+    : [];
 
 // --- Funções de Festa (criar, buscar, atualizar, deletar) ---
 // Nenhuma alteração necessária aqui, mantidas como no original.
@@ -375,7 +389,13 @@ export async function reenviarLinkSenha(req, res) {
 // ========================================================================
 export async function registrarGrupoConvidados(req, res) {
   const { idFesta } = req.params;
-  const { contatoResponsavel, convidados, cadastrado_na_hora = false } = req.body;
+  const {
+    contatoResponsavel,
+    convidados,
+    cadastrado_na_hora = false,
+    familyToken,
+    salvarPerfil = false
+  } = req.body;
   
   // --- NOVA VALIDAÇÃO DE SEGURANÇA ---
   // Verifica se os dados essenciais foram enviados.
@@ -384,6 +404,27 @@ export async function registrarGrupoConvidados(req, res) {
   }
   if (!Array.isArray(convidados) || convidados.length === 0) {
     return res.status(400).json({ error: 'A lista de convidados não pode estar vazia.' });
+  }
+  if (convidados.length > 30 || convidados.some((item) => {
+    const nome = String(item.nome_convidado || '').trim();
+    const crianca = String(item.tipo_convidado || '').startsWith('CRIANCA');
+    const nascimentoInvalido = crianca && !/^\d{4}-\d{2}-\d{2}$/.test(item.nascimento_convidado || '');
+    return nome.length < 2 || nome.length > 150 || nascimentoInvalido;
+  })) {
+    return res.status(400).json({ error: 'Revise os nomes e a quantidade de convidados.' });
+  }
+  let cadastroPorStaff = false;
+  if (cadastrado_na_hora && req.headers.authorization && process.env.JWT_SECRET) {
+    try {
+      const tokenStaff = req.headers.authorization.replace(/^Bearer\s+/i, '');
+      const usuario = jwt.verify(tokenStaff, process.env.JWT_SECRET);
+      cadastroPorStaff = usuario.tipo === models.Usuario.TIPOS_USUARIO.ADM_ESPACO;
+    } catch (_error) {
+      cadastroPorStaff = false;
+    }
+  }
+  if (!familyToken && !cadastroPorStaff) {
+    return res.status(401).json({ error: 'Confirme o telefone pelo código enviado no WhatsApp.' });
   }
 
   // Padrao do banco: apenas digitos com codigo do pais (ex: 5579999431920)
@@ -403,43 +444,132 @@ export async function registrarGrupoConvidados(req, res) {
       return res.status(404).json({ error: 'Festa não encontrada.' });
     }
 
-    let responsavelId = null;
-    const convidadosSalvos = [];
-    
-    // PASSO 1: Encontrar e criar o responsável PRIMEIRO (se ele estiver na lista de convidados)
-    const responsavelData = convidados.find(c => !c.tipo_convidado.startsWith('CRIANCA'));
-    
-    if (responsavelData) {
-      const novoResponsavel = await models.ConvidadoFesta.create(
-        {
+    for (const convidado of convidados) {
+      const duplicado = await models.ConvidadoFesta.findOne({
+        where: {
           id_festa: idFesta,
-          nome_convidado: responsavelData.nome_convidado,
-          tipo_convidado: responsavelData.tipo_convidado,
-          nascimento_convidado: responsavelData.nascimento_convidado || null,
-          idade_convidado: responsavelData.nascimento_convidado
-            ? calcularIdade(responsavelData.nascimento_convidado)
-            : null,
-          e_crianca_atipica: responsavelData.e_crianca_atipica || false,
-          telefone_convidado: telefoneResponsavel,
-          nome_responsavel_contato: contatoResponsavel.nome,
-          telefone_responsavel_contato: telefoneResponsavel,
-          cadastrado_na_hora: cadastrado_na_hora,
-          acompanhado_por_id: null
+          nome_convidado: String(convidado.nome_convidado || '').trim(),
+          nascimento_convidado: convidado.nascimento_convidado || null,
+          telefone_responsavel_contato: telefoneResponsavel
         },
-        { transaction }
-      );
-      
-      responsavelId = novoResponsavel.id; 
-      convidadosSalvos.push(novoResponsavel);
+        transaction
+      });
+      if (duplicado) {
+        await transaction.rollback();
+        return res.status(409).json({ error: `${convidado.nome_convidado} já está confirmado nesta festa.` });
+      }
     }
 
-    // PASSO 2: Agora, criar as crianças e VINCULAR ao responsável (se ele foi salvo)
-    const criancasData = convidados.filter(c => c.tipo_convidado.startsWith('CRIANCA'));
+    let responsavelId = null;
+    const convidadosSalvos = [];
+    let perfilFamiliar = null;
+    if (familyToken && process.env.JWT_SECRET) {
+      try {
+        const payload = jwt.verify(familyToken, process.env.JWT_SECRET);
+        if (
+          payload.escopo === 'perfil_familiar' &&
+          payload.telefone === telefoneResponsavel &&
+          String(payload.idFesta) === String(idFesta)
+        ) {
+          perfilFamiliar = await models.ResponsavelFamiliar.findByPk(payload.responsavelId, { transaction });
+        }
+      } catch (_error) {
+        await transaction.rollback();
+        return res.status(401).json({ error: 'A confirmação do telefone expirou. Confirme novamente.' });
+      }
+    }
 
+    if (salvarPerfil && !perfilFamiliar) {
+      await transaction.rollback();
+      return res.status(401).json({ error: 'Confirme o telefone antes de salvar os dados da família.' });
+    }
+    if (!perfilFamiliar && !cadastroPorStaff) {
+      await transaction.rollback();
+      return res.status(401).json({ error: 'A confirmação do telefone não é mais válida.' });
+    }
+    if (perfilFamiliar) {
+      perfilFamiliar.nome = contatoResponsavel.nome.trim();
+      if (salvarPerfil && !perfilFamiliar.consentimento_dados_em) {
+        perfilFamiliar.consentimento_dados_em = new Date();
+      }
+      await perfilFamiliar.save({ transaction });
+    }
+    const persistirPerfil = Boolean(perfilFamiliar && (salvarPerfil || perfilFamiliar.consentimento_dados_em));
+
+    const adultosData = convidados.filter((c) => !c.tipo_convidado.startsWith('CRIANCA'));
+    for (const [indice, adulto] of adultosData.entries()) {
+      const novoAdulto = await models.ConvidadoFesta.create({
+        id_festa: idFesta,
+        id_responsavel_familiar: indice === 0 && persistirPerfil ? perfilFamiliar.id : null,
+        nome_convidado: adulto.nome_convidado,
+        tipo_convidado: adulto.tipo_convidado,
+        nascimento_convidado: adulto.nascimento_convidado || null,
+        idade_convidado: adulto.nascimento_convidado ? calcularIdade(adulto.nascimento_convidado) : null,
+        e_crianca_atipica: false,
+        telefone_convidado: adulto.telefone_convidado
+          ? normalizarTelefone(adulto.telefone_convidado)
+          : indice === 0 ? telefoneResponsavel : null,
+        nome_responsavel_contato: contatoResponsavel.nome,
+        telefone_responsavel_contato: telefoneResponsavel,
+        confirmou_presenca: adulto.confirmou_presenca || 'SIM',
+        cadastrado_na_hora,
+        acompanhado_por_id: null
+      }, { transaction });
+      if (indice === 0) responsavelId = novoAdulto.id;
+      convidadosSalvos.push(novoAdulto);
+    }
+
+    const criancasData = convidados.filter((c) => c.tipo_convidado.startsWith('CRIANCA'));
     for (const crianca of criancasData) {
+      let dependente = null;
+      if (persistirPerfil && crianca.id_dependente) {
+        const vinculo = await models.ResponsavelDependente.findOne({
+          where: { id_responsavel: perfilFamiliar.id, id_dependente: crianca.id_dependente },
+          transaction
+        });
+        if (!vinculo) {
+          await transaction.rollback();
+          return res.status(403).json({ error: 'Um dos dependentes não pertence ao perfil confirmado.' });
+        }
+        dependente = await models.Dependente.findByPk(crianca.id_dependente, { transaction });
+        if (salvarPerfil) {
+          const necessidades = filtrarNecessidades(crianca.necessidades);
+          await dependente.update({
+            nome: crianca.nome_convidado,
+            data_nascimento: crianca.nascimento_convidado,
+            necessidades_recorrentes: necessidades.length ? necessidades : null,
+            necessidades_revisadas_em: new Date()
+          }, { transaction });
+        }
+      } else if (persistirPerfil && salvarPerfil) {
+        const necessidades = filtrarNecessidades(crianca.necessidades);
+        dependente = await models.Dependente.create({
+          nome: crianca.nome_convidado,
+          data_nascimento: crianca.nascimento_convidado,
+          necessidades_recorrentes: necessidades.length ? necessidades : null,
+          necessidades_revisadas_em: new Date()
+        }, { transaction });
+        await models.ResponsavelDependente.create({
+          id_responsavel: perfilFamiliar.id,
+          id_dependente: dependente.id
+        }, { transaction });
+      }
+
+      if (dependente) {
+        const existente = await models.ConvidadoFesta.findOne({
+          where: { id_festa: idFesta, id_dependente: dependente.id },
+          transaction
+        });
+        if (existente) {
+          await transaction.rollback();
+          return res.status(409).json({ error: `${dependente.nome} já está confirmado nesta festa.` });
+        }
+      }
       const novaCrianca = await models.ConvidadoFesta.create(
         {
           id_festa: idFesta,
+          id_dependente: dependente?.id || null,
+          id_responsavel_familiar: persistirPerfil ? perfilFamiliar.id : null,
           nome_convidado: crianca.nome_convidado,
           tipo_convidado: crianca.tipo_convidado,
           nascimento_convidado: crianca.nascimento_convidado || null,
@@ -447,9 +577,13 @@ export async function registrarGrupoConvidados(req, res) {
             ? calcularIdade(crianca.nascimento_convidado)
             : null,
           e_crianca_atipica: crianca.e_crianca_atipica || false,
+          observacao_convidado: filtrarNecessidades(crianca.necessidades).length
+            ? filtrarNecessidades(crianca.necessidades).join('; ')
+            : crianca.observacao_convidado || null,
           telefone_convidado: null,
           nome_responsavel_contato: contatoResponsavel.nome, // Agora seguro, pois validamos no início
           telefone_responsavel_contato: telefoneResponsavel,
+          confirmou_presenca: crianca.confirmou_presenca || 'SIM',
           cadastrado_na_hora: cadastrado_na_hora,
           acompanhado_por_id: responsavelId // Será o ID do pai ou null, corretamente
         },
@@ -459,6 +593,9 @@ export async function registrarGrupoConvidados(req, res) {
       convidadosSalvos.push(novaCrianca);
     }
 
+    if (perfilFamiliar && !persistirPerfil) {
+      await perfilFamiliar.destroy({ transaction });
+    }
     await transaction.commit();
 
     return res.status(201).json({
