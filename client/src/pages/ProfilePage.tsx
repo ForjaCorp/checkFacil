@@ -1,4 +1,4 @@
-import { Camera, Loader2, LogOut, Save, ShieldCheck } from 'lucide-react'
+import { Camera, KeyRound, Loader2, LogOut, Save, ShieldCheck } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
@@ -72,6 +72,14 @@ export default function ProfilePage() {
     }),
   })
 
+  const { mutate: redefinirSenha, isPending: isRedefinindo } = useMutation({
+    mutationFn: (telefone: string) => api.post('/auth/forgot-password', { telefone }),
+    onSuccess: () => toast.success('Link de redefinição enviado no seu WhatsApp.'),
+    onError: (error: unknown) => toast.error('Não foi possível enviar o link.', {
+      description: axios.isAxiosError(error) ? error.response?.data?.error : undefined,
+    }),
+  })
+
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview) }, [preview])
 
   if (!user) {
@@ -91,7 +99,13 @@ export default function ProfilePage() {
       <div className="mx-auto w-full max-w-2xl">
         {/* Cabecalho com capa + identidade */}
         <Card className="overflow-hidden">
-          <div className="h-20 w-full bg-gradient-to-r from-primary/80 via-primary/60 to-primary/40 sm:h-24" />
+          <div className="relative h-20 w-full bg-gradient-to-r from-primary/80 via-primary/60 to-primary/40 sm:h-24">
+            <img
+              src="/espacocriar-logo.png"
+              alt="Logo do espaço"
+              className="absolute inset-0 m-auto h-12 object-contain opacity-90 sm:h-14"
+            />
+          </div>
           <CardContent className="relative px-4 pb-4 sm:px-6">
             <div className="-mt-10 flex flex-wrap items-end justify-between gap-3 sm:-mt-12">
               <div className="relative">
@@ -162,6 +176,26 @@ export default function ProfilePage() {
               </div>
               <div className="space-y-2"><Label htmlFor="perfil-email">E-mail</Label>
                 <Input id="perfil-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isPending} /></div>
+              <div className="space-y-2">
+                <Label>Senha</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-between font-normal"
+                  disabled={isRedefinindo || !unformatPhoneNumber(telefone)}
+                  onClick={() => redefinirSenha(unformatPhoneNumber(telefone))}
+                >
+                  <span>••••••••</span>
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-primary">
+                    {isRedefinindo && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                    <KeyRound className="h-3.5 w-3.5" />
+                    Redefinir senha
+                  </span>
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Envia um link de redefinição para o WhatsApp do seu telefone cadastrado.
+                </p>
+              </div>
               <div className="flex justify-end">
                 <Button type="submit" disabled={isPending || !nome.trim() || !email.trim()}>
                   {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
