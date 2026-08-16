@@ -55,8 +55,8 @@ export function SideBar() {
               <SideBarLink
                 to={podeCriar ? '/staff/dashboard' : '/organizer/dashboard'}
                 icon={<LayoutGrid className="h-5 w-5" />}
-                label="Eventos"
-                tooltip="Ver Eventos"
+                label="Festas"
+                tooltip="Ver Festas"
               />
 
               <SideBarLink

@@ -53,7 +53,7 @@ export function BottomNavBar() {
           <BottomNavLink
             to={isAdmin ? '/staff/dashboard' : '/organizer/dashboard'}
             icon={<LayoutGrid className="h-6 w-6" />}
-            label="Eventos"
+            label="Festas"
           />
 
           <BottomNavLink

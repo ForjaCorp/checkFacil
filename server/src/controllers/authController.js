@@ -48,65 +48,6 @@ function gerarToken(params = {}) {
   });
 }
 
-export async function registrarConvidado(req, res) {
-  const { nome, email, senha, telefone, idFesta } = req.body;
-
-  try {
-    const usuarioExistente = await models.Usuario.findOne({ where: { email } });
-    if (usuarioExistente) {
-      return res.status(400).json({ error: 'Este email já está cadastrado.' });
-    }
-
-    const telefoneNormalizado = normalizarTelefone(telefone);
-
-    const usuario = await models.Usuario.create({
-      nome,
-      email,
-      senha,
-      telefone: telefoneNormalizado || null,
-      tipoUsuario: models.Usuario.TIPOS_USUARIO.CONVIDADO
-    });
-
-    // Ponte convidado -> usuario: amarra o registro da festa com o mesmo telefone
-    // (idFesta opcional, enviado quando o cadastro vem do fluxo de confirmacao de convite)
-    let convidadosVinculados = 0;
-    if (idFesta && telefoneNormalizado) {
-      const [atualizados] = await models.ConvidadoFesta.update(
-        { id_usuario: usuario.id },
-        {
-          where: {
-            id_festa: idFesta,
-            id_usuario: null,
-            [Op.or]: [
-              { telefone_convidado: telefoneNormalizado },
-              { telefone_responsavel_contato: telefoneNormalizado }
-            ]
-          }
-        }
-      );
-      convidadosVinculados = atualizados;
-    }
-
-    const { senha: _, ...usuarioSemSenha } = usuario.toJSON();
-
-    return res.status(201).json({
-      usuario: usuarioSemSenha,
-      token: gerarToken({ id: usuario.id, tipo: usuario.tipoUsuario }),
-      mensagem:
-        convidadosVinculados > 0
-          ? 'Convidado registrado e vinculado à lista da festa!'
-          : 'Convidado registrado com sucesso!'
-    });
-  } catch (error) {
-    console.error('Erro ao registrar Convidado:', error);
-    if (error.name === 'SequelizeValidationError') {
-      const erros = error.errors.map((e) => e.message);
-      return res.status(400).json({ error: 'Dados inválidos.', detalhes: erros });
-    }
-    return res.status(500).json({ error: 'Erro ao registrar convidado.' });
-  }
-}
-
 export async function login(req, res) {
   // Aceita email OU telefone no campo "email" (detecta pelo @)
   const { email, senha } = req.body;

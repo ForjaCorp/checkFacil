@@ -92,6 +92,14 @@ export async function criarFesta(req, res) {
         }
       }
     } else {
+      if (clienteOrganizador.tipoUsuario === models.Usuario.TIPOS_USUARIO.CONVIDADO) {
+        // Compatibilidade com contas legadas do antigo fluxo de usuario convidado.
+        // Participar de uma festa nao cria conta; ao contratar, a pessoa vira organizadora.
+        clienteOrganizador.tipoUsuario = models.Usuario.TIPOS_USUARIO.ADM_FESTA;
+        clienteOrganizador.telefone = telefoneCliente;
+        await clienteOrganizador.save();
+      }
+
       // Cliente JA cadastrado: notifica a nova festa direto pela Evolution API
       // (substitui o webhook n8n 642999e9)
       try {

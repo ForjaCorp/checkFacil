@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { DatePicker } from '@/components/common/DatePicker'
 import { PageHeader } from '@/components/layout/PageHeader'
 import {
   AlertDialog,
@@ -342,21 +343,29 @@ export default function EventosEspacoPage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="evento-inicio">Data de início</Label>
-                <Input
+                <DatePicker
                   id="evento-inicio"
-                  type="date"
                   value={form.data_inicio}
-                  onChange={(e) => setForm({ ...form, data_inicio: e.target.value })}
+                  onChange={(data_inicio) =>
+                    setForm({
+                      ...form,
+                      data_inicio,
+                      data_fim: form.data_fim && form.data_fim < data_inicio ? '' : form.data_fim,
+                    })
+                  }
+                  placeholder="Escolha a data de início"
                   disabled={isSaving}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="evento-fim">Data final (opcional)</Label>
-                <Input
+                <DatePicker
                   id="evento-fim"
-                  type="date"
                   value={form.data_fim}
-                  onChange={(e) => setForm({ ...form, data_fim: e.target.value })}
+                  onChange={(data_fim) => setForm({ ...form, data_fim })}
+                  placeholder="Escolha a data final"
+                  minDate={form.data_inicio || undefined}
+                  clearable
                   disabled={isSaving}
                 />
               </div>
