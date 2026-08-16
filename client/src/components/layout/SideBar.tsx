@@ -1,4 +1,4 @@
-import { LayoutGrid, PlusCircle, LogOut, Music2, Smartphone } from 'lucide-react'
+import { LayoutGrid, PlusCircle, LogOut, Music2, ShieldCheck, Smartphone } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -75,6 +75,13 @@ export function SideBar() {
                     tooltip="Criar Nova Festa"
                   />
 
+                  <SideBarLink
+                    to="/staff/admins"
+                    icon={<ShieldCheck className="h-5 w-5" />}
+                    label="Administradores"
+                    tooltip="Gerenciar Administradores"
+                  />
+
                   {/* Gerenciamento de Conexão WhatsApp via Modal acessível pela Sidebar */}
                   <Dialog open={isEvoOpen} onOpenChange={setIsEvoOpen}>
                     <DialogTrigger asChild>
@@ -103,7 +110,7 @@ export function SideBar() {
           <div className="mt-auto p-4 border-t flex flex-col gap-4">
             <Link to="/profile" className="flex items-center gap-3 group">
               <Avatar className="h-9 w-9">
-                <AvatarImage src="" alt={`Avatar de ${user?.name}`} />
+                <AvatarImage src={user?.photoUrl ?? undefined} alt={`Avatar de ${user?.name}`} />
                 <AvatarFallback>{userInitials}</AvatarFallback>
               </Avatar>
               <div className="grid gap-0.5 text-xs">

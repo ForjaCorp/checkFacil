@@ -1,5 +1,6 @@
 import { Smartphone, RefreshCw, LogOut, Loader2, QrCode, CheckCircle2, AlertCircle, RotateCcw } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 
 // Restaurando o padrão de aliases @/ que é o padrão do seu projeto e resolve melhor os caminhos
 import { Button } from '@/components/ui/button';
@@ -75,8 +76,10 @@ export const EvolutionManager = () => {
       } else {
         fetchStatus();
       }
-    } catch (err: any) {
-      const detalhe = err?.response?.data?.error || 'Falha ao recriar a instância.';
+    } catch (err: unknown) {
+      const detalhe = axios.isAxiosError(err)
+        ? (err.response?.data as { error?: string } | undefined)?.error || 'Falha ao recriar a instância.'
+        : 'Falha ao recriar a instância.';
       window.alert(`Não foi possível recriar a instância:\n\n${detalhe}`);
     } finally {
       setLoading(false);

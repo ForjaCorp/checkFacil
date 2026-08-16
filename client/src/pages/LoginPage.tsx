@@ -66,7 +66,9 @@ function LoginPage() {
         id: usuario.id.toString(),
         email: usuario.email,
         name: usuario.nome,
-        userType: usuario.tipoUsuario
+        userType: usuario.tipoUsuario,
+        phone: usuario.telefone,
+        photoUrl: usuario.fotoUrl
       }
       auth.login(authenticatedUserData, token)
     },

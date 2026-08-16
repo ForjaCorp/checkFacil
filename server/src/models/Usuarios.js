@@ -71,6 +71,11 @@ Usuario.init(
     redefineSenhaExpiracao: {
       type: DataTypes.DATE,
       allowNull: true
+    },
+    // Caminho relativo da foto de perfil (ex: /uploads/avatars/xxx.png)
+    fotoUrl: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
   },
   {

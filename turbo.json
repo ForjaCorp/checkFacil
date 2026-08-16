@@ -1,5 +1,6 @@
 {
   "$schema": "https://turborepo.org/schema.json",
+  "noUpdateNotifier": true,
   "globalEnv": ["NODE_ENV"],
   "tasks": {
     "build": {

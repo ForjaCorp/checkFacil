@@ -65,6 +65,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           email: usuario.email,
           name: usuario.nome,
           userType: usuario.tipoUsuario,
+          phone: usuario.telefone,
+          photoUrl: usuario.fotoUrl,
         }
 
         setAuthState({
@@ -110,6 +112,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     ...authState,
     login,
     logout,
+    updateUser: (userData) => {
+      setAuthState((current) => {
+        if (!current.user) return current
+        const user = { ...current.user, ...userData }
+        localStorage.setItem('user', JSON.stringify(user))
+        return { ...current, user }
+      })
+    },
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
