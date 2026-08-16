@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { AxiosError } from 'axios'
-import { CalendarDays, CalendarPlus, Eye, EyeOff, ImagePlus, Loader2, Pencil, Trash2 } from 'lucide-react'
+import { CalendarDays, CalendarPlus, EyeOff, ImagePlus, Loader2, Pencil, Send, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -218,7 +218,7 @@ export default function EventosEspacoPage() {
         <CardHeader>
           <CardTitle>Eventos Cadastrados</CardTitle>
           <CardDescription>
-            Publicar torna o evento visível no app dos clientes (e futuramente dispara notificação).
+            Publicar torna o evento visível e envia uma notificação aos clientes que ativaram os avisos.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -233,7 +233,7 @@ export default function EventosEspacoPage() {
           ) : (
             <ul className="divide-y">
               {eventos.map((evento) => (
-                <li key={evento.id} className="flex items-center gap-3 py-3">
+                <li key={evento.id} className="flex flex-wrap items-center gap-3 py-3">
                   {evento.imagem_url ? (
                     <img
                       src={evento.imagem_url}
@@ -252,18 +252,24 @@ export default function EventosEspacoPage() {
                   <Badge variant={evento.publicado ? 'default' : 'secondary'} className="shrink-0">
                     {evento.publicado ? 'Publicado' : 'Rascunho'}
                   </Badge>
-                  <div className="flex shrink-0 items-center gap-1">
+                  <div className="ml-auto flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto">
                     <Button
-                      variant="ghost"
-                      size="icon"
+                      variant={evento.publicado ? 'outline' : 'default'}
+                      size="sm"
                       title={evento.publicado ? 'Despublicar' : 'Publicar'}
                       disabled={isToggling || isDeleting}
                       onClick={() => alternarPublicacao(evento.id)}
                     >
                       {evento.publicado ? (
-                        <EyeOff className="h-4 w-4" />
+                        <>
+                          <EyeOff className="mr-2 h-4 w-4" />
+                          Despublicar
+                        </>
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <>
+                          <Send className="mr-2 h-4 w-4" />
+                          Publicar
+                        </>
                       )}
                     </Button>
                     <Button

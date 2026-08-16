@@ -61,8 +61,11 @@ export default function EventosEspacoClientePage() {
     }
   }
 
-  const proximos = eventos.filter((e) => e.data_fim || e.data_inicio >= new Date().toISOString().slice(0, 10))
-  const passados = eventos.filter((e) => (e.data_fim || e.data_inicio) < new Date().toISOString().slice(0, 10))
+  const hoje = new Date().toISOString().slice(0, 10)
+  const proximos = eventos.filter((e) => (e.data_fim || e.data_inicio) >= hoje)
+  const passados = eventos
+    .filter((e) => (e.data_fim || e.data_inicio) < hoje)
+    .sort((a, b) => b.data_inicio.localeCompare(a.data_inicio))
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
@@ -88,7 +91,14 @@ export default function EventosEspacoClientePage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <section className="space-y-3">
+          <h2 className="text-xl font-semibold">Próximos eventos</h2>
+          {proximos.length === 0 ? (
+            <p className="rounded-lg border bg-card p-4 text-sm text-muted-foreground">
+              Não há novos eventos programados no momento.
+            </p>
+          ) : (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {proximos.map((evento) => {
             const { dia, mes } = dataMes(evento.data_inicio)
             return (
@@ -126,7 +136,7 @@ export default function EventosEspacoClientePage() {
                     <Button asChild className="flex-1">
                       <a href={evento.link_ingresso} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="mr-2 h-4 w-4" />
-                        Comprar ingresso
+                        Participar
                       </a>
                     </Button>
                   )}
@@ -142,23 +152,25 @@ export default function EventosEspacoClientePage() {
               </Card>
             )
           })}
-        </div>
+          </div>
+          )}
+        </section>
       )}
 
       {passados.length > 0 && (
-        <details className="rounded-lg border bg-card p-4">
-          <summary className="cursor-pointer text-sm font-medium text-muted-foreground">
-            Eventos encerrados ({passados.length})
-          </summary>
-          <ul className="mt-3 space-y-2">
-            {passados.map((evento) => (
-              <li key={evento.id} className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground line-through">{evento.titulo}</span>
-                <span className="text-muted-foreground">{periodoLabel(evento)}</span>
-              </li>
-            ))}
-          </ul>
-        </details>
+        <section className="space-y-3">
+          <h2 className="text-xl font-semibold">Eventos que já passaram</h2>
+          <div className="rounded-lg border bg-card p-4">
+            <ul className="space-y-3">
+              {passados.map((evento) => (
+                <li key={evento.id} className="flex flex-col gap-1 border-b pb-3 text-sm last:border-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="font-medium">{evento.titulo}</span>
+                  <span className="text-muted-foreground">Encerrado · {periodoLabel(evento)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
       )}
     </div>
   )

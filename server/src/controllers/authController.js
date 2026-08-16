@@ -114,14 +114,21 @@ export async function login(req, res) {
   try {
     let usuario;
 
-    if (String(email || '').includes('@')) {
-      usuario = await models.Usuario.findOne({ where: { email } });
+    const identificador = String(email || '').trim();
+
+    if (identificador.includes('@')) {
+      usuario = await models.Usuario.findOne({ where: { email: identificador } });
     } else {
-      // Busca por telefone comparando apenas os digitos (aceita com/sem 55 e mascara)
-      const digitos = String(email || '').replace(/\D/g, '').replace(/^55/, '');
+      // O 55 so e codigo do pais em numeros com 12/13 digitos. Isso evita
+      // remover por engano o DDD 55 de um telefone nacional.
+      const telefoneNacional = (valor) => {
+        const digitos = String(valor || '').replace(/\D/g, '');
+        return digitos.length >= 12 && digitos.startsWith('55') ? digitos.slice(2) : digitos;
+      };
+      const digitos = telefoneNacional(identificador);
       const candidatos = await models.Usuario.findAll({ where: { telefone: { [Op.ne]: null } } });
       usuario = candidatos.find(
-        (u) => String(u.telefone).replace(/\D/g, '').replace(/^55/, '') === digitos
+        (u) => telefoneNacional(u.telefone) === digitos
       );
     }
 

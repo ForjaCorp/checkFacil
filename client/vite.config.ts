@@ -16,15 +16,22 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'sw.js',
       registerType: 'autoUpdate',
+      injectRegister: false,
+      includeAssets: ['favicon.ico', 'apple-icon-180x180.png'],
       manifest: {
         name: 'Check Fácil',
         short_name: 'CheckFácil',
+        id: '/',
+        lang: 'pt-BR',
         description: 'Gerencie seu evento de forma fácil e rápida.',
         theme_color: '#8A5CA6',
         background_color: '#8A5CA6',
         display: 'standalone',
         scope: '/',
         start_url: '/',
+        orientation: 'any',
+        categories: ['productivity', 'lifestyle'],
+        prefer_related_applications: false,
         icons: [
           {
             src: 'icon-192x192.png',

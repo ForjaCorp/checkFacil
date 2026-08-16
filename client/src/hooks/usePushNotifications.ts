@@ -36,6 +36,7 @@ interface PushState {
  * Fluxo: permissao -> subscribe com VAPID -> POST /api/push/inscrever
  */
 export function usePushNotifications() {
+  const [chavePublica, setChavePublica] = useState<string | null | undefined>(undefined)
   const [state, setState] = useState<PushState>({
     suportado: false,
     ativado: false,
@@ -50,7 +51,7 @@ export function usePushNotifications() {
         'serviceWorker' in navigator &&
         'PushManager' in window &&
         'Notification' in window
-      const iosSemInstalar = suportado ? isIosSemInstalar() : false
+      const iosSemInstalar = isIosSemInstalar()
       let ativado = false
       if (suportado && Notification.permission === 'granted') {
         try {
@@ -63,20 +64,42 @@ export function usePushNotifications() {
       setState((s) => ({ ...s, suportado, ativado, iosSemInstalar, carregando: false }))
     }
     verificar()
+
+    api
+      .get('/push/chave-publica')
+      .then(({ data }) => setChavePublica(data?.chavePublica || null))
+      .catch(() => setChavePublica(null))
   }, [])
 
   const ativar = useCallback(async (): Promise<{ ok: boolean; mensagem: string }> => {
     setState((s) => ({ ...s, ativando: true }))
     try {
-      const { data } = await api.get('/push/chave-publica')
-      const chavePublica = data?.chavePublica as string | undefined
+      if (state.iosSemInstalar) {
+        return {
+          ok: false,
+          mensagem: 'No iPhone, abra o app instalado pela Tela de Início para ativar os avisos.',
+        }
+      }
       if (!chavePublica) {
-        return { ok: false, mensagem: 'Notificações não configuradas no servidor.' }
+        return {
+          ok: false,
+          mensagem:
+            chavePublica === undefined
+              ? 'A configuração das notificações ainda está carregando. Tente novamente.'
+              : 'Notificações não configuradas no servidor.',
+        }
       }
 
+      // No iOS, o pedido precisa ser a primeira ação assíncrona após o toque.
       const permissao = await Notification.requestPermission()
       if (permissao !== 'granted') {
-        return { ok: false, mensagem: 'Permissão de notificação negada no navegador.' }
+        return {
+          ok: false,
+          mensagem:
+            permissao === 'denied'
+              ? 'Permissão bloqueada. Libere o Check Fácil em Ajustes > Notificações.'
+              : 'A permissão de notificação não foi concedida.',
+        }
       }
 
       const registro = await navigator.serviceWorker.ready
@@ -94,7 +117,7 @@ export function usePushNotifications() {
     } finally {
       setState((s) => ({ ...s, ativando: false }))
     }
-  }, [])
+  }, [chavePublica, state.iosSemInstalar])
 
   const desativar = useCallback(async (): Promise<{ ok: boolean; mensagem: string }> => {
     setState((s) => ({ ...s, ativando: true }))

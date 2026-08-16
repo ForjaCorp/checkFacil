@@ -208,7 +208,9 @@ export async function alternarPublicacao(req, res) {
       publicado: evento.publicado,
       pushesEnviados,
       mensagem: evento.publicado
-        ? `Evento publicado${pushesEnviados > 0 ? ` (${pushesEnviados} notificações enviadas).` : '.'}`
+        ? pushesEnviados > 0
+          ? `Evento publicado (${pushesEnviados} notificações enviadas).`
+          : 'Evento publicado, mas nenhuma notificação foi entregue. Confira se há dispositivos inscritos e se o push está configurado.'
         : 'Evento despublicado.'
     });
   } catch (error) {

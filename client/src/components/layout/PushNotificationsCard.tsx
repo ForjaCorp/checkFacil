@@ -29,7 +29,9 @@ export function PushNotificationsCard() {
       <Card>
         <CardContent className="flex items-center gap-3 py-4 text-sm text-muted-foreground">
           <BellOff className="h-5 w-5 shrink-0" />
-          Este navegador não suporta notificações push.
+          {iosSemInstalar
+            ? 'No iPhone, adicione o site à Tela de Início e abra o app pelo novo ícone para ativar as notificações.'
+            : 'Este navegador ou sistema não suporta notificações push.'}
         </CardContent>
       </Card>
     )

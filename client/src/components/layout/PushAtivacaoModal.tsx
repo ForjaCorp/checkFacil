@@ -1,4 +1,6 @@
 import { BellRing, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -20,10 +22,16 @@ const CHAVE_DISPENSADO = 'checkfacil:push-modal-dispensado'
  */
 export function PushAtivacaoModal() {
   const { suportado, ativado, carregando, ativando, ativar } = usePushNotifications()
+  const [dispensado, setDispensado] = useState(
+    () => localStorage.getItem(CHAVE_DISPENSADO) === '1',
+  )
 
-  const aberto = !carregando && suportado && !ativado && localStorage.getItem(CHAVE_DISPENSADO) !== '1'
+  const aberto = !carregando && suportado && !ativado && !dispensado
 
-  const dispensar = () => localStorage.setItem(CHAVE_DISPENSADO, '1')
+  const dispensar = () => {
+    localStorage.setItem(CHAVE_DISPENSADO, '1')
+    setDispensado(true)
+  }
 
   return (
     <Dialog open={aberto} onOpenChange={(valor) => (valor ? undefined : dispensar())}>
@@ -52,7 +60,12 @@ export function PushAtivacaoModal() {
             disabled={ativando}
             onClick={async () => {
               const resultado = await ativar()
-              if (resultado.ok) dispensar()
+              if (resultado.ok) {
+                toast.success(resultado.mensagem)
+                dispensar()
+              } else {
+                toast.error(resultado.mensagem)
+              }
             }}
           >
             {ativando && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

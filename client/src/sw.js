@@ -7,6 +7,7 @@ import { clientsClaim } from 'workbox-core'
 // Precache dos assets gerados pelo build (mesmo comportamento do generateSW anterior)
 precacheAndRoute(self.__WB_MANIFEST)
 cleanupOutdatedCaches()
+self.skipWaiting()
 clientsClaim()
 
 /**

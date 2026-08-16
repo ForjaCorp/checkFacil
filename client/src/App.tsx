@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
+import { PwaInstallPrompt } from '@/components/PwaInstallPrompt'
 import SplashScreen from '@/components/SplashScreen'
 import { Toaster } from '@/components/ui/sonner'
 import { useAuth } from '@/contexts/authContextCore'
@@ -77,6 +78,7 @@ function App() {
           </Route>
         </Routes>
       </Suspense>
+      <PwaInstallPrompt />
       <Toaster richColors position="top-right" />
     </>
   )

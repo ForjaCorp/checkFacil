@@ -66,6 +66,15 @@ export function SideBar() {
                 tooltip="Gerenciar Playlists"
               />
 
+              {!podeCriar && (
+                <SideBarLink
+                  to="/organizer/eventos"
+                  icon={<CalendarDays className="h-5 w-5" />}
+                  label="Eventos do Espaço"
+                  tooltip="Ver Eventos do Espaço"
+                />
+              )}
+
               {podeCriar && (
                 <>
                   <SideBarLink

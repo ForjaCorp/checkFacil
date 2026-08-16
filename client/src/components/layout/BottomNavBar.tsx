@@ -1,4 +1,4 @@
-import { LayoutGrid, PlusCircle, User, Music2, Smartphone } from 'lucide-react'
+import { CalendarDays, LayoutGrid, PlusCircle, User, Music2, Smartphone } from 'lucide-react'
 import { useState } from 'react'
 
 import { BottomNavLink } from '@/components/layout/BottomNavLink'
@@ -47,8 +47,8 @@ export function BottomNavBar() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 h-16 bg-primary border-t border-border shadow-t-md z-50 lg:hidden">
       <TooltipProvider delayDuration={0}>
-        {/* O Grid ajusta entre 5 colunas (Admin) ou 3 colunas (Usuário padrão) */}
-        <div className={`grid h-full ${isAdmin ? 'grid-cols-5' : 'grid-cols-3'}`}>
+        {/* O Grid ajusta entre 5 colunas (Admin) ou 4 colunas (Usuário padrão) */}
+        <div className={`grid h-full ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'}`}>
           
           <BottomNavLink
             to={isAdmin ? '/staff/dashboard' : '/organizer/dashboard'}
@@ -61,6 +61,14 @@ export function BottomNavBar() {
             icon={<Music2 className="h-6 w-6" />}
             label="Playlists"
           />
+
+          {!isAdmin && (
+            <BottomNavLink
+              to="/organizer/eventos"
+              icon={<CalendarDays className="h-6 w-6" />}
+              label="No espaço"
+            />
+          )}
 
           {/* Área restrita: Criar Festa e Conexão WhatsApp */}
           {isAdmin && (

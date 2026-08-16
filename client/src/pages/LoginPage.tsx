@@ -36,7 +36,11 @@ const loginFormSchema = z.object({
       (v) => {
         // Aceita email OU telefone BR (10/11 digitos, com ou sem 55, com mascara)
         if (v.includes('@')) return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
-        const digitos = v.replace(/\D/g, '').replace(/^55/, '')
+        const todosDigitos = v.replace(/\D/g, '')
+        const digitos =
+          todosDigitos.length >= 12 && todosDigitos.startsWith('55')
+            ? todosDigitos.slice(2)
+            : todosDigitos
         return digitos.length >= 10 && digitos.length <= 11
       },
       { message: 'Informe um e-mail válido ou telefone com DDD. Ex: (86) 99999-9999' }
@@ -108,7 +112,7 @@ function LoginPage() {
   })
 
   function onSubmit(values: LoginFormValues) {
-    login(values)
+    login({ ...values, email: values.email.trim() })
   }
 
   if (auth.isAuthenticated) {
