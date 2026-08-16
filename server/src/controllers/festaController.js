@@ -8,7 +8,8 @@ import {
   enviarCheckinConvidado,
   enviarCheckoutConvidado,
   enviarReenvioLinkSenha,
-  enviarMensagemWhatsApp
+  enviarMensagemWhatsApp,
+  normalizarTelefone
 } from '../services/whatsappService.js';
 
 
@@ -36,6 +37,14 @@ export async function criarFesta(req, res) {
       .json({ error: 'Dados da festa e do cliente (com nome e email) são obrigatórios.' });
   }
 
+  // Padrao do banco: apenas digitos com codigo do pais (ex: 5579999431920)
+  const telefoneCliente = normalizarTelefone(dadosCliente.telefone);
+  if (!telefoneCliente) {
+    return res.status(400).json({
+      error: 'Telefone do contratante inválido. Informe DDD + número (com ou sem 55).'
+    });
+  }
+
   try {
     let clienteOrganizador = await models.Usuario.findOne({ where: { email: dadosCliente.email } });
     let isNovoCliente = false;
@@ -46,7 +55,7 @@ export async function criarFesta(req, res) {
       clienteOrganizador = await models.Usuario.create({
         nome: dadosCliente.nome,
         email: dadosCliente.email,
-        telefone: dadosCliente.telefone,
+        telefone: telefoneCliente,
         tipoUsuario: models.Usuario.TIPOS_USUARIO.ADM_FESTA,
         senha: randomBytes(16).toString('hex')
       });
@@ -369,6 +378,14 @@ export async function registrarGrupoConvidados(req, res) {
     return res.status(400).json({ error: 'A lista de convidados não pode estar vazia.' });
   }
 
+  // Padrao do banco: apenas digitos com codigo do pais (ex: 5579999431920)
+  const telefoneResponsavel = normalizarTelefone(contatoResponsavel.telefone);
+  if (!telefoneResponsavel) {
+    return res.status(400).json({
+      error: 'Telefone do responsável inválido. Informe DDD + número (com ou sem 55).'
+    });
+  }
+
   const transaction = await sequelize.transaction();
 
   try {
@@ -395,9 +412,9 @@ export async function registrarGrupoConvidados(req, res) {
             ? calcularIdade(responsavelData.nascimento_convidado)
             : null,
           e_crianca_atipica: responsavelData.e_crianca_atipica || false,
-          telefone_convidado: contatoResponsavel.telefone,
+          telefone_convidado: telefoneResponsavel,
           nome_responsavel_contato: contatoResponsavel.nome,
-          telefone_responsavel_contato: contatoResponsavel.telefone,
+          telefone_responsavel_contato: telefoneResponsavel,
           cadastrado_na_hora: cadastrado_na_hora,
           acompanhado_por_id: null
         },
@@ -424,7 +441,7 @@ export async function registrarGrupoConvidados(req, res) {
           e_crianca_atipica: crianca.e_crianca_atipica || false,
           telefone_convidado: null,
           nome_responsavel_contato: contatoResponsavel.nome, // Agora seguro, pois validamos no início
-          telefone_responsavel_contato: contatoResponsavel.telefone,
+          telefone_responsavel_contato: telefoneResponsavel,
           cadastrado_na_hora: cadastrado_na_hora,
           acompanhado_por_id: responsavelId // Será o ID do pai ou null, corretamente
         },
@@ -619,12 +636,21 @@ export async function registrarAdultos(req, res) {
         });
       }
 
+      const telefoneAdulto = normalizarTelefone(adulto.telefone);
+      if (!telefoneAdulto) {
+        await transaction.rollback();
+        return res.status(400).json({
+          error: 'Telefone inválido em um dos adultos. Informe DDD + número (com ou sem 55).',
+          detalhes: adulto
+        });
+      }
+
       const novoConvidado = await models.ConvidadoFesta.create(
         {
           id_festa: idFesta,
           nome_convidado: adulto.nome,
-          telefone_convidado: adulto.telefone,
-          telefone_responsavel_contato: adulto.telefone,
+          telefone_convidado: telefoneAdulto,
+          telefone_responsavel_contato: telefoneAdulto,
           tipo_convidado: 'ADULTO_PAGANTE',
           confirmou_presenca: 'SIM',
           cadastrado_na_hora: cadastrado_na_hora

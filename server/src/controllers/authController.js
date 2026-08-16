@@ -6,7 +6,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import multer from 'multer'
-import { enviarMensagemWhatsApp, enviarConviteAdmEspaco } from '../services/whatsappService.js';
+import { enviarMensagemWhatsApp, enviarConviteAdmEspaco, normalizarTelefone } from '../services/whatsappService.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -187,12 +187,7 @@ export async function convidarAdmEspaco(req, res) {
     }
 
     const digitos = String(telefone).replace(/\D/g, '');
-    const telefoneNormalizado =
-      digitos.length >= 12 && digitos.startsWith('55')
-        ? digitos
-        : digitos.length === 10 || digitos.length === 11
-          ? `55${digitos}`
-          : null;
+    const telefoneNormalizado = normalizarTelefone(digitos);
     if (!telefoneNormalizado) {
       return res.status(400).json({ error: 'Telefone inválido. Informe DDD + número (com ou sem 55).' });
     }
@@ -485,8 +480,13 @@ export async function atualizarPerfil(req, res) {
 
     usuario.nome = nome;
     usuario.email = email;
-    const telefoneNormalizado = telefone ? telefone.replace(/\D/g, '') : '';
-    usuario.telefone = telefoneNormalizado || null;
+    // Padrao do banco: apenas digitos com codigo do pais (ex: 5579999431920).
+    // Telefone vazio limpa o campo; preenchido e invalido devolve 400.
+    const telefoneNormalizado = telefone ? normalizarTelefone(telefone) : null;
+    if (telefone && !telefoneNormalizado) {
+      return res.status(400).json({ error: 'Telefone inválido. Informe DDD + número (com ou sem 55).' });
+    }
+    usuario.telefone = telefoneNormalizado;
     if (req.file) {
       if (usuario.fotoUrl) {
         const antiga = path.join(__dirname, '../../', usuario.fotoUrl.replace(/^\//, ''));

@@ -23,8 +23,9 @@ const evoApi = axios.create({
 /**
  * Normaliza o telefone pro formato aceito pela Evolution API.
  * Ex: "79911223344" ou "(79) 99112-2334" -> "5579911223344"
+ * Exportada para os controllers gravarem no banco no mesmo padrao.
  */
-function normalizarTelefone(telefone) {
+export function normalizarTelefone(telefone) {
   if (!telefone) return null;
   const digitos = String(telefone).replace(/\D/g, '');
 
