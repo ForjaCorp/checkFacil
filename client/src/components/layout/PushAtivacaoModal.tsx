@@ -9,8 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { usePushNotifications } from '@/hooks/usePushNotifications'
-import { isIosSemInstalar } from '@/hooks/usePushNotifications'
+import { usePushNotifications, isIosSemInstalar } from '@/hooks/usePushNotifications'
 
 const CHAVE_DISPENSADO = 'checkfacil:push-modal-dispensado'
 
