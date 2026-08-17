@@ -9,6 +9,7 @@ import { AddChildrenStep } from './steps/AddChildrenStep'
 import { CompanionStep } from './steps/CompanionStep'
 import { ConfirmResponsibleStep } from './steps/ConfirmResponsibleStep'
 import { FinalConfirmationStep } from './steps/FinalConfirmationStep'
+import { SelectFamilyStep } from './steps/SelectFamilyStep'
 import { SuccessStep } from './steps/SuccessStep'
 
 export type ChildNeedingCompanion = {
@@ -26,6 +27,7 @@ export default function ConfirmChildrenFlowPage() {
     isPending,
     childrenNeedingCompanion,
     handleNextFromResponsible,
+    handleFamilySelection,
     handleNextFromChildren,
     handleGroupSubmit,
     setCurrentStep,
@@ -44,15 +46,24 @@ export default function ConfirmChildrenFlowPage() {
     <div className="flex min-h-screen w-full items-center justify-center bg-muted/30 px-4 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-0">
       {currentStep === 'RESPONSIBLE' && (
         <ConfirmResponsibleStep
+          eventId={String(eventData?.id || '')}
           onNext={handleNextFromResponsible}
           initialData={flowState.responsible}
           onBack={() => navigate(-1)} 
         />
       )}
+      {currentStep === 'FAMILY_SELECTION' && flowState.family && (
+        <SelectFamilyStep
+          dependents={flowState.family.dependents}
+          onBack={() => setCurrentStep('RESPONSIBLE')}
+          onAddNew={() => setCurrentStep('CHILDREN')}
+          onContinue={handleFamilySelection}
+        />
+      )}
       {currentStep === 'CHILDREN' && (
         <AddChildrenStep
           onNext={handleNextFromChildren}
-          onBack={() => setCurrentStep('RESPONSIBLE')}
+          onBack={() => setCurrentStep(flowState.family?.dependents.length ? 'FAMILY_SELECTION' : 'RESPONSIBLE')}
           initialData={flowState.children ? { children: flowState.children } : undefined}
         />
       )}

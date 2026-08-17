@@ -20,6 +20,16 @@ services:
       - EVOLUTION_INSTANCE_NAME=${EVOLUTION_INSTANCE_NAME}
       # Links enviados via WhatsApp
       - FRONT_URL=${FRONT_URL:-https://espacocriar.4growthbr.space}
+      # Web Push
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - VAPID_SUBJECT=${VAPID_SUBJECT:-mailto:contato@checkfacil.app}
     ports:
       - "3001"
+    volumes:
+      # Avatares e imagens de eventos precisam sobreviver à recriação do contêiner.
+      - checkfacil_uploads:/app/server/uploads
     restart: unless-stopped
+
+volumes:
+  checkfacil_uploads:

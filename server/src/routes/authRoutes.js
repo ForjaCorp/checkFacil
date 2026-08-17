@@ -11,14 +11,6 @@ import models from '../models/index.js';
 const router = express.Router();
 
 router.post(
-  '/register/convidado',
-  verificarTokenJWT,
-  permitirApenas(models.Usuario.TIPOS_USUARIO.ADM_ESPACO),
-  validarRegistro,
-  authController.registrarConvidado
-);
-
-router.post(
   '/register/admEspaco',
   verificarTokenJWT,
   permitirApenas(models.Usuario.TIPOS_USUARIO.ADM_ESPACO),

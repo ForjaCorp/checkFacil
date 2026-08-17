@@ -48,40 +48,6 @@ function gerarToken(params = {}) {
   });
 }
 
-export async function registrarConvidado(req, res) {
-  const { nome, email, senha, telefone } = req.body;
-
-  try {
-    const usuarioExistente = await models.Usuario.findOne({ where: { email } });
-    if (usuarioExistente) {
-      return res.status(400).json({ error: 'Este email já está cadastrado.' });
-    }
-
-    const usuario = await models.Usuario.create({
-      nome,
-      email,
-      senha,
-      telefone: telefone || null,
-      tipoUsuario: models.Usuario.TIPOS_USUARIO.CONVIDADO
-    });
-
-    const { senha: _, ...usuarioSemSenha } = usuario.toJSON();
-
-    return res.status(201).json({
-      usuario: usuarioSemSenha,
-      token: gerarToken({ id: usuario.id, tipo: usuario.tipoUsuario }),
-      mensagem: 'Convidado registrado com sucesso!'
-    });
-  } catch (error) {
-    console.error('Erro ao registrar Convidado:', error);
-    if (error.name === 'SequelizeValidationError') {
-      const erros = error.errors.map((e) => e.message);
-      return res.status(400).json({ error: 'Dados inválidos.', detalhes: erros });
-    }
-    return res.status(500).json({ error: 'Erro ao registrar convidado.' });
-  }
-}
-
 export async function login(req, res) {
   // Aceita email OU telefone no campo "email" (detecta pelo @)
   const { email, senha } = req.body;
@@ -89,14 +55,21 @@ export async function login(req, res) {
   try {
     let usuario;
 
-    if (String(email || '').includes('@')) {
-      usuario = await models.Usuario.findOne({ where: { email } });
+    const identificador = String(email || '').trim();
+
+    if (identificador.includes('@')) {
+      usuario = await models.Usuario.findOne({ where: { email: identificador } });
     } else {
-      // Busca por telefone comparando apenas os digitos (aceita com/sem 55 e mascara)
-      const digitos = String(email || '').replace(/\D/g, '').replace(/^55/, '');
+      // O 55 so e codigo do pais em numeros com 12/13 digitos. Isso evita
+      // remover por engano o DDD 55 de um telefone nacional.
+      const telefoneNacional = (valor) => {
+        const digitos = String(valor || '').replace(/\D/g, '');
+        return digitos.length >= 12 && digitos.startsWith('55') ? digitos.slice(2) : digitos;
+      };
+      const digitos = telefoneNacional(identificador);
       const candidatos = await models.Usuario.findAll({ where: { telefone: { [Op.ne]: null } } });
       usuario = candidatos.find(
-        (u) => String(u.telefone).replace(/\D/g, '').replace(/^55/, '') === digitos
+        (u) => telefoneNacional(u.telefone) === digitos
       );
     }
 

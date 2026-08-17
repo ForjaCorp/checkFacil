@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { DataTypes } from 'sequelize';
 import { sequelize } from '../models/index.js';
 
 /**
@@ -16,6 +17,25 @@ try {
   console.log('[sync] Conectado ao banco. Sincronizando tabelas...');
 
   await sequelize.sync({ alter: usarAlter });
+
+  // Migração aditiva para a tabela que já existe em produção. Evita
+  // depender de `sync --alter`, que pode reescrever outras estruturas.
+  const queryInterface = sequelize.getQueryInterface();
+  const colunasConvidado = await queryInterface.describeTable('convidadosFesta');
+  if (!colunasConvidado.id_dependente) {
+    await queryInterface.addColumn('convidadosFesta', 'id_dependente', {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    });
+    console.log('[sync] Coluna convidadosFesta.id_dependente criada.');
+  }
+  if (!colunasConvidado.id_responsavel_familiar) {
+    await queryInterface.addColumn('convidadosFesta', 'id_responsavel_familiar', {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    });
+    console.log('[sync] Coluna convidadosFesta.id_responsavel_familiar criada.');
+  }
 
   console.log('[sync] Tabelas sincronizadas com sucesso.');
   await sequelize.close();

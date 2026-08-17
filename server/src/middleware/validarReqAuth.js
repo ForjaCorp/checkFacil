@@ -25,16 +25,29 @@ export function validarLogin(req, res, next) {
   const { email, senha } = req.body;
 
   if (!email || !senha) {
-    return res.status(400).json({ error: 'Email e senha são obrigatórios.' });
-  }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return res.status(400).json({ error: 'Email inválido.' });
+    return res.status(400).json({ error: 'Telefone/e-mail e senha são obrigatórios.' });
   }
 
   if (typeof email !== 'string' || typeof senha !== 'string') {
-    return res.status(400).json({ error: 'Email e senha devem ser strings.' });
+    return res.status(400).json({ error: 'Telefone/e-mail e senha devem ser textos.' });
+  }
+
+  const identificador = email.trim();
+  if (identificador.includes('@')) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(identificador)) {
+      return res.status(400).json({ error: 'E-mail inválido.' });
+    }
+  } else {
+    const todosDigitos = identificador.replace(/\D/g, '');
+    const digitos =
+      todosDigitos.length >= 12 && todosDigitos.startsWith('55')
+        ? todosDigitos.slice(2)
+        : todosDigitos;
+
+    if (digitos.length < 10 || digitos.length > 11) {
+      return res.status(400).json({ error: 'Telefone inválido. Informe o DDD e o número.' });
+    }
   }
 
   next();

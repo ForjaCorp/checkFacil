@@ -1,4 +1,4 @@
-import { LayoutGrid, PlusCircle, LogOut, Music2, ShieldCheck, Smartphone } from 'lucide-react'
+import { CalendarDays, LayoutGrid, PlusCircle, LogOut, Music2, ShieldCheck, Smartphone, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -55,8 +55,8 @@ export function SideBar() {
               <SideBarLink
                 to={podeCriar ? '/staff/dashboard' : '/organizer/dashboard'}
                 icon={<LayoutGrid className="h-5 w-5" />}
-                label="Eventos"
-                tooltip="Ver Eventos"
+                label="Festas"
+                tooltip="Ver Festas"
               />
 
               <SideBarLink
@@ -65,6 +65,15 @@ export function SideBar() {
                 label="Playlists"
                 tooltip="Gerenciar Playlists"
               />
+
+              {!podeCriar && (
+                <SideBarLink
+                  to="/organizer/eventos"
+                  icon={<CalendarDays className="h-5 w-5" />}
+                  label="Eventos do Espaço"
+                  tooltip="Ver Eventos do Espaço"
+                />
+              )}
 
               {podeCriar && (
                 <>
@@ -80,6 +89,13 @@ export function SideBar() {
                     icon={<ShieldCheck className="h-5 w-5" />}
                     label="Administradores"
                     tooltip="Gerenciar Administradores"
+                  />
+
+                  <SideBarLink
+                    to="/staff/eventos-espaco"
+                    icon={<CalendarDays className="h-5 w-5" />}
+                    label="Eventos do Espaço"
+                    tooltip="Gerenciar Eventos do Espaço"
                   />
 
                   {/* Gerenciamento de Conexão WhatsApp via Modal acessível pela Sidebar */}
@@ -107,7 +123,7 @@ export function SideBar() {
             </nav>
           </div>
 
-          <div className="mt-auto p-4 border-t flex flex-col gap-4">
+          <div className="mt-auto p-4 border-t flex flex-col gap-3">
             <Link to="/profile" className="flex items-center gap-3 group">
               <Avatar className="h-9 w-9">
                 <AvatarImage src={user?.photoUrl ?? undefined} alt={`Avatar de ${user?.name}`} />
@@ -120,10 +136,16 @@ export function SideBar() {
                 <p className="text-muted-foreground text-[10px] truncate max-w-[150px]">{user?.email}</p>
               </div>
             </Link>
-            <Button size="sm" variant="outline" className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
-            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" className="flex-1" onClick={() => navigate('/profile')}>
+                <UserRound className="mr-2 h-4 w-4" />
+                Ver perfil
+              </Button>
+              <Button size="sm" variant="outline" className="w-1/3 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700" onClick={handleLogout}>
+                <LogOut className="h-4 w-4" />
+                <span className="sr-only">Sair</span>
+              </Button>
+            </div>
           </div>
         </div>
       </TooltipProvider>

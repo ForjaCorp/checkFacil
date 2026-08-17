@@ -56,6 +56,20 @@ JWT_SECRET=gere_um_segredo_forte_e_aleatorio_aqui
 
 # Porta do Servidor
 PORT=3001
+
+# URL do frontend (links enviados via WhatsApp)
+FRONT_URL=https://seu-dominio.com
+
+# WhatsApp (Evolution API)
+EVOLUTION_API_URL=https://sua-evolution-api.com
+EVOLUTION_API_KEY=sua_api_key
+EVOLUTION_INSTANCE_NAME=nome_da_instancia
+
+# Web Push (notificacoes na barra do aparelho)
+# Gerar com: npx web-push generate-vapid-keys
+VAPID_PUBLIC_KEY=sua_chave_publica
+VAPID_PRIVATE_KEY=sua_chave_privada
+VAPID_SUBJECT=mailto:contato@seu-dominio.com
 ```
 
 ---
@@ -78,16 +92,27 @@ A API estará disponível em: [http://localhost:3001](http://localhost:3001)
 
 ---
 
-## 🔐 Endpoints de Autenticação (`/auth`)
+## 🔐 Endpoints de Autenticação (`/api/auth`)
 
-> Todas as rotas relacionadas ao login e cadastro de usuários. Para criar usuarios é necessario o Token de um ADM_Festa logado
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| POST | `/auth/register/admFesta` | — | Cadastro de cliente (organizador de festa). |
+| POST | `/auth/register/admEspaco` | ADM_ESPACO | Cadastro de administrador do espaço. |
+| POST | `/auth/register/convidado` | ADM_ESPACO | Cadastro de convidado (aceita `idFesta` opcional para vincular à lista da festa por telefone). |
+| POST | `/auth/login` | — | Login por e-mail **ou telefone** + senha. Retorna JWT. |
+| POST | `/auth/forgot-password` | — | Solicita redefinição de senha (link via WhatsApp). |
+| POST | `/auth/definir-senha` | — | Define senha via token de convite/redefinição. |
+| GET | `/auth/me` | JWT | Valida sessão e retorna dados do usuário (inclui `fotoUrl`, `telefone`). |
+| PUT | `/auth/me` | JWT | Atualiza perfil (`nome`, `email`, `telefone` normalizado, `foto` multipart até 2 MB). |
 
-| Método | Rota                           | Descrição                                                       |
-|--------|-------------------------------|-----------------------------------------------------------------------|
-| POST   | `/auth/register/admFesta`     | Somente um usuarios admEspaco ja cadastrado pode criar um usuario novo, usando seu Token      |
-| POST   | `/auth/register/admEspaco`     |  Somente um usuarios admEspaco ja cadastrado pode criar um usuario novo, usando seu Token     |
-| POST   | `/auth/login`                  | Realiza login e retorna token JWT.                                    |
-| POST   | `/auth/definir-senha`         | Permite definir senha via token de primeiro acesso.                  |
+#### 🔸 Gestão de equipe (`/auth/adms`, todas ADM_ESPACO)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/auth/adms` | Lista administradores do espaço. |
+| POST | `/auth/adms/convidar` | Convida adm (nome, e-mail, telefone) e envia link de senha via WhatsApp. |
+| POST | `/auth/adms/:id/redefinir-senha` | Reenvia link de redefinição de senha via WhatsApp. |
+| DELETE | `/auth/adms/:id` | Exclui administrador (bloqueia excluir a si mesmo e titulares do `.env`). |
 
 #### 🔸 Exemplo: Cadastro de Usuário (POST `/auth/register/...`)
 
@@ -113,15 +138,21 @@ A API estará disponível em: [http://localhost:3001](http://localhost:3001)
 
 ## 🎉 Endpoints de Festas (`/festa`)
 
-🔐 Autenticação Obrigatória para todas as rotas de festa (usar `Authorization: Bearer SEU_TOKEN`).
+🔐 Autenticação JWT obrigatória, exceto nas rotas marcadas como **pública**.
 
-| Método | Rota               | Descrição                                       |
-|--------|--------------------|-----------------------------------------------|
-| POST   | `/festa/criar`     | Cria uma nova festa e associa um cliente.     |
-| GET     | `/festa/listar`   | Lista festas com filtros e permissões.       |
-| GET     | `/festa/:idFesta` | Busca os detalhes de uma festa específica.   |
-| PATCH   | `/festa/:idFesta` | Atualiza uma festa específica.               |
-| DELETE | `/festa/:idFesta` | Remove uma festa do sistema.                 |
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| POST | `/festa/criar` | Cria uma festa e associa um cliente (cria conta se o e-mail for novo; WhatsApp de boas-vindas). |
+| GET | `/festa/listar` | Lista festas com filtros e permissões (adm vê todas, cliente só as suas). |
+| GET | `/festa/:idFesta` | Busca os detalhes de uma festa específica. |
+| GET | `/festa/:idFesta/public` | **Pública** — dados mínimos da festa para a página de confirmação do convidado. |
+| POST | `/festa/:idFesta/register-guest-group` | **Pública** — confirmação de grupo de convidados (link do convite). |
+| POST | `/festa/:idFesta/register-adults` | **Pública** — confirmação de adultos (link do convite). |
+| PATCH | `/festa/:idFesta` | Atualiza uma festa específica. |
+| DELETE | `/festa/:idFesta` | Remove uma festa do sistema. |
+| POST | `/festa/:idFesta/reenviar-link-senha` | Reenvia link de definição de senha do organizador via WhatsApp. |
+| POST | `/festa/:idFesta/disparar-mensagem` | Dispara mensagem em massa no WhatsApp (filtros por presença/confirmação). |
+| POST | `/festa/:idFesta/convite/upload` | Upload da imagem do convite (multipart, campo `arquivo`). |
 
 #### 🔸 POST `/festa/criar`
 
@@ -191,8 +222,11 @@ GET /festa/listar?search=Aniversário&status=PRONTA&page=1&limit=5
 | GET     | `/convidados/:idConvidado`        | Busca um convidado específico por ID. |
 | PATCH   | `/convidados/:idConvidado`        | Atualiza um convidado específico.     |
 | DELETE  | `/convidados/:idConvidado`        | Remove um convidado específico.       |
-| PATCH   | `/convidados/:idConvidado/checkin`| Realiza o check-in de um convidado.   |
-| PATCH   | `/convidados/:idConvidado/checkout`| Realiza o check-out de um convidado. |
+| PATCH   | `/convidados/:idConvidado/checkin`| Realiza o check-in de um convidado.
+| PATCH   | `/convidados/:idConvidado/checkout`| Realiza o check-out de um convidado.
+| GET     | `/convidados/download`              | Exporta a lista de convidados.
+| POST    | `/convidados/:idConvidado/checkin-grupo`  | Check-in do grupo (responsável + crianças).
+| POST    | `/convidados/:idConvidado/checkout-grupo` | Check-out do grupo. |
 
 #### 🔸 POST `/festa/:idFesta/convidados`
 
@@ -235,3 +269,79 @@ Exemplo de Corpo: (envie apenas os campos a alterar)
 Descrição: Realiza o check-in ou o check-out. **Ação restrita ao Staff (AdmEspaco)**.
 
 Corpo: Nenhum (ou `{}`).
+
+---
+
+## 🎵 Endpoints de Playlists (`/api/playlists`)
+
+🔐 Autenticação JWT obrigatória.
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/playlists` | Lista playlists (adm vê todas, cliente só as suas). |
+| POST | `/playlists` | Cria uma playlist. |
+| GET | `/playlists/:id` | Detalha uma playlist. |
+| PATCH | `/playlists/:id` | Atualiza uma playlist. |
+| DELETE | `/playlists/:id` | Remove uma playlist. |
+| POST | `/playlists/:id/musicas` | Adiciona música à playlist. |
+| DELETE | `/playlists/:id/musicas/:idMusica` | Remove música da playlist. |
+
+---
+
+## 📱 WhatsApp — Evolution API (`/api/evolution`)
+
+🔐 Autenticação JWT obrigatória (adm). Gerencia a instância conectada.
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/evolution/status` | Status da conexão (conectado/desconectado). |
+| GET | `/evolution/qr` | QR Code para conectar o WhatsApp. |
+| POST | `/evolution/start` | Inicia a sessão da instância. |
+| POST | `/evolution/logout` | Desloga a sessão atual. |
+| POST | `/evolution/restart` | Reinicia a instância. |
+| POST | `/evolution/logoff` | Encerra a instância. |
+
+---
+
+## 🎪 Eventos do Espaço (`/api/eventos-espaco`)
+
+Eventos abertos/temáticos do espaço (colônia de férias, dia das mães...), com link de ingresso (Sympla).
+
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| GET | `/eventos-espaco` | JWT | Lista eventos **publicados** (visível a clientes). |
+| GET | `/eventos-espaco/admin` | ADM_ESPACO | Lista todos os eventos (rascunho + publicados). |
+| POST | `/eventos-espaco` | ADM_ESPACO | Cria evento (multipart: campos texto + `imagem` até 4 MB, JPG/PNG/WEBP). |
+| PUT | `/eventos-espaco/:id` | ADM_ESPACO | Atualiza evento (mesmos campos; imagem opcional). |
+| DELETE | `/eventos-espaco/:id` | ADM_ESPACO | Exclui evento e a imagem do disco. |
+| POST | `/eventos-espaco/:id/publicar` | ADM_ESPACO | Alterna publicação. Ao **publicar**, dispara push para todos os clientes. |
+
+---
+
+## 🔔 Notificações Push (`/api/push`)
+
+Web Push (VAPID) — notificações na barra de notificações do celular/desktop.
+
+| Método | Rota | Auth | Descrição |
+|--------|------|------|-----------|
+| GET | `/push/chave-publica` | — | Chave pública VAPID (para o front inscrever o dispositivo). |
+| POST | `/push/inscrever` | JWT | Registra/atualiza a assinatura do dispositivo. |
+| DELETE | `/push/inscrever` | JWT | Remove a assinatura do dispositivo. |
+| POST | `/push/teste` | JWT | Envia push de teste ao próprio usuário. |
+
+> No iPhone (iOS 16.4+), o push só é entregue com o PWA instalado na tela de início.
+
+---
+
+## 📦 Arquivos Estáticos (`/uploads`)
+
+- `GET /uploads/avatars/<arquivo>` — fotos de perfil.
+- `GET /uploads/eventos/<arquivo>` — imagens de divulgação dos eventos do espaço.
+- `GET /uploads/convites/<arquivo>` — imagens de convite.
+
+---
+
+## ⏰ Jobs Agendados (node-cron)
+
+- **Lembrete de dados incompletos** — diário às 09:00 (`America/Fortaleza`): identifica festas a até 7 dias da data com dados pendentes (pacote, horário, convidados cadastrados < contratado) e envia WhatsApp ao cliente contratante. Máx. 1 lembrete/semana por festa, 3 tentativas, cancelado automaticamente se os dados forem completados ou a festa cancelada. Fila na tabela `notificacoes_agendadas`.
+- Em desenvolvimento (`NODE_ENV != production`), um ciclo roda ~5s após o boot.

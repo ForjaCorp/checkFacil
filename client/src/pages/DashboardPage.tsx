@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react'
 
 import { EventCalendarView } from '@/components/events/EventCalendarView'
 import { EventSection } from '@/components/events/EventSection'
+import { EventosEspacoBanner } from '@/components/events/EventosEspacoBanner'
+import { PushAtivacaoModal } from '@/components/layout/PushAtivacaoModal'
 import { DashboardFilters } from '@/components/layout/DashboardFilters'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { WhatsAppStatusIndicator } from '@/components/layout/WhatsAppStatusIndicator'
@@ -184,6 +186,14 @@ export default function DashboardPage() {
         <section className="animate-in fade-in slide-in-from-top-4 duration-500">
           <WhatsAppStatusIndicator />
         </section>
+      )}
+
+      {/* Modal de ativacao de push + banner de eventos do espaco — visao do cliente */}
+      {user.userType === 'Adm_festa' && (
+        <>
+          <PushAtivacaoModal />
+          <EventosEspacoBanner />
+        </>
       )}
 
       {isError && (

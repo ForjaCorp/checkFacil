@@ -27,12 +27,14 @@ const addChildrenSchema = z.object({
   children: z
     .array(
       z.object({
+        dependentId: z.number().optional(),
         name: z
           .string()
           .trim()
           .min(3, { message: 'O nome da criança é obrigatório (mínimo 3 letras).' }),
         dob: z.date().optional(),
         isAtypical: z.boolean().default(false),
+        needs: z.array(z.string()).default([]),
       }),
     )
     .min(1, 'Você deve adicionar pelo menos uma criança.')
@@ -54,7 +56,7 @@ export function AddChildrenStep({ onNext, onBack, initialData }: AddChildrenStep
   const form = useForm<AddChildrenStepValues>({
     resolver: zodResolver(addChildrenSchema),
     defaultValues: initialData || {
-      children: [{ name: '', dob: undefined, isAtypical: false }],
+      children: [{ name: '', dob: undefined, isAtypical: false, needs: [] }],
     },
   })
 
@@ -118,6 +120,44 @@ export function AddChildrenStep({ onNext, onBack, initialData }: AddChildrenStep
                   />
                   <FormField
                     control={form.control}
+                    name={`children.${index}.needs`}
+                    render={({ field }) => {
+                      const options = [
+                        'Alimentação ou alergia',
+                        'Acessibilidade ou mobilidade',
+                        'Sensibilidade a som, luz ou aglomeração',
+                        'Necessidade de acompanhante',
+                        'Medicação ou cuidado importante',
+                      ]
+                      return (
+                        <FormItem className="space-y-3 rounded-lg bg-muted/40 p-3">
+                          <FormLabel>Alguma necessidade para esta festa?</FormLabel>
+                          <p className="text-xs text-muted-foreground">Marque somente o que a equipe precisa saber para acolher bem.</p>
+                          {options.map((option) => (
+                            <label key={option} className="flex cursor-pointer items-center gap-3 text-sm">
+                              <Checkbox
+                                checked={(field.value || []).includes(option)}
+                                onCheckedChange={(checked) => {
+                                  const next = checked
+                                    ? [...(field.value || []), option]
+                                    : (field.value || []).filter((item) => item !== option)
+                                  field.onChange(next)
+                                  form.setValue(
+                                    `children.${index}.isAtypical`,
+                                    next.includes('Necessidade de acompanhante'),
+                                  )
+                                }}
+                              />
+                              {option}
+                            </label>
+                          ))}
+                          <p className="text-xs text-muted-foreground">Se nada estiver marcado, entenderemos que não há necessidade específica para esta festa.</p>
+                        </FormItem>
+                      )
+                    }}
+                  />
+                  <FormField
+                    control={form.control}
                     name={`children.${index}.dob`}
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
@@ -157,18 +197,6 @@ export function AddChildrenStep({ onNext, onBack, initialData }: AddChildrenStep
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name={`children.${index}.isAtypical`}
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                        <FormLabel className="font-normal">É uma criança atípica?</FormLabel>
-                      </FormItem>
-                    )}
-                  />
                 </div>
               ))}
             </div>
@@ -177,7 +205,7 @@ export function AddChildrenStep({ onNext, onBack, initialData }: AddChildrenStep
               type="button"
               variant="outline"
               className="w-full"
-              onClick={() => append({ name: '', dob: undefined, isAtypical: false })}
+              onClick={() => append({ name: '', dob: undefined, isAtypical: false, needs: [] })}
             >
               <PlusCircle className="mr-2 h-4 w-4" />
               Adicionar outra criança

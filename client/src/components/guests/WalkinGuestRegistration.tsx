@@ -98,6 +98,7 @@ function GroupWithChildrenFlow({ onSuccess: _onSuccess, onBack }: GroupWithChild
     case 'RESPONSIBLE':
       return (
         <ConfirmResponsibleStep
+          requireVerification={false}
           onNext={handleNextFromResponsible}
           onBack={onBack}
           initialData={flowState.responsible}
@@ -144,6 +145,7 @@ function GroupWithChildrenFlow({ onSuccess: _onSuccess, onBack }: GroupWithChild
     default:
       return (
         <ConfirmResponsibleStep 
+          requireVerification={false}
           onNext={handleNextFromResponsible} 
           onBack={onBack}
           initialData={flowState.responsible}

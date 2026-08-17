@@ -338,6 +338,35 @@ export async function enviarConviteAdmEspaco(dados) {
 }
 
 /**
+ * Lembrete automatico de dados incompletos da festa (job diario).
+ * Enviado ao cliente contratante ate 7 dias antes da data da festa.
+ */
+export async function enviarLembreteDadosIncompletos(dados) {
+  const { nomeCliente, telefoneCliente, nomeFesta, dataFesta, pendencias, idFesta } = dados;
+
+  const dataFormatada = new Date(`${dataFesta}T12:00:00`).toLocaleDateString('pt-BR', {
+    timeZone: 'UTC'
+  });
+
+  const linkPainel = `${FRONT_URL}/organizer/event/${idFesta}/details`;
+
+  const mensagem = [
+    `Ola, ${nomeCliente}!`,
+    '',
+    `Sua festa *${nomeFesta}* esta marcada para ${dataFormatada} e ainda faltam alguns dados:`,
+    '',
+    ...pendencias.map((p) => `- ${p}`),
+    '',
+    'Complete agora no painel para garantir tudo pronto pro grande dia:',
+    linkPainel,
+    '',
+    'Ate a festa! 🎈'
+  ].join('\n');
+
+  return enviarMensagemWhatsApp(telefoneCliente, mensagem);
+}
+
+/**
  * Reset completo da instancia WhatsApp: desloga, deleta e recria com o
  * MESMO nome e MESMO token (apikey continua valida, nada muda no .env).
  * Devolve o QR Code pro usuario escanear.

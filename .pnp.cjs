@@ -2204,6 +2204,8 @@ const RAW_RUNTIME_STATE =
           ["typescript", "patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"],\
           ["vite", "virtual:5c338bb28b9f3f55173bc5eece02b05a3d8056d1456df39753cd1be0672c950c4909ff364eca83c8d3b5758940400febfd69bd99be94a5243aaaabd19517326c#npm:6.3.5"],\
           ["vite-plugin-pwa", "virtual:5c338bb28b9f3f55173bc5eece02b05a3d8056d1456df39753cd1be0672c950c4909ff364eca83c8d3b5758940400febfd69bd99be94a5243aaaabd19517326c#npm:1.0.0"],\
+          ["workbox-core", "npm:7.4.1"],\
+          ["workbox-precaching", "npm:7.4.1"],\
           ["zod", "npm:3.25.51"]\
         ],\
         "linkType": "SOFT"\
@@ -2224,8 +2226,10 @@ const RAW_RUNTIME_STATE =
           ["morgan", "npm:1.10.0"],\
           ["multer", "npm:2.0.1"],\
           ["mysql2", "npm:3.14.1"],\
+          ["node-cron", "npm:4.6.0"],\
           ["nodemon", "npm:3.1.10"],\
-          ["sequelize", "virtual:2851452865d0b68955b000544a87605bf95c186f84c49a54ae17ea5ded61bc3653ffe348374180170038b65d783f3a0bb9d5ed11485bb2133df950cc5ca28192#npm:6.37.7"]\
+          ["sequelize", "virtual:2851452865d0b68955b000544a87605bf95c186f84c49a54ae17ea5ded61bc3653ffe348374180170038b65d783f3a0bb9d5ed11485bb2133df950cc5ca28192#npm:6.37.7"],\
+          ["web-push", "npm:3.6.7"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -5595,6 +5599,19 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["asn1.js", [\
+      ["npm:5.4.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/asn1.js-npm-5.4.1-37c7edbcb0-10c0.zip/node_modules/asn1.js/",\
+        "packageDependencies": [\
+          ["asn1.js", "npm:5.4.1"],\
+          ["bn.js", "npm:4.12.5"],\
+          ["inherits", "npm:2.0.4"],\
+          ["minimalistic-assert", "npm:1.0.1"],\
+          ["safer-buffer", "npm:2.1.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["ast-types-flow", [\
       ["npm:0.0.8", {\
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/ast-types-flow-npm-0.0.8-d5c457c18e-10c0.zip/node_modules/ast-types-flow/",\
@@ -5844,6 +5861,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/bluebird-npm-3.4.7-5dff099581-10c0.zip/node_modules/bluebird/",\
         "packageDependencies": [\
           ["bluebird", "npm:3.4.7"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["bn.js", [\
+      ["npm:4.12.5", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/bn.js-npm-4.12.5-af921852af-10c0.zip/node_modules/bn.js/",\
+        "packageDependencies": [\
+          ["bn.js", "npm:4.12.5"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -8301,6 +8327,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["http_ece", [\
+      ["npm:1.2.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/http_ece-npm-1.2.0-e7c8a7c5dd-10c0.zip/node_modules/http_ece/",\
+        "packageDependencies": [\
+          ["http_ece", "npm:1.2.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["https-proxy-agent", [\
       ["npm:7.0.6", {\
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/https-proxy-agent-npm-7.0.6-27a95c2690-10c0.zip/node_modules/https-proxy-agent/",\
@@ -9073,6 +9108,16 @@ const RAW_RUNTIME_STATE =
           ["safe-buffer", "npm:5.2.1"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:2.0.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/jwa-npm-2.0.1-9ebe28a626-10c0.zip/node_modules/jwa/",\
+        "packageDependencies": [\
+          ["jwa", "npm:2.0.1"],\
+          ["buffer-equal-constant-time", "npm:1.0.1"],\
+          ["ecdsa-sig-formatter", "npm:1.0.11"],\
+          ["safe-buffer", "npm:5.2.1"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["jws", [\
@@ -9081,6 +9126,15 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["jws", "npm:3.2.2"],\
           ["jwa", "npm:1.4.2"],\
+          ["safe-buffer", "npm:5.2.1"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:4.0.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/jws-npm-4.0.1-0d8c257cbe-10c0.zip/node_modules/jws/",\
+        "packageDependencies": [\
+          ["jws", "npm:4.0.1"],\
+          ["jwa", "npm:2.0.1"],\
           ["safe-buffer", "npm:5.2.1"]\
         ],\
         "linkType": "HARD"\
@@ -9682,6 +9736,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["minimalistic-assert", [\
+      ["npm:1.0.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/minimalistic-assert-npm-1.0.1-dc8bb23d29-10c0.zip/node_modules/minimalistic-assert/",\
+        "packageDependencies": [\
+          ["minimalistic-assert", "npm:1.0.1"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["minimatch", [\
       ["npm:3.1.2", {\
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/minimatch-npm-3.1.2-9405269906-10c0.zip/node_modules/minimatch/",\
@@ -9947,6 +10010,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/negotiator-npm-1.0.0-47d727e27e-10c0.zip/node_modules/negotiator/",\
         "packageDependencies": [\
           ["negotiator", "npm:1.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["node-cron", [\
+      ["npm:4.6.0", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/node-cron-npm-4.6.0-c0a59b7c41-10c0.zip/node_modules/node-cron/",\
+        "packageDependencies": [\
+          ["node-cron", "npm:4.6.0"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -12852,6 +12924,20 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["web-push", [\
+      ["npm:3.6.7", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/web-push-npm-3.6.7-d113990efe-10c0.zip/node_modules/web-push/",\
+        "packageDependencies": [\
+          ["web-push", "npm:3.6.7"],\
+          ["asn1.js", "npm:5.4.1"],\
+          ["http_ece", "npm:1.2.0"],\
+          ["https-proxy-agent", "npm:7.0.6"],\
+          ["jws", "npm:4.0.1"],\
+          ["minimist", "npm:1.2.8"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["webidl-conversions", [\
       ["npm:4.0.2", {\
         "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/webidl-conversions-npm-4.0.2-1d159e6409-10c0.zip/node_modules/webidl-conversions/",\
@@ -13059,6 +13145,13 @@ const RAW_RUNTIME_STATE =
           ["workbox-core", "npm:7.3.0"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:7.4.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/workbox-core-npm-7.4.1-6d2ab3295d-10c0.zip/node_modules/workbox-core/",\
+        "packageDependencies": [\
+          ["workbox-core", "npm:7.4.1"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["workbox-expiration", [\
@@ -13105,6 +13198,16 @@ const RAW_RUNTIME_STATE =
           ["workbox-strategies", "npm:7.3.0"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:7.4.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/workbox-precaching-npm-7.4.1-4245214ef0-10c0.zip/node_modules/workbox-precaching/",\
+        "packageDependencies": [\
+          ["workbox-precaching", "npm:7.4.1"],\
+          ["workbox-core", "npm:7.4.1"],\
+          ["workbox-routing", "npm:7.4.1"],\
+          ["workbox-strategies", "npm:7.4.1"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["workbox-range-requests", [\
@@ -13140,6 +13243,14 @@ const RAW_RUNTIME_STATE =
           ["workbox-core", "npm:7.3.0"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:7.4.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/workbox-routing-npm-7.4.1-acf2a7b4a4-10c0.zip/node_modules/workbox-routing/",\
+        "packageDependencies": [\
+          ["workbox-routing", "npm:7.4.1"],\
+          ["workbox-core", "npm:7.4.1"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["workbox-strategies", [\
@@ -13148,6 +13259,14 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["workbox-strategies", "npm:7.3.0"],\
           ["workbox-core", "npm:7.3.0"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:7.4.1", {\
+        "packageLocation": "../../../../AppData/Local/Yarn/Berry/cache/workbox-strategies-npm-7.4.1-982d77ee57-10c0.zip/node_modules/workbox-strategies/",\
+        "packageDependencies": [\
+          ["workbox-strategies", "npm:7.4.1"],\
+          ["workbox-core", "npm:7.4.1"]\
         ],\
         "linkType": "HARD"\
       }]\
